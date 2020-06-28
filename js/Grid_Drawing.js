@@ -594,32 +594,32 @@ function Print_Grid_Spatially_Like_Map(grid) {
 
     for (var i = grid.length - 1; i >= 0; i--) {
 
-        var row_value = "[ ";
+        var row_value = "[";
 
         for (var j = 0; j < grid.length; j++) {
 
-            row_value = row_value + "[ " + grid[i][j][0] + " , " + grid[i][j][1] + " ]";
+            row_value = row_value + "[" + grid[i][j][0] + "," + grid[i][j][1] + "]";
         }
 
-        row_value = row_value + " ] ";
+        row_value = row_value + "]";
 
         console.log(row_value);
 
     }
 }
 
-function Print_Grid_Points_Spatially_Like_Map(grid) {
+function Print_Grid_Points_Spatially_Like_Map(latlong_grid) {
 
-    for (var i = grid.length - 1; i >= 0; i--) {
+    for (var i = latlong_grid.length - 1; i >= 0; i--) {
 
-        var row_value = "[ ";
+        var row_value = "[";
 
-        for (var j = 0; j < grid.length; j++) {
+        for (var j = 0; j < latlong_grid.length; j++) {
 
-            row_value = row_value + "[ " + grid[i][j].x + " , " + grid[i][j].y + " ]";
+            row_value = row_value + "[" + latlong_grid[i][j].x + "," + latlong_grid[i][j].y + "]";
         }
 
-        row_value = row_value + " ] ";
+        row_value = row_value + "]";
 
         console.log(row_value);
 

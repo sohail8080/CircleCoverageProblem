@@ -1,5 +1,5 @@
 ﻿
-// done
+e
 function Random_No_Of_Chars_To_Take_From_Two_Crossover_Coordinates() {
 
     var number = Math.floor((Math.random() * 5) + 1);
@@ -17,7 +17,7 @@ function Random_No_Of_Chars_To_Take_From_Two_Crossover_Coordinates() {
 }
 
 
-// done
+
 function Random_Starting_Index_Of_Coordinates_For_Crossover(no_of_characters) {
 
     // index = 0, 1, 2, ........ (6-no_of_characters)
@@ -29,7 +29,7 @@ function Random_Starting_Index_Of_Coordinates_For_Crossover(no_of_characters) {
 }
 
 
-// done
+
 function Crossover_Two_Binary_Coordinates(c1, c2) {
 
     var no_of_characters = Random_No_Of_Chars_To_Take_From_Two_Crossover_Coordinates();
@@ -100,7 +100,7 @@ function Crossover_Two_Decimal_Points(p1, p2) {
 
         //console.error(crossover_yd);
 
-        if (crossover_yd <= 0 || crossover_yd >= (grid.length-1)) {
+        if (crossover_yd <= 0 || crossover_yd >= (grid.length - 1)) {
 
             crossover_yd = (crossover_yd % (grid.length - 2)) + 1;
 
@@ -121,7 +121,88 @@ function Crossover_Two_Decimal_Points(p1, p2) {
 }
 
 
+function Crossover_Two_Decimal_Points_Map(p1, p2, polygon_coverage_on_cartesian_grid) {
+
+
+    var binary_point1 = Convert_Decimal_Point_To_Binary(p1);
+    var binary_point2 = Convert_Decimal_Point_To_Binary(p2);
+
+    do {
+
+
+        // cross over X
+        var crossover_x; //= Crossover_Two_Binary_Coordinates(binary_point1[0], binary_point2[0]);
+
+        do {
+
+            crossover_x = Crossover_Two_Binary_Coordinates(binary_point1[0], binary_point2[0]);// binary
+
+            var crossover_xd = Convert_Binary_To_Decimal(crossover_x);// decimal
+
+            //console.error(crossover_xd);
+
+            if (crossover_xd <= 0 || crossover_xd >= (grid[0].length - 1)) {
+
+                crossover_xd = (crossover_xd % (grid[0].length - 2)) + 1;
+
+                //console.error("changed to " + crossover_xd);
+            }
+
+            var crossover_xds = crossover_xd.toString();
+
+        }
+        while (!Validate_Coordinate_On_Grid(crossover_xds, grid_length));
+
+
+        // cross over Y
+        var crossover_y; // = Crossover_Two_Binary_Coordinates(binary_point1[1], binary_point2[1]);
+
+        do {
+            //string is returned
+            crossover_y = Crossover_Two_Binary_Coordinates(binary_point1[1], binary_point2[1]);
+
+            // string is passed, int is returned
+            var crossover_yd = Convert_Binary_To_Decimal(crossover_y);
+
+            //console.error(crossover_yd);
+
+            if (crossover_yd <= 0 || crossover_yd >= (grid.length - 1)) {
+
+                crossover_yd = (crossover_yd % (grid.length - 2)) + 1;
+
+                //console.error("changed to " + crossover_yd);
+            }
+
+            var crossover_yds = crossover_yd.toString();
+        }
+        while (!Validate_Coordinate_On_Grid(crossover_yds, grid_length));
+
+        var decimal_point = [];
+        decimal_point[0] = crossover_xd;
+        decimal_point[1] = crossover_yd;
+
+    }
+    while (!Is_Point_Within_Polygon(polygon_coverage_on_cartesian_grid, decimal_point));
+
+
+    return decimal_point;
+}
+
+
 function Crossover_Two_Decimal_Records(r1, r2) {
+
+    var new_record = [];
+
+    new_record[0] = Crossover_Two_Decimal_Points(r1[0], r2[0]);
+    new_record[1] = Crossover_Two_Decimal_Points(r1[1], r2[1]);
+    new_record[2] = Crossover_Two_Decimal_Points(r1[2], r2[2]);
+    new_record[3] = Crossover_Two_Decimal_Points(r1[3], r2[3]);
+
+    return new_record;
+}
+
+
+function Crossover_Two_Decimal_Records_Map(r1, r2, polygon_coverage) {
 
     var new_record = [];
 
@@ -150,6 +231,29 @@ function Crossover_Generation_Of_Four(g) {
 
     return new_record;
 }
+
+//Crossover_Generation_Of_Four
+function Crossover_Generation_On_Map(generation, polygon_coverage, grid_length, number_of_records_in_each_crossover_generations) {
+
+
+
+
+    var new_record = [];
+
+    new_record[0] = Crossover_Two_Decimal_Records(generation[0], generation[1]);
+    new_record[1] = Crossover_Two_Decimal_Records(generation[0], generation[2]);
+    new_record[2] = Crossover_Two_Decimal_Records(generation[0], generation[3]);
+    new_record[3] = Crossover_Two_Decimal_Records(generation[1], generation[2]);
+
+    new_record[4] = Crossover_Two_Decimal_Records(generation[1], generation[3]);
+    new_record[5] = Crossover_Two_Decimal_Records(generation[2], generation[3]);
+    new_record[6] = Crossover_Two_Decimal_Records(generation[1], generation[0]);
+    new_record[7] = Crossover_Two_Decimal_Records(generation[2], generation[1]);
+
+    return new_record;
+}
+
+
 
 
 function Convert_Decimal_To_Binary(num) {

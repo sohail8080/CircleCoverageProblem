@@ -32,34 +32,53 @@
 
 
 
-function GetRandomPoint_Map(grid_length, grid_buffer_x, grid_buffer_y) {
+function GetRandomPoint_Map(grid_length, polygon_coverage_on_cartesian_grid, grid_buffer_x, grid_buffer_y) {
 
-   
-    var point = new Array(2);
+    var point;
 
-   // static buffer
-    //var buffer = 4;  
-    //var min_x = 0 + buffer;
-    //var max_x = grid_length - 1 - buffer;
-    //var min_y = 0 + buffer;
-    //var max_y = grid_length - 1 - buffer;
+    do {
+        point = new Array(2);
 
-
-    var min_x = 0 + grid_buffer_x;
-    var max_x = grid_length - 1 - grid_buffer_x;
-    var min_y = 0 + grid_buffer_y;
-    var max_y = grid_length - 1 - grid_buffer_y;
+        // static buffer
+        //var buffer = 4;  
+        //var min_x = 0 + buffer;
+        //var max_x = grid_length - 1 - buffer;
+        //var min_y = 0 + buffer;
+        //var max_y = grid_length - 1 - buffer;
 
 
-    point[0] = Math.floor(Math.random() * (max_x - min_x + 1)) + min_x;
-    point[1] = Math.floor(Math.random() * (max_y - min_y + 1)) + min_y;
+        var min_x = 0 + grid_buffer_x;
+        var max_x = grid_length - 1 - grid_buffer_x;
+        var min_y = 0 + grid_buffer_y;
+        var max_y = grid_length - 1 - grid_buffer_y;
 
+
+        point[0] = Math.floor(Math.random() * (max_x - min_x + 1)) + min_x;
+        point[1] = Math.floor(Math.random() * (max_y - min_y + 1)) + min_y;
+    }
+    while (!Is_Point_Within_Polygon(polygon_coverage_on_cartesian_grid, point));
 
     return point;
 
 }
 
+function Is_Point_Within_Polygon(polygon_coverage_on_cartesian_grid, point) {
 
+    var flag = false;
+
+    for (var i = 0; i < polygon_coverage_on_cartesian_grid.length; i++) {
+
+        if (polygon_coverage_on_cartesian_grid[i][0] == point[0] &&
+            polygon_coverage_on_cartesian_grid[i][1] == point[1]) {
+
+            flag = true;
+            break;        
+        }
+    }
+
+    return flag;
+
+}
 
 function GetRandomRecord() {
 
@@ -75,13 +94,13 @@ function GetRandomRecord() {
 
 
 
-function GetRandomRecord_Map(grid_length, grid_buffer_x, grid_buffer_y) {
+function GetRandomRecord_Map(grid_length, polygon_coverage_on_cartesian_grid, grid_buffer_x, grid_buffer_y) {
 
     var record = new Array(4);
-    record[0] = GetRandomPoint_Map(grid_length, grid_buffer_x, grid_buffer_y);
-    record[1] = GetRandomPoint_Map(grid_length, grid_buffer_x, grid_buffer_y);
-    record[2] = GetRandomPoint_Map(grid_length, grid_buffer_x, grid_buffer_y);
-    record[3] = GetRandomPoint_Map(grid_length, grid_buffer_x, grid_buffer_y);
+    record[0] = GetRandomPoint_Map(grid_length, polygon_coverage_on_cartesian_grid, grid_buffer_x, grid_buffer_y);
+    record[1] = GetRandomPoint_Map(grid_length, polygon_coverage_on_cartesian_grid, grid_buffer_x, grid_buffer_y);
+    record[2] = GetRandomPoint_Map(grid_length, polygon_coverage_on_cartesian_grid, grid_buffer_x, grid_buffer_y);
+    record[3] = GetRandomPoint_Map(grid_length, polygon_coverage_on_cartesian_grid, grid_buffer_x, grid_buffer_y);
 
     return record;
 
@@ -108,13 +127,13 @@ function Get_Initial_Generation_By_Random_Function() {
 
 
 
-function Get_Initial_Generation_By_Random_Function_Map(grid_length, random_generation_record_count, grid_buffer_x, grid_buffer_y) {
+function Get_Initial_Generation_By_Random_Function_Map(grid_length, polygon_coverage_on_cartesian_grid, random_generation_record_count, grid_buffer_x, grid_buffer_y) {
 
     var generation = new Array(random_generation_record_count);
 
     for (var i = 0; i < random_generation_record_count; i++) {
 
-        generation[i] = GetRandomRecord_Map(grid_length, grid_buffer_x, grid_buffer_y);
+        generation[i] = GetRandomRecord_Map(grid_length, polygon_coverage_on_cartesian_grid, grid_buffer_x, grid_buffer_y);
 
     }
 

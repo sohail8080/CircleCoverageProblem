@@ -67,12 +67,21 @@
             parser.parse();
 
 
+            // Dehli
+            //var initialExtent = new Extent({
+            //    "xmin": 8587051.99,
+            //    "ymin": 3321509.58,
+            //    "xmax": 8612486.41,
+            //    "ymax": 3332975.13,
+            //    "spatialReference": { "wkid": 102100 }
+            //});
 
+            //Islamabd
             var initialExtent = new Extent({
-                "xmin": 8587051.99,
-                "ymin": 3321509.58,
-                "xmax": 8612486.41,
-                "ymax": 3332975.13,
+                "xmin": 8108000.13,
+                "ymin": 3973024.59,
+                "xmax": 8158868.97,
+                "ymax": 3995955.69,
                 "spatialReference": { "wkid": 102100 }
             });
 
@@ -98,6 +107,11 @@
                     d.on("click", activateTool);
                 }
 
+               
+                if (d.declaredClass === "dijit.form.Button" && d.id === "btnClearMap") {
+                    d.on("click", btnClearMap_Handler);
+                }
+
 
                 if (d.declaredClass === "dijit.form.Button" && d.id === "btnExecutAlgo") {
                     d.on("click", execut_algo);
@@ -106,14 +120,29 @@
             });
 
 
+            
+
+            function btnClearMap_Handler() {
+
+                graphics_layer.clear();
+
+            }
+
+
             function execut_algo() {
 
                 console.clear();
+                graphics_layer.clear();
 
                 var grid_length = 15;
-                var random_generation_record_count = 10;
+                var random_generation_record_count = 30;
                 var grid_buffer_x = 2;
                 var grid_buffer_y = 3;
+                var number_of_top_records_goto_to_next_generation = 4;
+                var number_of_records_in_each_crossover_generations = 8;
+                var number_of_crossovers_before_mutations = 5;
+                var required_coverage = 75; // 75 %
+                
 
                 var polygon_drawings_results = get_polygon();
 
@@ -123,24 +152,32 @@
                 var polygon_extent = polygon.getExtent();
 
 
-                var lat_long_grid = Generate_Lat_Long_Grid(polygon_extent, grid_length);
-                var lat_long_point_grid = Generate_Lat_Long_Points_Grid(polygon_extent, grid_length, map);
+                //var lat_long_grid = Generate_Lat_Long_Grid(polygon_extent, grid_length);
+                var latlong_grid = Generate_Lat_Long_Points_Grid(polygon_extent, grid_length, map);
 
 
                 var index_grid = Generate_Cartesian_Grid(grid_length);
+              
+                //console.log("lat_long_grid");
+                //Print_Grid_Spatially_Like_Map(lat_long_grid);
+                //console.log("lat_long_point_grid");
+                //Print_Grid_Points_Spatially_Like_Map(latlong_grid);
+                //console.log("index_grid");
+                //Print_Grid_Spatially_Like_Map(index_grid);
 
-                console.log("lat_long_grid");
-                Print_Grid_Spatially_Like_Map(lat_long_grid);
-                console.log("lat_long_point_grid");
-                Print_Grid_Points_Spatially_Like_Map(lat_long_point_grid);
-                console.log("index_grid");
-                Print_Grid_Spatially_Like_Map(index_grid);
+                Show_Grid_Points_On_Map(graphics_layer, latlong_grid);
 
-                Show_Grid_Points_On_Map(graphics_layer, lat_long_point_grid);
+                var polygon_coverage = get_polygon_coverage_on_latlong_grid(polygon, latlong_grid);
 
-                var polygon_coverage = get_polygon_coverage_on_latlong_grid(polygon, lat_long_point_grid);
+                var result_array = get_polygon_coverage_on_latlong_cartesian_grid(polygon, latlong_grid);
 
-                var cartesian_generation = Get_Initial_Generation_By_Random_Function_Map(grid_length, random_generation_record_count, grid_buffer_x, grid_buffer_y)
+                var polygon_coverage_on_latlong_grid = result_array[0];
+                var polygon_coverage_on_cartesian_grid = result_array[1];
+
+                //console.log("polygon_coverage_on_latlong_grid" + polygon_coverage_on_latlong_grid.length);
+                //console.log("polygon_coverage_on_cartesian_grid" + polygon_coverage_on_cartesian_grid.length);
+
+                var cartesian_generation = Get_Initial_Generation_By_Random_Function_Map(grid_length, polygon_coverage_on_cartesian_grid, random_generation_record_count, grid_buffer_x, grid_buffer_y)
 
                 
                 console.log("Initial Seed Random Generation");
@@ -150,18 +187,17 @@
 
                 var startTime = performance.now();
 
-                var all_records_list = Evaluate_FitnessValue_Of_Seed_Generation_Return_All_Records_GIS(cartesian_generation, map, polygon, polygon_coverage, lat_long_point_grid);
+                var all_records_list = Evaluate_FitnessValue_Of_Seed_Generation_Return_All_Records_GIS(cartesian_generation, map, polygon, polygon_coverage, latlong_grid);
 
                 console.log("Sorted Initial Seed Generation Results");
                 Print_Generation_Result_Table(all_records_list);
                 console.log("===============");
 
                 draw_polygon();
-                show_record_on_map(graphics_layer, all_records_list[0], lat_long_point_grid)
+                show_record_on_map(graphics_layer, all_records_list[0], latlong_grid)
 
 
-                return;
-
+              
                 var top_records_list = [];
                 top_records_list[0] = all_records_list[0];
 
@@ -174,10 +210,12 @@
 
                 for (var i = 0; i <= 5; i++) {
 
-                    master_record = GENETIC_ALGO_To_Evaluate_FitnessValue_Of_Generation_With_Binary_CrossOver_GIS(i, master_record[3], master_record[0], master_record[2]);
+                    master_record = GENETIC_ALGO_To_Evaluate_FitnessValue_Of_Generation_With_Binary_CrossOver_GIS(i, master_record[3], master_record[0], master_record[2], cartesian_generation, map, polygon, polygon_coverage, latlong_grid, number_of_top_records_goto_to_next_generation, number_of_records_in_each_crossover_generations, number_of_crossovers_before_mutations, required_coverage);
                 }
 
                 var endTime = performance.now();
+
+                return;
 
                 Clear_Map();
                 // called just show the record on grid, otherwise fitness value calculated above
@@ -269,7 +307,7 @@
 
 
 
-            function GENETIC_ALGO_To_Evaluate_FitnessValue_Of_Generation_With_Binary_CrossOver_GIS(iteration_count, top_records_list, prev_gen_record_list, all_records_list) {
+            function GENETIC_ALGO_To_Evaluate_FitnessValue_Of_Generation_With_Binary_CrossOver_GIS(iteration_count, top_records_list, prev_gen_record_list, all_records_list, cartesian_generation, map, polygon, polygon_coverage, latlong_grid, number_of_top_records_goto_to_next_generation, number_of_records_in_each_crossover_generations, number_of_crossovers_before_mutations, required_coverage) {
 
                 //console.log("top 4 records after random generation evaluation");
                 //Print_Generation_Result_Table(top4_records_list);
@@ -280,9 +318,12 @@
                 var maxfitnessvalue = -99999999999;
                 var maxfitnessvalueindex = -1
                 var maxfitnessvaluerecord = null;
+                var record;
+                var FitnessValue;
+
 
                 // Binary Cross Over takes 4 values and return 8 values
-                var top4_generation = [];
+                var topper_of_previous_generation = [];
 
 
                 if (prev_gen_record_list == null || prev_gen_record_list.length <= 0) {
@@ -293,13 +334,13 @@
                     }
 
                     //for (var i = 0; i < all_records_list.length; i++) {
-                    //    top4_generation[i] = all_records_list[i][1];
+                    //    topper_of_previous_generation[i] = all_records_list[i][1];
                     //}
 
-                    top4_generation[0] = all_records_list[0][1];
-                    top4_generation[1] = all_records_list[1][1];
-                    top4_generation[2] = all_records_list[2][1];
-                    top4_generation[3] = all_records_list[3][1];
+                    topper_of_previous_generation[0] = all_records_list[0][1];
+                    topper_of_previous_generation[1] = all_records_list[1][1];
+                    topper_of_previous_generation[2] = all_records_list[2][1];
+                    topper_of_previous_generation[3] = all_records_list[3][1];
                 }
                 else {
 
@@ -315,27 +356,31 @@
 
 
                     for (var i = 0; i < prev_gen_record_list.length; i++) {
-                        top4_generation[i] = prev_gen_record_list[i][1];
+                        topper_of_previous_generation[i] = prev_gen_record_list[i][1];
                     }
 
-                    //top4_generation[0] = prev_gen_record_list[0][1];
-                    //top4_generation[1] = prev_gen_record_list[1][1];
-                    //top4_generation[2] = prev_gen_record_list[2][1];
-                    //top4_generation[3] = prev_gen_record_list[3][1];
+                    //topper_of_previous_generation[0] = prev_gen_record_list[0][1];
+                    //topper_of_previous_generation[1] = prev_gen_record_list[1][1];
+                    //topper_of_previous_generation[2] = prev_gen_record_list[2][1];
+                    //topper_of_previous_generation[3] = prev_gen_record_list[3][1];
                 }
 
-                //top4_generation[0] = top4_records_list[top4_records_list.length - 4][1];
-                //top4_generation[1] = top4_records_list[top4_records_list.length - 3][1];
-                //top4_generation[2] = top4_records_list[top4_records_list.length - 2][1];
-                //top4_generation[3] = top4_records_list[top4_records_list.length - 1][1];
+                //topper_of_previous_generation[0] = top4_records_list[top4_records_list.length - 4][1];
+                //topper_of_previous_generation[1] = top4_records_list[top4_records_list.length - 3][1];
+                //topper_of_previous_generation[2] = top4_records_list[top4_records_list.length - 2][1];
+                //topper_of_previous_generation[3] = top4_records_list[top4_records_list.length - 1][1];
 
                 console.log("===============");
                 console.log("Iteration [" + [iteration_count + 1] + "] Top 4 Records before Binary Cross-Over ");
-                Print_Generation(top4_generation);
+                Print_Generation(topper_of_previous_generation);
                 console.log("===============");
 
+                
                 // Binary Cross Over takes 4 values and return 8 values
-                var generation = Crossover_Generation_Of_Four(top4_generation);
+                var generation = Crossover_Generation_On_Map(topper_of_previous_generation, polygon_coverage, latlong_grid.length, number_of_records_in_each_crossover_generations);
+
+
+                var latlong_generation = Map_Cartesian_Generation_To_LatLong_Generation(generation, latlong_grid);
 
                 console.log("Iteration [" + [iteration_count + 1] + "] New Generation after Binary Cross-Over ");
                 Print_Generation(generation);
@@ -345,26 +390,31 @@
                 Top_Record_Result[0] = [];
 
 
-                for (var i = 0; i < generation.length; i++) {
+                for (var i = 0; i < latlong_generation.length; i++) {
 
-                    var record = generation[i];
+                    var record = latlong_generation[i];
 
-                    var FitnessValue = FindFitnessValueOfRecord_GIS(record);
+                    console.log("Evaluating Record " + i);
+                    console.log("Record Values " + record);
+
+                    var FitnessValue = Get_FitnessValue_Of_Record_GIS(record, map, polygon, polygon_coverage, latlong_grid);
+
+                    console.log("Record " + (i + 1) + " Fitness Value " + FitnessValue);
 
                     if (FitnessValue > maxfitnessvalue) {
 
                         maxfitnessvalue = FitnessValue;
                         maxfitnessvalueindex = i;
-                        maxfitnessvaluerecord = record;
+                        maxfitnessvaluerecord = cartesian_generation[i];
 
                         Top_Record_Result[0][0] = FitnessValue;
-                        Top_Record_Result[0][1] = record;
+                        Top_Record_Result[0][1] = cartesian_generation[i];
 
                     }
 
                     var Record_Result = [];
                     Record_Result[0] = FitnessValue;
-                    Record_Result[1] = record;
+                    Record_Result[1] = cartesian_generation[i];
 
                     Generation_Result_Table[i] = Record_Result;
 
@@ -416,7 +466,7 @@
                 //return sortedr2[0][1];
             }
 
-
+           
 
             function Get_FitnessValue_Of_Record_GIS(record, map, polygon, polygon_coverage, latlong_grid) {
 
@@ -480,14 +530,14 @@
                 var cir4_cov_on_grid = get_polygon_coverage_on_latlong_grid(circle_polygon_4, latlong_grid);
 
 
-                console.log("circle 1 points on map ");
-                print_point_array_to_console(cir1_cov_on_grid);
-                console.log("circle 2 points on map");
-                print_point_array_to_console(cir2_cov_on_grid);
-                console.log("circle 3 points on map");
-                print_point_array_to_console(cir3_cov_on_grid);
-                console.log("circle 4 points on map");
-                print_point_array_to_console(cir4_cov_on_grid);
+                //console.log("circle 1 points on map ");
+                //print_point_array_to_console(cir1_cov_on_grid);
+                //console.log("circle 2 points on map");
+                //print_point_array_to_console(cir2_cov_on_grid);
+                //console.log("circle 3 points on map");
+                //print_point_array_to_console(cir3_cov_on_grid);
+                //console.log("circle 4 points on map");
+                //print_point_array_to_console(cir4_cov_on_grid);
 
 
                 var cir1_cov_outs_poly = get_circle_coverage_outside_polygon(polygon, cir1_cov_on_grid);
@@ -927,7 +977,6 @@
             }
 
 
-
             function get_polygon_coverage_on_latlong_grid(polygon, latlong_grid) {
 
                 var polygon_coverage = [];
@@ -954,23 +1003,73 @@
 
 
 
+
+            function get_polygon_coverage_on_latlong_cartesian_grid(polygon, latlong_grid) {
+
+                var polygon_coverage_on_latlong_grid = [];
+                var polygon_coverage_on_cartesian_grid = [];
+                var result_array = [];
+
+                var latlong_point = null;
+                var cartesian_point = null;
+                var array_index = 0;
+
+                for (var i = 0; i < latlong_grid.length; i++) {
+
+                    for (var j = 0; j < latlong_grid[i].length; j++) {
+
+                        latlong_point = latlong_grid[i][j];//new esri.geometry.Point({ "x": latlong_grid[i][j][0], "y": latlong_grid[i][j][1], "spatialReference": map.spatialReference });
+
+                        cartesian_point = [];
+
+                        if (polygon.contains(latlong_point)) {
+
+                            polygon_coverage_on_latlong_grid[array_index] = latlong_point;
+                            cartesian_point[0] = i;
+                            cartesian_point[1] = j;
+                            polygon_coverage_on_cartesian_grid[array_index] = cartesian_point;
+                            array_index++;
+                        }
+                    }
+                }
+
+                result_array[0] = polygon_coverage_on_latlong_grid;
+                result_array[1] = polygon_coverage_on_cartesian_grid;
+
+                return result_array;
+
+            }
+
+
             function draw_polygon() {
 
 
+                //new esri.geometry.Point(8130013.992984243, 3986850.133248301, map.spatialReference), new esri.geometry.Point(8140275.664031514, 3986295.9647932346, map.spatialReference), new esri.geometry.Point(8136128.955247048, 3984041.072458825, map.spatialReference), new esri.geometry.Point(8131351.640979231, 3982455.0041219094, map.spatialReference), new esri.geometry.Point(8128103.067277116, 3984614.350170963, map.spatialReference), new esri.geometry.Point(8130013.992984243, 3986850.133248301, map.spatialReference),
+
+                //new esri.geometry.Point(8129765.572642316, 3987041.225819014, map.spatialReference), new esri.geometry.Point(8135899.644162193, 3985913.779651809, map.spatialReference), new esri.geometry.Point(8137523.931013251, 3985187.627883101, map.spatialReference), new esri.geometry.Point(8135307.257192984, 3983066.5003481903, map.spatialReference), new esri.geometry.Point(8132784.835259576, 3982569.659664337, map.spatialReference), new esri.geometry.Point(8131867.590920156, 3982684.3152067647, map.spatialReference), new esri.geometry.Point(8128103.067277116, 3982474.1133789807, map.spatialReference), new esri.geometry.Point(8127663.554364477, 3984136.618744181, map.spatialReference), new esri.geometry.Point(8128485.252418541, 3986219.5277649495, map.spatialReference), new esri.geometry.Point(8129765.572642316, 3987041.225819014, map.spatialReference),
+
+                //new esri.geometry.Point(8128619.01721804, 3986964.788790729, map.spatialReference), new esri.geometry.Point(8130912.128066593, 3987155.8813614417, map.spatialReference), new esri.geometry.Point(8133071.4741156455, 3987079.4443331566, map.spatialReference), new esri.geometry.Point(8137065.308843541, 3986697.259191731, map.spatialReference), new esri.geometry.Point(8139109.999350167, 3985474.26673917, map.spatialReference), new esri.geometry.Point(8138976.234550668, 3984289.4928007512, map.spatialReference), new esri.geometry.Point(8137925.225411748, 3982779.861492121, map.spatialReference), new esri.geometry.Point(8135307.257192984, 3982531.4411501945, map.spatialReference), new esri.geometry.Point(8130606.379953452, 3983009.1725769765, map.spatialReference), new esri.geometry.Point(8127759.100649833, 3983620.668803257, map.spatialReference), new esri.geometry.Point(8126497.889683129, 3985034.7538265307, map.spatialReference), new esri.geometry.Point(8126784.528539198, 3986639.9314205176, map.spatialReference), new esri.geometry.Point(8128619.01721804, 3986964.788790729, map.spatialReference),
+
+
+                // new esri.geometry.Point(8128733.672760468, 3987289.6461609406, map.spatialReference), new esri.geometry.Point(8130663.707724666, 3986926.5702765863, map.spatialReference), new esri.geometry.Point(8139320.20117795, 3985130.300111887, map.spatialReference), new esri.geometry.Point(8138364.738324387, 3983353.139204259, map.spatialReference), new esri.geometry.Point(8128982.093102395, 3982149.2560087694, map.spatialReference), new esri.geometry.Point(8126516.998940201, 3982970.954062834, map.spatialReference), new esri.geometry.Point(8126784.528539198, 3984748.114970462, map.spatialReference), new esri.geometry.Point(8127587.117336192, 3986353.2925644484, map.spatialReference), new esri.geometry.Point(8128733.672760468, 3987289.6461609406, map.spatialReference),
+
+                //new esri.geometry.Point(8132268.885318653, 3987576.2850170094, map.spatialReference), new esri.geometry.Point(8132708.398231291, 3985397.829710885, map.spatialReference), new esri.geometry.Point(8137466.603242038, 3985244.9556543147, map.spatialReference), new esri.geometry.Point(8129689.135614031, 3980907.1542991367, map.spatialReference), new esri.geometry.Point(8128504.361675613, 3985264.064911386, map.spatialReference), new esri.geometry.Point(8132268.885318653, 3987576.2850170094, map.spatialReference),
+
+                //new esri.geometry.Point(8128791.000531682, 3987366.0831892258, map.spatialReference), new esri.geometry.Point(8141001.815800222, 3985646.2500528116, map.spatialReference), new esri.geometry.Point(8128332.378361971, 3983047.391091119, map.spatialReference), new esri.geometry.Point(8130644.598467595, 3985512.4852533126, map.spatialReference), new esri.geometry.Point(8128791.000531682, 3987366.0831892258, map.spatialReference),
+
                 var polygon_rings = [
-                    new esri.geometry.Point(8597046.130867343, 3327729.641055317, map.spatialReference),
-                    new esri.geometry.Point(8597982.484463835, 3329640.566762444, map.spatialReference),
-                    new esri.geometry.Point(8599836.082399748, 3330997.3240145044, map.spatialReference),
-                    new esri.geometry.Point(8603600.60604279, 3331073.7610427896, map.spatialReference),
-                    new esri.geometry.Point(8606581.650145907, 3329411.2556775887, map.spatialReference),
-                    new esri.geometry.Point(8606715.414945405, 3325608.5135204066, map.spatialReference),
-                    new esri.geometry.Point(8606447.885346407, 3323716.697070351, map.spatialReference),
-                    new esri.geometry.Point(8601078.18410938, 3325264.5468931235, map.spatialReference),
-                    new esri.geometry.Point(8598326.451091118, 3325799.6060911193, map.spatialReference),
-                    new esri.geometry.Point(8597046.130867343, 3327729.641055317, map.spatialReference)
+                    new esri.geometry.Point(8134141.592511637, 3987041.225819014, map.spatialReference),
+                    new esri.geometry.Point(8137485.712499109, 3982550.550407266, map.spatialReference),
+                    new esri.geometry.Point(8137485.712499109, 3982550.550407266, map.spatialReference),
+                    new esri.geometry.Point(8126173.0323129175, 3986143.0907366644, map.spatialReference),
+                    new esri.geometry.Point(8129058.53013068, 3987041.225819014, map.spatialReference),
+                    new esri.geometry.Point(8134141.592511637, 3987041.225819014, map.spatialReference)
                 ];
 
-                var polygon_symbol = new SimpleFillSymbol().setColor(null).outline.setColor("red");
+
+                var polygon_symbol = new SimpleFillSymbol().setColor(null).outline.setColor("red").setWidth(3);
+
+
                 var polygon = new Polygon();
                 polygon.addRing(polygon_rings);
                 polygon.spatialReference = map.spatialReference;
@@ -992,17 +1091,14 @@
 
 
                 var polygon_rings = [
-                    new esri.geometry.Point(8597046.130867343, 3327729.641055317, map.spatialReference),
-                    new esri.geometry.Point(8597982.484463835, 3329640.566762444, map.spatialReference),
-                    new esri.geometry.Point(8599836.082399748, 3330997.3240145044, map.spatialReference),
-                    new esri.geometry.Point(8603600.60604279, 3331073.7610427896, map.spatialReference),
-                    new esri.geometry.Point(8606581.650145907, 3329411.2556775887, map.spatialReference),
-                    new esri.geometry.Point(8606715.414945405, 3325608.5135204066, map.spatialReference),
-                    new esri.geometry.Point(8606447.885346407, 3323716.697070351, map.spatialReference),
-                    new esri.geometry.Point(8601078.18410938, 3325264.5468931235, map.spatialReference),
-                    new esri.geometry.Point(8598326.451091118, 3325799.6060911193, map.spatialReference),
-                    new esri.geometry.Point(8597046.130867343, 3327729.641055317, map.spatialReference)
+                    new esri.geometry.Point(8134141.592511637, 3987041.225819014, map.spatialReference),
+                    new esri.geometry.Point(8137485.712499109, 3982550.550407266, map.spatialReference),
+                    new esri.geometry.Point(8137485.712499109, 3982550.550407266, map.spatialReference),
+                    new esri.geometry.Point(8126173.0323129175, 3986143.0907366644, map.spatialReference),
+                    new esri.geometry.Point(8129058.53013068, 3987041.225819014, map.spatialReference),
+                    new esri.geometry.Point(8134141.592511637, 3987041.225819014, map.spatialReference)
                 ];
+
 
                 var polygon_symbol = new SimpleFillSymbol().setColor(null).outline.setColor("red");
                 var polygon = new Polygon();
@@ -1049,7 +1145,10 @@
 
               
 
-                var circle_symbol = new SimpleFillSymbol().setColor(null).outline.setColor(circle_color);
+                var circle_symbol = new SimpleFillSymbol().setColor(null).outline.setColor(circle_color).setWidth(2);
+
+               
+
 
                 var circle_geometry_rings = circle_geometry.rings;
 
@@ -1201,6 +1300,19 @@
                         break;
                 }
 
+                //console.error(evt.geometry);
+
+                var poly_rings_obj = evt.geometry.rings[0];
+
+                var str = "";
+
+                for (var i = 0; i < poly_rings_obj.length; i++) {
+
+                    str = str + " new esri.geometry.Point(" + poly_rings_obj[i][0] + ", " + poly_rings_obj[i][1]+", map.spatialReference),";
+                }
+
+                console.error(str);
+
                 var graphic = new Graphic(evt.geometry, symbol);
                 map.graphics.add(graphic);
 
@@ -1223,20 +1335,24 @@
 
     <div id="mainWindow" data-dojo-type="dijit/layout/BorderContainer" data-dojo-props="design:'headline'">
         <div id="header" data-dojo-type="dijit/layout/ContentPane" data-dojo-props="region:'top'">
-            <span>Draw:<br /></span>
-            <button data-dojo-type="dijit/form/Button">Point</button>
-            <button data-dojo-type="dijit/form/Button">Multi Point</button>
-            <button data-dojo-type="dijit/form/Button">Line</button>
-            <button data-dojo-type="dijit/form/Button">Polyline</button>
-            <button data-dojo-type="dijit/form/Button">Polygon</button>
-            <button data-dojo-type="dijit/form/Button">Freehand Polyline</button>
-            <button data-dojo-type="dijit/form/Button">Freehand Polygon</button>
+            <!--<span>Draw:<br /></span>
+    <button data-dojo-type="dijit/form/Button">Point</button>
+    <button data-dojo-type="dijit/form/Button">Multi Point</button>
+    <button data-dojo-type="dijit/form/Button">Line</button>
+    <button data-dojo-type="dijit/form/Button">Polyline</button>
+    <button data-dojo-type="dijit/form/Button">Polygon</button>
+    <button data-dojo-type="dijit/form/Button">Freehand Polyline</button>
+    <button data-dojo-type="dijit/form/Button">Freehand Polygon</button>
 
-            <button data-dojo-type="dijit/form/Button">Arrow</button>
-            <button data-dojo-type="dijit/form/Button">Triangle</button>
-            <button data-dojo-type="dijit/form/Button">Circle</button>
-            <button data-dojo-type="dijit/form/Button">Ellipse</button>
-            <button data-dojo-props="id:'btnExecutAlgo'" data-dojo-type="dijit/form/Button">Execute</button>
+    <button data-dojo-type="dijit/form/Button">Arrow</button>
+    <button data-dojo-type="dijit/form/Button">Triangle</button>
+    <button data-dojo-type="dijit/form/Button">Circle</button>
+    <button data-dojo-type="dijit/form/Button">Ellipse</button>-->
+
+            <button data-dojo-type="dijit/form/Button">Polygon</button>
+            <button data-dojo-props="id:'btnExecutAlgo'" data-dojo-type="dijit/form/Button">Find Coverage</button>
+            <button data-dojo-props="id:'btnClearMap'" data-dojo-type="dijit/form/Button">Clear Map</button>
+
         </div>
         <div id="map" data-dojo-type="dijit/layout/ContentPane" data-dojo-props="region:'center'"></div>
     </div>

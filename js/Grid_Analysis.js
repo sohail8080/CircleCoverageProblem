@@ -770,6 +770,17 @@ function Validate_X_Coordinate(x, grid) {
 }
 
 
+function Validate_Coordinate_On_Grid(coordinate, grid_length) {
+
+
+    if (coordinate >= 0 && coordinate < grid_length) {
+        return true;
+    }
+
+    return false;
+}
+
+
 function Validate_Y_Coordinate(y, grid) {
 
 
