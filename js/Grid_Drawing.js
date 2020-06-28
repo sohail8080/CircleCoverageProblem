@@ -412,7 +412,7 @@ function Generate_Lat_Long_Points_Grid(polygon_extent, grid_length, map) {
             x_point = xmin + (j * x_interval);
             y_point = ymin + (i * y_interval);
 
-            grid_point = new esri.geometry.Point({ "x": x_point, "y": y_point, "spatialReference": map.spatialReference });
+            grid_point = new esri.geometry.Point({ "x": x_point, "y": y_point, "cx": i, "cy": j, "spatialReference": map.spatialReference });
 
             grid_row[j] = grid_point;
         }

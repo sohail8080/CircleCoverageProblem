@@ -233,7 +233,7 @@ function Print_Generation_Result_Table(Generation_Result_Table) {
 
         if (flag == true) { return; }
 
-        console.log([i + 1] + " Fitness Value " + Generation_Result_Table[i][0] + " Record " + Generation_Result_Table[i][1]);
+        console.log("Record " + (i + 1) + " Fitness Value " + Generation_Result_Table[i][0] + " ::  Circle Points " + Generation_Result_Table[i][1]);
 
     }
 

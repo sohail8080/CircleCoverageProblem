@@ -31,17 +31,34 @@
 }
 
 
-//function GetRandomPoint_GridDensity(grid_density) {
+
+function GetRandomPoint_Map(grid_length, grid_buffer_x, grid_buffer_y) {
 
    
-//    var point = new Array(2);
-//    point[0] = Math.floor((Math.random() * (grid_density - 1)) + 1);
-//    point[1] = Math.floor((Math.random() * (grid_density - 1)) + 1);
-//    return point;
+    var point = new Array(2);
 
-//}
+   // static buffer
+    //var buffer = 4;  
+    //var min_x = 0 + buffer;
+    //var max_x = grid_length - 1 - buffer;
+    //var min_y = 0 + buffer;
+    //var max_y = grid_length - 1 - buffer;
 
-//////////////////////////////////
+
+    var min_x = 0 + grid_buffer_x;
+    var max_x = grid_length - 1 - grid_buffer_x;
+    var min_y = 0 + grid_buffer_y;
+    var max_y = grid_length - 1 - grid_buffer_y;
+
+
+    point[0] = Math.floor(Math.random() * (max_x - min_x + 1)) + min_x;
+    point[1] = Math.floor(Math.random() * (max_y - min_y + 1)) + min_y;
+
+
+    return point;
+
+}
+
 
 
 function GetRandomRecord() {
@@ -57,21 +74,18 @@ function GetRandomRecord() {
 }
 
 
-//function GetRandomRecord_GridDensity(grid_density) {
 
-//    var record = new Array(4);
-//    record[0] = GetRandomPoint_GridDensity(grid_density);
-//    record[1] = GetRandomPoint_GridDensity(grid_density);
-//    record[2] = GetRandomPoint_GridDensity(grid_density);
-//    record[3] = GetRandomPoint_GridDensity(grid_density);
+function GetRandomRecord_Map(grid_length, grid_buffer_x, grid_buffer_y) {
 
-//    return record;
+    var record = new Array(4);
+    record[0] = GetRandomPoint_Map(grid_length, grid_buffer_x, grid_buffer_y);
+    record[1] = GetRandomPoint_Map(grid_length, grid_buffer_x, grid_buffer_y);
+    record[2] = GetRandomPoint_Map(grid_length, grid_buffer_x, grid_buffer_y);
+    record[3] = GetRandomPoint_Map(grid_length, grid_buffer_x, grid_buffer_y);
 
-//}
+    return record;
 
-
-/////////////////////////////////
-
+}
 
 
 
@@ -92,15 +106,34 @@ function Get_Initial_Generation_By_Random_Function() {
 
 }
 
-function Get_Initial_Generation_Of_One_Record_By_Random_Function() {
 
-    var set = new Array(1);
 
-    set[0] = GetRandomRecord();
+function Get_Initial_Generation_By_Random_Function_Map(grid_length, random_generation_record_count, grid_buffer_x, grid_buffer_y) {
 
-    return set;
+    var generation = new Array(random_generation_record_count);
+
+    for (var i = 0; i < random_generation_record_count; i++) {
+
+        generation[i] = GetRandomRecord_Map(grid_length, grid_buffer_x, grid_buffer_y);
+
+    }
+
+    return generation;
 
 }
+
+
+
+
+//function Get_Initial_Generation_Of_One_Record_By_Random_Function(grid) {
+
+//    var generation = new Array(1);
+
+//    generation[0] = GetRandomRecord_Map(grid);
+
+//    return generation;
+
+//}
 
 
 //function Get_Initial_Generation_By_Random_Function_GridDensity(grid_density) {

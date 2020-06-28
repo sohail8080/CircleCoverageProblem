@@ -58,9 +58,11 @@
             "esri/geometry/Polygon",
             "esri/layers/GraphicsLayer",
             "esri/geometry/Circle",
+            "esri/symbols/Font",
+            "esri/symbols/TextSymbol",
             "dijit/layout/BorderContainer", "dijit/layout/ContentPane",
             "dijit/form/Button", "dijit/WidgetSet", "dojo/domReady!"
-        ], function (Map, Draw, Graphic, SimpleMarkerSymbol, SimpleLineSymbol, SimpleFillSymbol, parser, registry, Extent, Polygon, GraphicsLayer, Circle) {
+        ], function (Map, Draw, Graphic, SimpleMarkerSymbol, SimpleLineSymbol, SimpleFillSymbol, parser, registry, Extent, Polygon, GraphicsLayer, Circle, Font, TextSymbol) {
 
             parser.parse();
 
@@ -108,7 +110,10 @@
 
                 console.clear();
 
-                var grid_length = 11;
+                var grid_length = 15;
+                var random_generation_record_count = 10;
+                var grid_buffer_x = 2;
+                var grid_buffer_y = 3;
 
                 var polygon_drawings_results = get_polygon();
 
@@ -135,12 +140,9 @@
 
                 var polygon_coverage = get_polygon_coverage_on_latlong_grid(polygon, lat_long_point_grid);
 
-                var cartesian_generation = Get_Initial_Generation_By_Random_Function();
-
-                var cartesian_generation = Get_Initial_Generation_Of_One_Record_By_Random_Function();
+                var cartesian_generation = Get_Initial_Generation_By_Random_Function_Map(grid_length, random_generation_record_count, grid_buffer_x, grid_buffer_y)
 
                 
-
                 console.log("Initial Seed Random Generation");
                 console.log("===============");
                 Print_Generation(cartesian_generation);
@@ -195,7 +197,7 @@
                 var center_point = polygon_drawings_results[0].getExtent().getCenter();
 
                 // draw circle on center point
-                var circle_drawings_results = draw_circle(graphics_layer, center_point);
+                var circle_drawings_results = draw_circle(graphics_layer, center_point, "blue", null);
 
                 // get top righ corner of the latlong grid & show on map
                 lat_long = Map_Cartesian_Point_To_LatLong_Point(index_grid[10][10], lat_long_grid);
@@ -227,7 +229,7 @@
                 var latlong_generation = Map_Cartesian_Generation_To_LatLong_Generation(cartesian_generation, latlong_grid);
 
                 for (var i = 0; i < latlong_generation.length; i++) {
-                                      
+
                     record = latlong_generation[i];
 
                     console.log("Evaluating Record " + i);
@@ -235,7 +237,7 @@
 
                     FitnessValue = Get_FitnessValue_Of_Record_GIS(record, map, polygon, polygon_coverage, latlong_grid);
 
-                    console.log("Record " + i + " Fitness Value " + FitnessValue);
+                    console.log("Record " + (i+1) + " Fitness Value " + FitnessValue);
 
                     if (FitnessValue > maxfitnessvalue) {
 
@@ -478,10 +480,14 @@
                 var cir4_cov_on_grid = get_polygon_coverage_on_latlong_grid(circle_polygon_4, latlong_grid);
 
 
-                console.log("circle 1 points on map " + cir1_cov_on_grid);
-                console.log("circle 2 points on map " + cir2_cov_on_grid);
-                console.log("circle 3 points on map " + cir3_cov_on_grid);
-                console.log("circle 4 points on map " + cir4_cov_on_grid);
+                console.log("circle 1 points on map ");
+                print_point_array_to_console(cir1_cov_on_grid);
+                console.log("circle 2 points on map");
+                print_point_array_to_console(cir2_cov_on_grid);
+                console.log("circle 3 points on map");
+                print_point_array_to_console(cir3_cov_on_grid);
+                console.log("circle 4 points on map");
+                print_point_array_to_console(cir4_cov_on_grid);
 
 
                 var cir1_cov_outs_poly = get_circle_coverage_outside_polygon(polygon, cir1_cov_on_grid);
@@ -490,14 +496,17 @@
                 var cir4_cov_outs_poly = get_circle_coverage_outside_polygon(polygon, cir4_cov_on_grid);
                 var total_cir_cov_outs_poly = cir1_cov_outs_poly + cir2_cov_outs_poly + cir3_cov_outs_poly + cir4_cov_outs_poly;
 
+
                 console.log("circle 1 coverage outside polygon " + cir1_cov_outs_poly);
                 console.log("circle 2 coverage outside polygon " + cir2_cov_outs_poly);
                 console.log("circle 3 coverage outside polygon " + cir3_cov_outs_poly);
                 console.log("circle 4 coverage outside polygon " + cir4_cov_outs_poly);
                 console.log("total circles coverage outside polygon " + total_cir_cov_outs_poly);
 
+
                 // fitness value
                 var total_cir_cov = total_cir_cov_ins_poly_without_overlapping - total_cir_cov_outs_poly;
+
 
                 console.log("fitness value " + total_cir_cov);
 
@@ -616,7 +625,16 @@
 
 
 
+            function print_point_array_to_console(points_array) {
 
+                var output_str = "";
+
+                for (var i = 0; i < points_array.length; i++) {
+                    output_str = output_str + "[ " + points_array[i].x + " , " + points_array[i].y + " ] ";
+                }
+
+                console.log(output_str);
+            }
 
 
             function find_overlapping_between_circles(cir_cov_ins_poly_1, cir_cov_ins_poly_2) {
@@ -672,18 +690,18 @@
                 var circle_coverage = [];
                 var array_index = 0;
 
-               
+
                 for (var i = 0; i < polygon_coverage.length; i++) {
 
                     if (circle.contains(polygon_coverage[i])) {
 
                         circle_coverage[array_index] = polygon_coverage[i];
-                        array_index++;                       
+                        array_index++;
 
                     }
 
                 }
-               
+
                 return circle_coverage;
 
             }
@@ -714,7 +732,7 @@
 
                 var circle_coverage = [];
                 var array_index = 0;
-               
+
 
                 for (var i = 0; i < circle_coverage.length; i++) {
 
@@ -738,10 +756,10 @@
                 //console.error(cartesian_record);
                 //console.error(latlong_grid);
 
-                draw_circle(graphics_layer, Map_Cartesian_Point_To_LatLong_Point(cartesian_record[1][0], latlong_grid));
-                draw_circle(graphics_layer, Map_Cartesian_Point_To_LatLong_Point(cartesian_record[1][1], latlong_grid));
-                draw_circle(graphics_layer, Map_Cartesian_Point_To_LatLong_Point(cartesian_record[1][2], latlong_grid));
-                draw_circle(graphics_layer, Map_Cartesian_Point_To_LatLong_Point(cartesian_record[1][3], latlong_grid));
+                draw_circle(graphics_layer, Map_Cartesian_Point_To_LatLong_Point(cartesian_record[1][0], latlong_grid), "blue", 1);
+                draw_circle(graphics_layer, Map_Cartesian_Point_To_LatLong_Point(cartesian_record[1][1], latlong_grid), "green", 2);
+                draw_circle(graphics_layer, Map_Cartesian_Point_To_LatLong_Point(cartesian_record[1][2], latlong_grid), "black", 3);
+                draw_circle(graphics_layer, Map_Cartesian_Point_To_LatLong_Point(cartesian_record[1][3], latlong_grid), "red", 4);
             }
 
 
@@ -787,7 +805,41 @@
                     "type": "esriSMS",
                     "style": "esriSMSCircle",
                     "outline": {
-                        "color": [0, 0, 0, 255],
+                        "color": [255, 0, 0, 255],
+                        "width": 1,
+                        "type": "esriSLS",
+                        "style": "esriSLSSolid"
+                    }
+                });
+
+
+                var symbology_green = new SimpleMarkerSymbol({
+                    "color": [0, 255, 0, 255],
+                    "size": 2,
+                    "angle": -30,
+                    "xoffset": 0,
+                    "yoffset": 0,
+                    "type": "esriSMS",
+                    "style": "esriSMSCircle",
+                    "outline": {
+                        "color": [0, 255, 0, 255],
+                        "width": 1,
+                        "type": "esriSLS",
+                        "style": "esriSLSSolid"
+                    }
+                });
+
+
+                var symbology_blue = new SimpleMarkerSymbol({
+                    "color": [0, 0, 255, 255],
+                    "size": 2,
+                    "angle": -30,
+                    "xoffset": 0,
+                    "yoffset": 0,
+                    "type": "esriSMS",
+                    "style": "esriSMSCircle",
+                    "outline": {
+                        "color": [0, 0, 255, 255],
                         "width": 1,
                         "type": "esriSLS",
                         "style": "esriSLSSolid"
@@ -796,11 +848,19 @@
 
 
                 if (choice == 1) {
-                    return symbology_black;
+                    return symbology_blue;
                 }
 
 
                 if (choice == 2) {
+                    return symbology_green;
+                }
+
+                if (choice == 3) {
+                    return symbology_black;
+                }
+
+                if (choice == 4) {
                     return symbology_red;
                 }
 
@@ -808,10 +868,25 @@
 
             }
 
+            function Highligh_Point_On_Map(graphics_layer, circle_number, point) {
+
+                var point_symbology = Get_Point_Symbolology(circle_number);
+                point_symbology.size = 5;
+
+                var infoTemplate = new esri.InfoTemplate();
+                //infoTemplate.setTitle("${NAME}");
+                infoTemplate.setContent("x " + point.x + "<br> y " + point.y + "<br> x " + point.cx + "<br> y " + point.cy);
+
+                var graphic = new Graphic(point, point_symbology);
+                graphic.setInfoTemplate(infoTemplate);
+                graphics_layer.add(graphic);
+
+
+            }
 
             function Show_Grid_Points_On_Map(graphics_layer, latlong_grid) {
 
-                var point_symbology = Get_Point_Symbolology(1);
+                var point_symbology = Get_Point_Symbolology(3);
 
 
                 //alert("latlong_grid.length"+latlong_grid.length);
@@ -827,7 +902,7 @@
                         var infoTemplate = new esri.InfoTemplate();
                         //infoTemplate.setTitle("${NAME}");
                         infoTemplate.setContent("x " + latlong_grid[i][j].x + "<br> y " + latlong_grid[i][j].y + "<br> x " + i + "<br> y " + j);
-                        
+
                         var graphic = new Graphic(latlong_grid[i][j], point_symbology);
                         graphic.setInfoTemplate(infoTemplate);
                         graphics_layer.add(graphic);
@@ -946,7 +1021,7 @@
             }
 
 
-            function draw_circle(graphics_layer, circle_center) {
+            function draw_circle(graphics_layer, circle_center, color, cir_number) {
 
                 var circle_geometry = new Circle({
                     center: circle_center,
@@ -954,7 +1029,27 @@
                     geodesic: true
                 });
 
-                var circle_symbol = new SimpleFillSymbol().setColor(null).outline.setColor("blue");
+
+                var circle_color = null;
+                if (color == null || color == "") {
+                    circle_color = "blue";
+                }
+                else {
+                    circle_color = color;
+                }
+
+                if (cir_number != null) {
+
+                    //alert("cccccccccccccc");
+                    var font = Font("30px", Font.STYLE_NORMAL, Font.VARIANT_NORMAL, Font.WEIGHT_BOLDER);
+                    var textSymbol = new TextSymbol(cir_number, font, circle_color);
+                    var labelPointGraphic = new Graphic(circle_center.offset(100, 100), textSymbol);
+                    graphics_layer.add(labelPointGraphic);
+                }
+
+              
+
+                var circle_symbol = new SimpleFillSymbol().setColor(null).outline.setColor(circle_color);
 
                 var circle_geometry_rings = circle_geometry.rings;
 
@@ -968,9 +1063,13 @@
                 var circle_polygon = new Polygon();
                 circle_polygon.addRing(circle_rings);
                 circle_polygon.spatialReference = map.spatialReference;
+
                 var circle_graphic = new esri.Graphic(circle_polygon, circle_symbol, { keeper: true });
+
                 graphics_layer.add(circle_graphic);
 
+
+                Highligh_Point_On_Map(graphics_layer, cir_number, circle_center);
 
                 var drawings_results = [];
 
