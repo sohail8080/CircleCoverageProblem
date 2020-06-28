@@ -1,0 +1,101 @@
+﻿<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="initial-scale=1, maximum-scale=1, user-scalable=no">
+    <title>ArcGIS JavaScript Tutorials: Draw graphics</title>
+    <style>
+        html, body, #viewDiv {
+            padding: 0;
+            margin: 0;
+            height: 100%;
+            width: 100%;
+        }
+    </style>
+
+    <link rel="stylesheet" href="https://js.arcgis.com/4.15/esri/themes/light/main.css">
+    <script src="https://js.arcgis.com/4.15/"></script>
+
+    <script>
+        require([
+            "esri/Map",
+            "esri/views/MapView",
+            "esri/Graphic",
+            "esri/layers/GraphicsLayer",
+            "esri/widgets/Sketch"
+        ], function (Map, MapView, Graphic, GraphicsLayer, Sketch) {
+
+            // Creat a temporary layer for graphics
+            var graphicsLayer = new GraphicsLayer();
+
+            // map is linked to layer at the definition
+            var map = new Map({
+                basemap: "topo-vector",
+                layers: [graphicsLayer]
+            });
+
+            // starting view of the map
+            var view = new MapView({
+                container: "viewDiv",
+                map: map,
+                center: [69.3451, 30.3753],
+                zoom: 6
+            });
+
+            // Sketch widget for drawings
+            var sketch = new Sketch({
+                view: view,
+                layer: graphicsLayer
+            });
+
+            // Add widget to the view
+            view.ui.add(sketch, "top-right");
+
+            // White fill color with 50% transparency, color fill definition
+            var fillColor = [255, 255, 255, .5];
+
+            // Red stroke, 1px wide, color definiton
+            var stroke = {
+                color: [255, 0, 0],
+                width: 1
+            }
+
+            // Override all default symbol colors and sizes for polygone
+            var pointSymbol = sketch.viewModel.pointSymbol;
+            pointSymbol.color = fillColor;
+            pointSymbol.outline = stroke;
+            pointSymbol.size = 8;
+
+            var polylineSymbol = sketch.viewModel.polylineSymbol;
+            polylineSymbol.color = stroke.color;
+            polylineSymbol.width = stroke.width;
+
+            var polygonSymbol = sketch.viewModel.polygonSymbol;
+            polygonSymbol.color = fillColor;
+            polygonSymbol.outline = stroke;
+
+            sketch.on("create", function (event) {
+                if (event.state === "complete") {
+                    var attributes = {
+                        name: "My Graphic",
+                        type: event.graphic.geometry.type
+                    }
+                    event.graphic.attributes = attributes;
+
+                    event.geometry.polygonSymbol.MapView.Sketch.
+
+                    alert("completed");
+
+                    var popupTemplate = {
+                        title: "{name}",
+                        content: "I am a {type}."
+                    }
+                    event.graphic.popupTemplate = popupTemplate;
+                }
+            });
+        });
+    </script>
+</head>
+<body>
+    <div id="viewDiv"></div>
+</body>
+</html>

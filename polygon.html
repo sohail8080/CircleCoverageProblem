@@ -1,0 +1,1146 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta name="viewport" content="width=device-width,user-scalable=no">
+
+    <meta name="viewport" content="initial-scale=1, maximum-scale=1,user-scalable=no">
+    <title>Maps Toolbar</title>
+
+    <link rel="stylesheet" href="https://js.arcgis.com/3.32/dijit/themes/nihilo/nihilo.css">
+    <link rel="stylesheet" href="https://js.arcgis.com/3.32/esri/css/esri.css">
+    <style>
+        html, body, #mainWindow {
+            font-family: sans-serif;
+            height: 100%;
+            width: 100%;
+        }
+
+        html, body {
+            margin: 0;
+            padding: 0;
+        }
+
+        #header {
+            height: 80px;
+            overflow: auto;
+            padding: 0.5em;
+        }
+    </style>
+
+    <script src="https://js.arcgis.com/3.32/"></script>
+
+    <script src="js/Binary_Cross_Over.js"></script>
+    <script src="js/Grid_Analysis.js"></script>
+    <script src="js/Grid_Drawing.js"></script>
+    <script src="js/Random_Seed.js"></script>
+    <script src="js/Shape_Seed.js"></script>
+    <script src="js/Generation_Helpers.js"></script>
+    <script src="js/Fitness_Value_Calculations.js"></script>
+    <script src="js/Mid_Point_Cross_Over.js"></script>
+    <script src="js/Binary_Point_Mutate.js"></script>
+    <script src="js/Decimal_Point_Mutate.js"></script>
+    <script src="js/Mid_Point_Mutate.js"></script>
+
+
+    <script>
+        var map, toolbar, symbol, geomTask;
+
+        require([
+            "esri/map",
+            "esri/toolbars/draw",
+            "esri/graphic",
+            "esri/symbols/SimpleMarkerSymbol",
+            "esri/symbols/SimpleLineSymbol",
+            "esri/symbols/SimpleFillSymbol",
+            "dojo/parser", "dijit/registry",
+            "esri/geometry/Extent",
+            "esri/geometry/Polygon",
+            "esri/layers/GraphicsLayer",
+            "esri/geometry/Circle",
+            "dijit/layout/BorderContainer", "dijit/layout/ContentPane",
+            "dijit/form/Button", "dijit/WidgetSet", "dojo/domReady!"
+        ], function (Map, Draw, Graphic, SimpleMarkerSymbol, SimpleLineSymbol, SimpleFillSymbol, parser, registry, Extent, Polygon, GraphicsLayer, Circle) {
+
+            parser.parse();
+
+
+
+            var initialExtent = new Extent({
+                "xmin": 8587051.99,
+                "ymin": 3321509.58,
+                "xmax": 8612486.41,
+                "ymax": 3332975.13,
+                "spatialReference": { "wkid": 102100 }
+            });
+
+
+            var map = new Map("map", {
+                basemap: "streets",
+                extent: initialExtent,
+                zoom: 13
+            });
+
+            var graphics_layer = new esri.layers.GraphicsLayer({ id: "graphics_layer" });
+            map.addLayer(graphics_layer);
+
+            map.on("load", createToolbar);
+
+            // loop through all dijits, connect onClick event
+            // listeners for buttons to activate drawing tools
+            registry.forEach(function (d) {
+
+                // d is a reference to a dijit
+                // could be a layout container or a button
+                if (d.declaredClass === "dijit.form.Button" && d.id != "btnExecutAlgo") {
+                    d.on("click", activateTool);
+                }
+
+
+                if (d.declaredClass === "dijit.form.Button" && d.id === "btnExecutAlgo") {
+                    d.on("click", execut_algo);
+                }
+
+            });
+
+
+            function execut_algo() {
+
+                console.clear();
+
+                var grid_length = 11;
+
+                var polygon_drawings_results = get_polygon();
+
+                var polygon = polygon_drawings_results[0];
+                var polygon_graphic = polygon_drawings_results[1];
+
+                var polygon_extent = polygon.getExtent();
+
+
+                var lat_long_grid = Generate_Lat_Long_Grid(polygon_extent, grid_length);
+                var lat_long_point_grid = Generate_Lat_Long_Points_Grid(polygon_extent, grid_length, map);
+
+
+                var index_grid = Generate_Cartesian_Grid(grid_length);
+
+                console.log("lat_long_grid");
+                Print_Grid_Spatially_Like_Map(lat_long_grid);
+                console.log("lat_long_point_grid");
+                Print_Grid_Points_Spatially_Like_Map(lat_long_point_grid);
+                console.log("index_grid");
+                Print_Grid_Spatially_Like_Map(index_grid);
+
+                Show_Grid_Points_On_Map(graphics_layer, lat_long_point_grid);
+
+                var polygon_coverage = get_polygon_coverage_on_latlong_grid(polygon, lat_long_point_grid);
+
+                var cartesian_generation = Get_Initial_Generation_By_Random_Function();
+
+                var cartesian_generation = Get_Initial_Generation_Of_One_Record_By_Random_Function();
+
+                
+
+                console.log("Initial Seed Random Generation");
+                console.log("===============");
+                Print_Generation(cartesian_generation);
+                console.log("===============");
+
+                var startTime = performance.now();
+
+                var all_records_list = Evaluate_FitnessValue_Of_Seed_Generation_Return_All_Records_GIS(cartesian_generation, map, polygon, polygon_coverage, lat_long_point_grid);
+
+                console.log("Sorted Initial Seed Generation Results");
+                Print_Generation_Result_Table(all_records_list);
+                console.log("===============");
+
+                draw_polygon();
+                show_record_on_map(graphics_layer, all_records_list[0], lat_long_point_grid)
+
+
+                return;
+
+                var top_records_list = [];
+                top_records_list[0] = all_records_list[0];
+
+                var master_record = [];
+
+                master_record[0] = [];// sorted generation table of previous iteration
+                master_record[1] = [];// topper of previous iteration
+                master_record[2] = all_records_list; // sorted generation table of all iterations
+                master_record[3] = top_records_list; // sorted generation table of TOPPERS all iterations
+
+                for (var i = 0; i <= 5; i++) {
+
+                    master_record = GENETIC_ALGO_To_Evaluate_FitnessValue_Of_Generation_With_Binary_CrossOver_GIS(i, master_record[3], master_record[0], master_record[2]);
+                }
+
+                var endTime = performance.now();
+
+                Clear_Map();
+                // called just show the record on grid, otherwise fitness value calculated above
+                var FitnessValue = FindFitnessValueOfRecord_With_GridDrawings(master_record[3][0][1]);
+                document.getElementById('divFitnessValue').innerHTML = "FitnessValue: " + FitnessValue + " <br /> Elapsed time: " + (endTime - startTime) + "ms";
+                document.getElementById('divSeedAlgo').innerHTML = "Seed = Random & Cross Over = Binary";
+
+
+
+                //get center point lat long form latlong grid
+                var lat_long = Map_Cartesian_Point_To_LatLong_Point(index_grid[5][5], lat_long_grid);
+
+                // create point form lat long
+                var point = new esri.geometry.Point({ "x": lat_long[0], "y": lat_long[1], "spatialReference": map.spatialReference });
+
+                // get the center point of polygon
+                var center_point = polygon_drawings_results[0].getExtent().getCenter();
+
+                // draw circle on center point
+                var circle_drawings_results = draw_circle(graphics_layer, center_point);
+
+                // get top righ corner of the latlong grid & show on map
+                lat_long = Map_Cartesian_Point_To_LatLong_Point(index_grid[10][10], lat_long_grid);
+                console.log(("xmax grid " + lat_long[0]));
+                console.log(("ymax grid " + lat_long[1]));
+
+                // get bottom left corner of the latlong grid & show on map
+                lat_long = Map_Cartesian_Point_To_LatLong_Point(index_grid[0][0], lat_long_grid);
+                console.log(("xmin grid " + lat_long[0]));
+                console.log(("ymin grid " + lat_long[1]));
+
+                alert("Circle contains point " + circle_drawings_results[0].contains(point));
+                alert("Polygon contains point " + polygon_drawings_results[0].contains(point));
+
+
+            }
+
+
+
+            function Evaluate_FitnessValue_Of_Seed_Generation_Return_All_Records_GIS(cartesian_generation, map, polygon, polygon_coverage, latlong_grid) {
+
+                var Generation_Result_Table = [];// result of generation with fitness value
+                var maxfitnessvalue = -1;
+                var maxfitnessvalueindex = -1
+                var maxfitnessvaluerecord = null;
+                var record;
+                var FitnessValue;
+
+                var latlong_generation = Map_Cartesian_Generation_To_LatLong_Generation(cartesian_generation, latlong_grid);
+
+                for (var i = 0; i < latlong_generation.length; i++) {
+                                      
+                    record = latlong_generation[i];
+
+                    console.log("Evaluating Record " + i);
+                    console.log("Record Values " + record);
+
+                    FitnessValue = Get_FitnessValue_Of_Record_GIS(record, map, polygon, polygon_coverage, latlong_grid);
+
+                    console.log("Record " + i + " Fitness Value " + FitnessValue);
+
+                    if (FitnessValue > maxfitnessvalue) {
+
+                        maxfitnessvalue = FitnessValue;
+                        maxfitnessvalueindex = i;
+                        //maxfitnessvaluerecord = record;
+                        maxfitnessvaluerecord = cartesian_generation[i];
+                    }
+
+                    var Record_Result = [];
+                    Record_Result[0] = FitnessValue;
+                    //Record_Result[1] = record;
+                    Record_Result[1] = cartesian_generation[i];
+
+                    Generation_Result_Table[i] = Record_Result;
+
+                }
+
+                console.log("Initial Seed Generation Results");
+                Print_Generation_Result_Table(Generation_Result_Table);
+                console.log("===============");
+
+                var Sorted_Generation_Result_Table = Sort_Generation_Result_Table(Generation_Result_Table);
+
+                return Sorted_Generation_Result_Table;
+
+
+            }
+
+
+
+            function GENETIC_ALGO_To_Evaluate_FitnessValue_Of_Generation_With_Binary_CrossOver_GIS(iteration_count, top_records_list, prev_gen_record_list, all_records_list) {
+
+                //console.log("top 4 records after random generation evaluation");
+                //Print_Generation_Result_Table(top4_records_list);
+                //console.log("top record after random generation  evaluation ");
+                //Print_Generation_Result_Table(top_records_list);
+
+                var Generation_Result_Table = [];// result of generation with fitness value
+                var maxfitnessvalue = -99999999999;
+                var maxfitnessvalueindex = -1
+                var maxfitnessvaluerecord = null;
+
+                // Binary Cross Over takes 4 values and return 8 values
+                var top4_generation = [];
+
+
+                if (prev_gen_record_list == null || prev_gen_record_list.length <= 0) {
+
+                    // Case Ist Iteration
+                    if (all_records_list == null || all_records_list.length <= 0) {
+                        alert("error:GENETIC_ALGO_To_Evaluate_FitnessValue_Of_Generation_With_Binary_CrossOver");
+                    }
+
+                    //for (var i = 0; i < all_records_list.length; i++) {
+                    //    top4_generation[i] = all_records_list[i][1];
+                    //}
+
+                    top4_generation[0] = all_records_list[0][1];
+                    top4_generation[1] = all_records_list[1][1];
+                    top4_generation[2] = all_records_list[2][1];
+                    top4_generation[3] = all_records_list[3][1];
+                }
+                else {
+
+
+                    //var counter = 0;
+
+                    //if (prev_gen_record_list.length > 4) {
+                    //    counter = 4;
+                    //}
+                    //else {
+                    //    counter = prev_gen_record_list.length;
+                    //}
+
+
+                    for (var i = 0; i < prev_gen_record_list.length; i++) {
+                        top4_generation[i] = prev_gen_record_list[i][1];
+                    }
+
+                    //top4_generation[0] = prev_gen_record_list[0][1];
+                    //top4_generation[1] = prev_gen_record_list[1][1];
+                    //top4_generation[2] = prev_gen_record_list[2][1];
+                    //top4_generation[3] = prev_gen_record_list[3][1];
+                }
+
+                //top4_generation[0] = top4_records_list[top4_records_list.length - 4][1];
+                //top4_generation[1] = top4_records_list[top4_records_list.length - 3][1];
+                //top4_generation[2] = top4_records_list[top4_records_list.length - 2][1];
+                //top4_generation[3] = top4_records_list[top4_records_list.length - 1][1];
+
+                console.log("===============");
+                console.log("Iteration [" + [iteration_count + 1] + "] Top 4 Records before Binary Cross-Over ");
+                Print_Generation(top4_generation);
+                console.log("===============");
+
+                // Binary Cross Over takes 4 values and return 8 values
+                var generation = Crossover_Generation_Of_Four(top4_generation);
+
+                console.log("Iteration [" + [iteration_count + 1] + "] New Generation after Binary Cross-Over ");
+                Print_Generation(generation);
+                console.log("===============");
+
+                var Top_Record_Result = [];
+                Top_Record_Result[0] = [];
+
+
+                for (var i = 0; i < generation.length; i++) {
+
+                    var record = generation[i];
+
+                    var FitnessValue = FindFitnessValueOfRecord_GIS(record);
+
+                    if (FitnessValue > maxfitnessvalue) {
+
+                        maxfitnessvalue = FitnessValue;
+                        maxfitnessvalueindex = i;
+                        maxfitnessvaluerecord = record;
+
+                        Top_Record_Result[0][0] = FitnessValue;
+                        Top_Record_Result[0][1] = record;
+
+                    }
+
+                    var Record_Result = [];
+                    Record_Result[0] = FitnessValue;
+                    Record_Result[1] = record;
+
+                    Generation_Result_Table[i] = Record_Result;
+
+                }
+
+                console.log("Iteration [" + [iteration_count + 1] + "] Binary Cross Over Generation results");
+                Print_Generation_Result_Table(Generation_Result_Table);
+                console.log("===============");
+
+
+                //var Generation_Top4_Result_Table = Sort_Generation_Result_Table_Return_Top4_Records(Generation_Result_Table);
+
+                // following sort will eliminate duplicate records present in the table
+                // duplication means same Fitness Value & Points, all such points will be removed
+                var Generation_Top4_Result_Table = Sort_Generation_Result_Table(Generation_Result_Table);
+
+                //console.log("===============");
+                console.log("Iteration [" + [iteration_count + 1] + "] Sorted Binary Cross Over Generation results");
+                Print_Generation_Result_Table(Generation_Top4_Result_Table);
+                console.log("===============");
+
+                var r1 = Merge_Generation_Result_Tables(all_records_list, Generation_Top4_Result_Table);
+                // following sort will eliminate duplicate records present in the table
+                // duplication means same Fitness Value & Points, all such points will be removed
+                var sortedr1 = Sort_Generation_Result_Table(r1);
+                console.log("Iteration [" + [iteration_count + 1] + "] Detailed Fitness Value Result Table Up-To-Now");
+                console.log("===============");
+                Print_Generation_Result_Table(sortedr1);
+
+
+                var r2 = Merge_Generation_Result_Tables(top_records_list, Top_Record_Result);
+                // following sort will eliminate duplicate records present in the table
+                // duplication means same Fitness Value & Points, all such points will be removed
+                var sortedr2 = Sort_Generation_Result_Table(r2);
+                console.log("Iteration [" + [iteration_count + 1] + "] Iteration Top Fitness Value Results Table Up-To-Now");
+                console.log("===============");
+                Print_Generation_Result_Table(sortedr2);
+
+
+                var master_record = [];
+
+                master_record[0] = Generation_Top4_Result_Table;// sorted generation table of this iteration
+                master_record[1] = Top_Record_Result;// topper of this iteration
+                master_record[2] = sortedr1; // sorted generation table of all iterations
+                master_record[3] = sortedr2; // sorted generation table of TOPPERS all iterations
+
+                return master_record;
+                //master_record[3][0][1] // this record to show on screen
+                //return sortedr2[0][1];
+            }
+
+
+
+            function Get_FitnessValue_Of_Record_GIS(record, map, polygon, polygon_coverage, latlong_grid) {
+
+
+                var center_point_1 = record[0]; //new esri.geometry.Point({ "x": record[0][0], "y": record[0][1], "spatialReference": map.spatialReference });
+                var center_point_2 = record[1]; //new esri.geometry.Point({ "x": record[1][0], "y": record[1][1], "spatialReference": map.spatialReference });
+                var center_point_3 = record[2]; //new esri.geometry.Point({ "x": record[2][0], "y": record[2][1], "spatialReference": map.spatialReference });
+                var center_point_4 = record[3]; //new esri.geometry.Point({ "x": record[3][0], "y": record[3][1], "spatialReference": map.spatialReference });
+
+                var circle_polygon_1 = get_circle_polygon(center_point_1);
+                var circle_polygon_2 = get_circle_polygon(center_point_2);
+                var circle_polygon_3 = get_circle_polygon(center_point_3);
+                var circle_polygon_4 = get_circle_polygon(center_point_4);
+
+                var cir_cov_ins_poly_1 = get_circle_coverage_inside_polygon(circle_polygon_1, polygon_coverage);
+                var cir_cov_ins_poly_2 = get_circle_coverage_inside_polygon(circle_polygon_2, polygon_coverage);
+                var cir_cov_ins_poly_3 = get_circle_coverage_inside_polygon(circle_polygon_3, polygon_coverage);
+                var cir_cov_ins_poly_4 = get_circle_coverage_inside_polygon(circle_polygon_4, polygon_coverage);
+
+                var total_cir_cov_ins_poly_with_overlapping = cir_cov_ins_poly_1 + cir_cov_ins_poly_2 + cir_cov_ins_poly_3 + cir_cov_ins_poly_4;
+
+                console.log("circle 1 coverage inside polygon " + cir_cov_ins_poly_1);
+                console.log("circle 2 coverage inside polygon " + cir_cov_ins_poly_2);
+                console.log("circle 3 coverage inside polygon " + cir_cov_ins_poly_3);
+                console.log("circle 4 coverage inside polygon " + cir_cov_ins_poly_4);
+                console.log("total circle coverage inside polygon with overlapping " + total_cir_cov_ins_poly_with_overlapping);
+
+
+
+                var cir_cov_pts_ins_poly_1 = get_circle_coverage_points_inside_polygon(circle_polygon_1, polygon_coverage);
+                var cir_cov_pts_ins_poly_2 = get_circle_coverage_points_inside_polygon(circle_polygon_2, polygon_coverage);
+                var cir_cov_pts_ins_poly_3 = get_circle_coverage_points_inside_polygon(circle_polygon_3, polygon_coverage);
+                var cir_cov_pts_ins_poly_4 = get_circle_coverage_points_inside_polygon(circle_polygon_4, polygon_coverage);
+
+
+
+
+                var overlapping12 = find_overlapping_between_circles(cir_cov_pts_ins_poly_1, cir_cov_pts_ins_poly_2);
+                var overlapping13 = find_overlapping_between_circles(cir_cov_pts_ins_poly_1, cir_cov_pts_ins_poly_3);
+                var overlapping14 = find_overlapping_between_circles(cir_cov_pts_ins_poly_1, cir_cov_pts_ins_poly_4);
+                var overlapping23 = find_overlapping_between_circles(cir_cov_pts_ins_poly_2, cir_cov_pts_ins_poly_3);
+                var overlapping24 = find_overlapping_between_circles(cir_cov_pts_ins_poly_2, cir_cov_pts_ins_poly_4);
+                var overlapping34 = find_overlapping_between_circles(cir_cov_pts_ins_poly_3, cir_cov_pts_ins_poly_4);
+                var total_overlapping_amongall_circles = overlapping12 + overlapping13 + overlapping14 + overlapping23 + overlapping24 + overlapping34;
+
+
+                console.log("circle 1 & 2 overlappings " + overlapping12);
+                console.log("circle 1 & 3 overlappings " + overlapping13);
+                console.log("circle 1 & 4 overlappings " + overlapping14);
+                console.log("circle 2 & 3 overlappings " + overlapping23);
+                console.log("circle 2 & 4 overlappings " + overlapping24);
+                console.log("circle 3 & 4 overlappings " + overlapping34);
+                console.log("total overlappings " + total_overlapping_amongall_circles);
+
+                // fitness value
+                var total_cir_cov_ins_poly_without_overlapping = total_cir_cov_ins_poly_with_overlapping - total_overlapping_amongall_circles;
+
+                var cir1_cov_on_grid = get_polygon_coverage_on_latlong_grid(circle_polygon_1, latlong_grid);
+                var cir2_cov_on_grid = get_polygon_coverage_on_latlong_grid(circle_polygon_2, latlong_grid);
+                var cir3_cov_on_grid = get_polygon_coverage_on_latlong_grid(circle_polygon_3, latlong_grid);
+                var cir4_cov_on_grid = get_polygon_coverage_on_latlong_grid(circle_polygon_4, latlong_grid);
+
+
+                console.log("circle 1 points on map " + cir1_cov_on_grid);
+                console.log("circle 2 points on map " + cir2_cov_on_grid);
+                console.log("circle 3 points on map " + cir3_cov_on_grid);
+                console.log("circle 4 points on map " + cir4_cov_on_grid);
+
+
+                var cir1_cov_outs_poly = get_circle_coverage_outside_polygon(polygon, cir1_cov_on_grid);
+                var cir2_cov_outs_poly = get_circle_coverage_outside_polygon(polygon, cir2_cov_on_grid);
+                var cir3_cov_outs_poly = get_circle_coverage_outside_polygon(polygon, cir3_cov_on_grid);
+                var cir4_cov_outs_poly = get_circle_coverage_outside_polygon(polygon, cir4_cov_on_grid);
+                var total_cir_cov_outs_poly = cir1_cov_outs_poly + cir2_cov_outs_poly + cir3_cov_outs_poly + cir4_cov_outs_poly;
+
+                console.log("circle 1 coverage outside polygon " + cir1_cov_outs_poly);
+                console.log("circle 2 coverage outside polygon " + cir2_cov_outs_poly);
+                console.log("circle 3 coverage outside polygon " + cir3_cov_outs_poly);
+                console.log("circle 4 coverage outside polygon " + cir4_cov_outs_poly);
+                console.log("total circles coverage outside polygon " + total_cir_cov_outs_poly);
+
+                // fitness value
+                var total_cir_cov = total_cir_cov_ins_poly_without_overlapping - total_cir_cov_outs_poly;
+
+                console.log("fitness value " + total_cir_cov);
+
+                return total_cir_cov;
+
+                //// Create one dimensional array
+                //var grid = GetGrid();
+
+                //var center_point_1_Coverage = FindCoveragePoints(pointtofind1, grid);
+                //var CoverageInsideGrid1 = FindCoverage(pointtofind1, grid);
+                //var CoverageOutsideGrid1 = FindCoverageOutsideGrid(pointtofind1, grid);
+                ////DrawPointOnGrid(pointtofind1, grid);
+
+                ////document.write("===============================================");
+
+
+                //var pointcoverage2 = FindCoveragePoints(pointtofind2, grid);
+                //var CoverageInsideGrid2 = FindCoverage(pointtofind2, grid);
+                //var CoverageOutsideGrid2 = FindCoverageOutsideGrid(pointtofind2, grid);
+                ////DrawPointOnGrid(pointtofind2, grid);
+
+                ////document.write("===============================================");
+
+
+                //var pointcoverage3 = FindCoveragePoints(pointtofind3, grid);
+                //var CoverageInsideGrid3 = FindCoverage(pointtofind3, grid);
+                //var CoverageOutsideGrid3 = FindCoverageOutsideGrid(pointtofind3, grid);
+                ////DrawPointOnGrid(pointtofind3, grid);
+
+                ////document.write("===============================================");
+
+
+                //var pointcoverage4 = FindCoveragePoints(pointtofind4, grid);
+                //var CoverageInsideGrid4 = FindCoverage(pointtofind4, grid);
+                //var CoverageOutsideGrid4 = FindCoverageOutsideGrid(pointtofind4, grid);
+                ////DrawPointOnGrid(pointtofind4, grid);
+
+
+                //var CoverageWithOverlapping = CoverageInsideGrid1 + CoverageInsideGrid2 + CoverageInsideGrid3 + CoverageInsideGrid4;
+
+                ////document.write("================= Start Statement ==============================");
+
+                //// document.write("<br>");
+                //// document.write("<br>");
+                //// document.write("<b> Total Coverage with Overlapping ::::::" + "</b>" + CoverageWithOverlapping);
+                //// document.write("<br>");
+                //// document.write("<br>");
+
+
+                ////document.write("===============================================");
+
+                //var overlapping12 = FindOverlapping(pointtofind1, pointcoverage1, pointtofind2, pointcoverage2);
+                //var overlapping13 = FindOverlapping(pointtofind1, pointcoverage1, pointtofind3, pointcoverage3);
+                //var overlapping14 = FindOverlapping(pointtofind1, pointcoverage1, pointtofind4, pointcoverage4);
+
+                //var overlapping23 = FindOverlapping(pointtofind2, pointcoverage2, pointtofind3, pointcoverage3);
+                //var overlapping24 = FindOverlapping(pointtofind2, pointcoverage2, pointtofind4, pointcoverage4);
+
+                //var overlapping34 = FindOverlapping(pointtofind3, pointcoverage3, pointtofind4, pointcoverage4);
+
+                //var totaloverlapping = overlapping12 + overlapping13 + overlapping14 + overlapping23 + overlapping24 + overlapping34;
+
+                ////document.write("===============================================");
+
+                //document.write("<br>");
+                //document.write("<br>");
+                //document.write("<b> Total Overlapping among all rectangles ::::::" + "</b>" + totaloverlapping);
+                //document.write("<br>");
+                //document.write("<br>");
+
+                ////document.write("===============================================");
+
+                //var OverallCoverageWithoutOverlapping = CoverageWithOverlapping - totaloverlapping;
+                ////var OverallCoverageWithoutOverlapping = FindOverallCoverage(pointcoverage1, pointcoverage2, pointcoverage3, pointcoverage4);
+
+
+                ////document.write("<br>");
+                ////document.write("<br>");
+                ////document.write("<b> Total Coverage without overlapping ::::::" + "</b>" + OverallCoverageWithoutOverlapping);
+                ////document.write("<br>");
+                ////document.write("<br>");
+
+                ////document.write("===============================================");
+
+                //var OverallCoverageOutsideGrid = CoverageOutsideGrid1 + CoverageOutsideGrid2 + CoverageOutsideGrid3 + CoverageOutsideGrid4;
+
+
+                ////document.write("<br>");
+                ////document.write("<br>");
+                ////document.write("<b> Total Coverage outside grid ::::::" + "</b>" + OverallCoverageOutsideGrid);
+                ////document.write("<br>");
+                ////document.write("<br>");
+
+                ////document.write("===============================================");
+
+
+                //var FitnessValue = OverallCoverageWithoutOverlapping;
+
+
+                ////document.write("<br>");
+                ////document.write("<br>");
+                ////document.write("<b> Fitness Value ::::::" + "</b>" + FitnessValue);
+                ////document.write("<br>");
+                ////document.write("<br>");
+
+                ////document.write("===============================================");
+
+                //return FitnessValue;
+
+            }
+
+
+
+
+
+
+
+
+
+
+
+            function find_overlapping_between_circles(cir_cov_ins_poly_1, cir_cov_ins_poly_2) {
+
+                var overlappingcount = 0;
+
+                for (var i = 0; i < cir_cov_ins_poly_1.length; i++) {
+
+                    for (var j = 0; j < cir_cov_ins_poly_2.length; j++) {
+
+                        if (cir_cov_ins_poly_1[i].x == cir_cov_ins_poly_2[j].x &&
+                            cir_cov_ins_poly_1[i].y == cir_cov_ins_poly_2[j].y) {
+                            overlappingcount++;
+                            break;
+                        }
+                    }
+
+                }
+
+                return overlappingcount;
+            }
+
+
+
+            function get_circle_coverage_inside_polygon(circle, polygon_coverage) {
+
+                //var circle_coverage = [];
+                //var array_index = 0;
+
+                var circle_coverage_inside_polygon = 0;
+
+                for (var i = 0; i < polygon_coverage.length; i++) {
+
+                    if (circle.contains(polygon_coverage[i])) {
+
+                        //circle_coverage[array_index] = polygon_coverage[i];
+                        //array_index++;
+                        circle_coverage_inside_polygon++;
+
+                    }
+
+                }
+
+                return circle_coverage_inside_polygon;
+                //return circle_coverage;
+
+            }
+
+
+
+            function get_circle_coverage_points_inside_polygon(circle, polygon_coverage) {
+
+                var circle_coverage = [];
+                var array_index = 0;
+
+               
+                for (var i = 0; i < polygon_coverage.length; i++) {
+
+                    if (circle.contains(polygon_coverage[i])) {
+
+                        circle_coverage[array_index] = polygon_coverage[i];
+                        array_index++;                       
+
+                    }
+
+                }
+               
+                return circle_coverage;
+
+            }
+
+
+
+            function get_circle_coverage_outside_polygon(polygon, circle_coverage) {
+
+                //var circle_coverage = [];
+                //var array_index = 0;
+
+                var circle_coverage_outside_polygon = 0;
+
+                for (var i = 0; i < circle_coverage.length; i++) {
+
+                    if (!polygon.contains(circle_coverage[i])) {
+                        circle_coverage_outside_polygon++;
+                    }
+
+                }
+
+                return circle_coverage_outside_polygon;
+
+            }
+
+
+            function get_circle_coverage_points_outside_polygon(polygon, circle_coverage) {
+
+                var circle_coverage = [];
+                var array_index = 0;
+               
+
+                for (var i = 0; i < circle_coverage.length; i++) {
+
+                    if (!polygon.contains(circle_coverage[i])) {
+
+                        circle_coverage[array_index] = polygon_coverage[i];
+                        array_index++;
+
+                    }
+
+                }
+
+                return circle_coverage;
+
+            }
+
+
+
+            function show_record_on_map(graphics_layer, cartesian_record, latlong_grid) {
+
+                //console.error(cartesian_record);
+                //console.error(latlong_grid);
+
+                draw_circle(graphics_layer, Map_Cartesian_Point_To_LatLong_Point(cartesian_record[1][0], latlong_grid));
+                draw_circle(graphics_layer, Map_Cartesian_Point_To_LatLong_Point(cartesian_record[1][1], latlong_grid));
+                draw_circle(graphics_layer, Map_Cartesian_Point_To_LatLong_Point(cartesian_record[1][2], latlong_grid));
+                draw_circle(graphics_layer, Map_Cartesian_Point_To_LatLong_Point(cartesian_record[1][3], latlong_grid));
+            }
+
+
+            function Get_Point_Symbolology(choice) {
+
+
+                //var symbol = new SimpleMarkerSymbol();
+                ////symbol.setColor(new Color(color));
+                ////symbol.setOutline(null);
+                //symbol.setSize("2");
+
+                //var symbol = new SimpleMarkerSymbol(
+                //    SimpleMarkerSymbol.STYLE_SQUARE,
+                //    2,
+                //    new SimpleLineSymbol(SimpleLineSymbol.STYLE_SOLID,
+                //        new esri.Color([255, 0, 0]), 1),
+                //    new esri.Color([0, 255, 0, 0.25]));
+
+
+                var symbology_black = new SimpleMarkerSymbol({
+                    "color": [0, 0, 0, 255],
+                    "size": 2,
+                    "angle": -30,
+                    "xoffset": 0,
+                    "yoffset": 0,
+                    "type": "esriSMS",
+                    "style": "esriSMSCircle",
+                    "outline": {
+                        "color": [0, 0, 0, 255],
+                        "width": 1,
+                        "type": "esriSLS",
+                        "style": "esriSLSSolid"
+                    }
+                });
+
+
+                var symbology_red = new SimpleMarkerSymbol({
+                    "color": [255, 0, 0, 255],
+                    "size": 2,
+                    "angle": -30,
+                    "xoffset": 0,
+                    "yoffset": 0,
+                    "type": "esriSMS",
+                    "style": "esriSMSCircle",
+                    "outline": {
+                        "color": [0, 0, 0, 255],
+                        "width": 1,
+                        "type": "esriSLS",
+                        "style": "esriSLSSolid"
+                    }
+                });
+
+
+                if (choice == 1) {
+                    return symbology_black;
+                }
+
+
+                if (choice == 2) {
+                    return symbology_red;
+                }
+
+                //return symbol;
+
+            }
+
+
+            function Show_Grid_Points_On_Map(graphics_layer, latlong_grid) {
+
+                var point_symbology = Get_Point_Symbolology(1);
+
+
+                //alert("latlong_grid.length"+latlong_grid.length);
+
+                for (var i = 0; i < latlong_grid.length; i++) {
+
+                    //alert("latlong_grid[0].length" + latlong_grid[0].length);
+
+                    for (var j = 0; j < latlong_grid[i].length; j++) {
+
+                        //console.log("callled " + i + " " + j);
+
+                        var infoTemplate = new esri.InfoTemplate();
+                        //infoTemplate.setTitle("${NAME}");
+                        infoTemplate.setContent("x " + latlong_grid[i][j].x + "<br> y " + latlong_grid[i][j].y + "<br> x " + i + "<br> y " + j);
+                        
+                        var graphic = new Graphic(latlong_grid[i][j], point_symbology);
+                        graphic.setInfoTemplate(infoTemplate);
+                        graphics_layer.add(graphic);
+
+
+                    }
+                }
+            }
+
+
+
+            function show_lat_long_points_on_map(graphics_layer, points_array) {
+
+                var point_symbology = Get_Point_Symbolology(2);
+
+                for (var i = 0; i < points_array.length; i++) {
+
+                    var graphic = new Graphic(points_array[i], point_symbology);
+                    graphics_layer.add(graphic);
+
+                }
+            }
+
+
+
+            function get_polygon_coverage_on_latlong_grid(polygon, latlong_grid) {
+
+                var polygon_coverage = [];
+                var point = null;
+                var array_index = 0;
+
+                for (var i = 0; i < latlong_grid.length; i++) {
+
+                    for (var j = 0; j < latlong_grid[i].length; j++) {
+
+                        point = latlong_grid[i][j];//new esri.geometry.Point({ "x": latlong_grid[i][j][0], "y": latlong_grid[i][j][1], "spatialReference": map.spatialReference });
+
+                        if (polygon.contains(point)) {
+
+                            polygon_coverage[array_index] = point;
+                            array_index++;
+                        }
+                    }
+                }
+
+                return polygon_coverage;
+
+            }
+
+
+
+            function draw_polygon() {
+
+
+                var polygon_rings = [
+                    new esri.geometry.Point(8597046.130867343, 3327729.641055317, map.spatialReference),
+                    new esri.geometry.Point(8597982.484463835, 3329640.566762444, map.spatialReference),
+                    new esri.geometry.Point(8599836.082399748, 3330997.3240145044, map.spatialReference),
+                    new esri.geometry.Point(8603600.60604279, 3331073.7610427896, map.spatialReference),
+                    new esri.geometry.Point(8606581.650145907, 3329411.2556775887, map.spatialReference),
+                    new esri.geometry.Point(8606715.414945405, 3325608.5135204066, map.spatialReference),
+                    new esri.geometry.Point(8606447.885346407, 3323716.697070351, map.spatialReference),
+                    new esri.geometry.Point(8601078.18410938, 3325264.5468931235, map.spatialReference),
+                    new esri.geometry.Point(8598326.451091118, 3325799.6060911193, map.spatialReference),
+                    new esri.geometry.Point(8597046.130867343, 3327729.641055317, map.spatialReference)
+                ];
+
+                var polygon_symbol = new SimpleFillSymbol().setColor(null).outline.setColor("red");
+                var polygon = new Polygon();
+                polygon.addRing(polygon_rings);
+                polygon.spatialReference = map.spatialReference;
+                var polygon_graphic = new esri.Graphic(polygon, polygon_symbol, { keeper: true });
+
+                graphics_layer.add(polygon_graphic);
+
+                var drawings_results = [];
+
+                drawings_results[0] = polygon;
+                drawings_results[1] = polygon_graphic;
+
+                return drawings_results;
+
+            }
+
+
+            function get_polygon() {
+
+
+                var polygon_rings = [
+                    new esri.geometry.Point(8597046.130867343, 3327729.641055317, map.spatialReference),
+                    new esri.geometry.Point(8597982.484463835, 3329640.566762444, map.spatialReference),
+                    new esri.geometry.Point(8599836.082399748, 3330997.3240145044, map.spatialReference),
+                    new esri.geometry.Point(8603600.60604279, 3331073.7610427896, map.spatialReference),
+                    new esri.geometry.Point(8606581.650145907, 3329411.2556775887, map.spatialReference),
+                    new esri.geometry.Point(8606715.414945405, 3325608.5135204066, map.spatialReference),
+                    new esri.geometry.Point(8606447.885346407, 3323716.697070351, map.spatialReference),
+                    new esri.geometry.Point(8601078.18410938, 3325264.5468931235, map.spatialReference),
+                    new esri.geometry.Point(8598326.451091118, 3325799.6060911193, map.spatialReference),
+                    new esri.geometry.Point(8597046.130867343, 3327729.641055317, map.spatialReference)
+                ];
+
+                var polygon_symbol = new SimpleFillSymbol().setColor(null).outline.setColor("red");
+                var polygon = new Polygon();
+                polygon.addRing(polygon_rings);
+                polygon.spatialReference = map.spatialReference;
+                var polygon_graphic = new esri.Graphic(polygon, polygon_symbol, { keeper: true });
+
+
+                var drawings_results = [];
+
+                drawings_results[0] = polygon;
+                drawings_results[1] = polygon_graphic;
+
+                return drawings_results;
+
+            }
+
+
+            function draw_circle(graphics_layer, circle_center) {
+
+                var circle_geometry = new Circle({
+                    center: circle_center,
+                    radius: 1500,
+                    geodesic: true
+                });
+
+                var circle_symbol = new SimpleFillSymbol().setColor(null).outline.setColor("blue");
+
+                var circle_geometry_rings = circle_geometry.rings;
+
+                var circle_rings = [];
+
+                for (var i = 0; i < circle_geometry_rings[0].length; i++) {
+                    circle_rings[i] = new esri.geometry.Point(circle_geometry_rings[0][i][0], circle_geometry_rings[0][i][1], map.spatialReference);
+                }
+
+
+                var circle_polygon = new Polygon();
+                circle_polygon.addRing(circle_rings);
+                circle_polygon.spatialReference = map.spatialReference;
+                var circle_graphic = new esri.Graphic(circle_polygon, circle_symbol, { keeper: true });
+                graphics_layer.add(circle_graphic);
+
+
+                var drawings_results = [];
+
+                drawings_results[0] = circle_polygon;
+                drawings_results[1] = circle_graphic;
+
+                return drawings_results;
+            }
+
+
+            function get_circle_polygon(circle_center) {
+
+                var circle_geometry = new Circle({
+                    center: circle_center,
+                    radius: 1500,
+                    geodesic: true
+                });
+
+                var circle_symbol = new SimpleFillSymbol().setColor(null).outline.setColor("blue");
+
+                var circle_geometry_rings = circle_geometry.rings;
+
+                var circle_rings = [];
+
+                for (var i = 0; i < circle_geometry_rings[0].length; i++) {
+                    circle_rings[i] = new esri.geometry.Point(circle_geometry_rings[0][i][0], circle_geometry_rings[0][i][1], map.spatialReference);
+                }
+
+
+                var circle_polygon = new Polygon();
+                circle_polygon.addRing(circle_rings);
+                circle_polygon.spatialReference = map.spatialReference;
+
+                return circle_polygon;
+                //var circle_graphic = new esri.Graphic(circle_polygon, circle_symbol, { keeper: true });
+                //var drawings_results = [];
+                //drawings_results[0] = circle_polygon;
+                //drawings_results[1] = circle_graphic;
+                //return drawings_results;
+            }
+
+
+
+
+            //function Generate_Lat_Long_Points_Grid(polygon_extent, grid_length, map) {
+
+            //    //xmax == Top - right X - coordinate of an extent envelope.
+            //    //xmin == Bottom - left X - coordinate of an extent envelope.
+            //    //ymax == Top - right Y - coordinate of an extent envelope.
+            //    //ymin == Bottom - left Y - coordinate of an extent envelope.
+
+            //    //var grid_length = 11;
+            //    var grid = [];
+
+            //    var xmax = polygon_extent.xmax;
+            //    var xmin = polygon_extent.xmin;
+            //    var ymax = polygon_extent.ymax;
+            //    var ymin = polygon_extent.ymin;
+
+            //    var x_distance = xmax - xmin;
+            //    var y_distance = ymax - ymin;
+            //    var x_interval = (xmax - xmin) / (grid_length - 1);
+            //    var y_interval = (ymax - ymin) / (grid_length - 1);
+            //    var x_point = null;
+            //    var y_point = null;
+
+
+            //    for (var i = 0; i < grid_length; i++) {
+
+            //        var grid_row = [];
+
+            //        for (var j = 0; j < grid_length; j++) {
+
+            //            var grid_point = null;
+
+            //            x_point = xmin + (j * x_interval);
+            //            y_point = ymin + (i * y_interval);
+
+            //            grid_point = new esri.geometry.Point({ "x": x_point, "y": y_point, "spatialReference": map.spatialReference });
+
+            //            grid_row[j] = grid_point;
+            //        }
+
+            //        grid[i] = grid_row;
+
+            //    }
+
+            //    console.log(("xmax " + xmax));
+            //    console.log(("ymax " + ymax));
+            //    console.log(("xmin " + xmin));
+            //    console.log(("ymin " + ymin));
+            //    console.log(("x_distance" + x_distance));
+            //    console.log(("y_distance" + y_distance));
+            //    console.log(("x_interval" + x_interval));
+            //    console.log(("y_interval" + y_interval));
+
+            //    return grid;
+            //}
+
+
+
+            function createToolbar() {
+
+                toolbar = new Draw(map);
+                toolbar.on("draw-end", addToMap);
+
+            }
+
+
+            function addToMap(evt) {
+
+                var symbol;
+                toolbar.deactivate();
+                map.showZoomSlider();
+
+                switch (evt.geometry.type) {
+                    case "point":
+                    case "multipoint":
+                        symbol = new SimpleMarkerSymbol();
+                        break;
+                    case "polyline":
+                        symbol = new SimpleLineSymbol();
+                        break;
+                    case "polygon":
+                        symbol = new SimpleFillSymbol();
+                        break;
+                    default:
+                        symbol = new SimpleFillSymbol();
+                        break;
+                }
+
+                var graphic = new Graphic(evt.geometry, symbol);
+                map.graphics.add(graphic);
+
+
+            }
+
+
+            function activateTool() {
+                alert("activateTool");
+                var tool = this.label.toUpperCase().replace(/ /g, "_");
+                toolbar.activate(Draw[tool]);
+                map.hideZoomSlider();
+            }
+
+
+        });
+    </script>
+</head>
+<body class="nihilo">
+
+    <div id="mainWindow" data-dojo-type="dijit/layout/BorderContainer" data-dojo-props="design:'headline'">
+        <div id="header" data-dojo-type="dijit/layout/ContentPane" data-dojo-props="region:'top'">
+            <span>Draw:<br /></span>
+            <button data-dojo-type="dijit/form/Button">Point</button>
+            <button data-dojo-type="dijit/form/Button">Multi Point</button>
+            <button data-dojo-type="dijit/form/Button">Line</button>
+            <button data-dojo-type="dijit/form/Button">Polyline</button>
+            <button data-dojo-type="dijit/form/Button">Polygon</button>
+            <button data-dojo-type="dijit/form/Button">Freehand Polyline</button>
+            <button data-dojo-type="dijit/form/Button">Freehand Polygon</button>
+
+            <button data-dojo-type="dijit/form/Button">Arrow</button>
+            <button data-dojo-type="dijit/form/Button">Triangle</button>
+            <button data-dojo-type="dijit/form/Button">Circle</button>
+            <button data-dojo-type="dijit/form/Button">Ellipse</button>
+            <button data-dojo-props="id:'btnExecutAlgo'" data-dojo-type="dijit/form/Button">Execute</button>
+        </div>
+        <div id="map" data-dojo-type="dijit/layout/ContentPane" data-dojo-props="region:'center'"></div>
+    </div>
+
+</body>
+</html>

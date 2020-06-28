@@ -1,0 +1,669 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title> Circle Coverage</title>
+    <script src="../js/jquery-3.5.1.js"></script>
+    <link href="../css/bootstrap.css" rel="stylesheet" />
+    <link href="../css/site.css" rel="stylesheet" />
+
+    <script src="js/Binary_Cross_Over.js"></script>
+    <script src="js/Grid_Analysis.js"></script>
+    <script src="js/Grid_Drawing.js"></script>
+    <script src="js/Random_Seed.js"></script>
+    <script src="js/Shape_Seed.js"></script>
+    <script src="js/Generation_Helpers.js"></script>
+    <script src="js/Fitness_Value_Calculations.js"></script>
+    <script src="js/Mid_Point_Cross_Over.js"></script>
+    <script src="js/Binary_Point_Mutate.js"></script>
+    <script src="js/Decimal_Point_Mutate.js"></script>
+    <script src="js/Mid_Point_Mutate.js"></script>
+
+</head>
+<body>
+
+
+    <h2>JavaScript in Body</h2>
+
+    <p id="demo"></p>
+
+
+    <script>
+
+        $(document).ready(function () {
+
+            //var value = Convert_Decimal_To_Binary(7);
+            //var value2 = Convert_Binary_To_Decimal(value);
+            //alert(value);
+            //alert(value2);
+
+            //var decimal_point = [];
+            //decimal_point[0] = 45;
+            //decimal_point[1] = 2;
+            //Convert_Decimal_Point_To_Binary(decimal_point);
+            //alert(decimal_point[0] + "," + decimal_point[1]);
+            //Convert_Binary_Point_To_Decimal(decimal_point);
+            //alert(decimal_point[0] + "," + decimal_point[1]);
+
+            //console.log("111000");
+            //console.log("101010");
+            //console.log(Crossover_Two_Binary_Coordinates("111000", "101010"));
+
+            //var point1 = [];
+            //var point2 = [];
+            //point1[0] = 4;
+            //point1[1] = 7;
+            //point2[0] = 14;
+            //point2[1] = 17;
+            //alert(Crossover_Two_Decimal_Points(point1, point2));
+
+            //alert(Crossover_Two_Decimal_Points(GetRandomPoint(), GetRandomPoint()));
+
+            //alert(Crossover_Two_Decimal_Records(GetRandomRecord(), GetRandomRecord()));
+
+            GenerateUI();
+
+        });
+
+        // Generate UI
+        function GenerateUI() {
+
+            document.clear();
+            document.close();
+
+
+            //document.write("<div>");
+            //document.write("<lable>Grid Size</lable>");
+            //document.write("<input id='txtGridSize' value='7' type='text'/>");
+            //document.write("</div>");
+
+            //document.write("<br>");
+
+            //document.write("<div>");
+            //document.write("<lable>Rectangle One X</lable>");
+            //document.write("<input id='txtRectOneX' value='1' type='text' />");
+            //document.write("<lable>Rectangle One Y</lable>");
+            //document.write("<input id='txtRectOneY' value='0' type='text' />");
+            //document.write("</div>");
+
+            //document.write("<br>");
+
+            //document.write("<div>");
+            //document.write("<lable>Rectangle Two X</lable>");
+            //document.write("<input id='txtRectTwoX' value='6' type='text' />");
+            //document.write("<lable>Rectangle Two Y</lable>");
+            //document.write("<input id='txtRectTwoY' value='6' type='text' />");
+            //document.write("</div>");
+
+            //document.write("<br>");
+
+            //document.write("<div>");
+            //document.write("<lable>Rectangle Three X</lable>");
+            //document.write("<input id='txtRectThreeX' value='3' type='text' />");
+            //document.write("<lable>Rectangle Three Y</lable>");
+            //document.write("<input id='txtRectThreeY' value='2' type='text' />");
+            //document.write("</div>");
+
+            //document.write("<br>");
+
+            //document.write("<div>");
+            //document.write("<lable>Rectangle Four X</lable>");
+            //document.write("<input id='txtRectFourX' value='5' type='text' />");
+            //document.write("<lable>Rectangle Four Y</lable>");
+            //document.write("<input id='txtRectFourY' value='1' type='text' />");
+            //document.write("</div>");
+
+
+            document.write("<br>");
+
+            document.write("<div>");
+            document.write("<lable>Grid X-Axis/Columns</lable>");
+            document.write("<input id='txtRectFourX' value='9' disabled ='disabled'  type='text' />");
+            document.write("<lable>Grid Y-Axis/Rows</lable>");
+            document.write("<input id='txtRectFourY' value='9' disabled ='disabled'  type='text' />");
+            document.write("</div>");
+
+
+            document.write("<br>");
+
+            document.write("<div>");
+            document.write("<lable>Iterations</lable>");
+            document.write("<input id='txtIteration' value='5' disabled ='disabled'  type='text' />");
+            document.write("</div>");
+
+            //document.write("<br>");
+
+            //document.write("<div>");
+            //document.write("<button id='btnShowResults' onclick='btnShowResults_Click()'> Show Results</button>");
+            //document.write("</div>");
+
+            document.write("<br>");
+
+            document.write("<div>");
+            document.write("<button id='btnShowGeneticAlgoResults' onclick='btnShowGeneticAlgoResults_Click()'> Seed = Random & Cross Over = Binary  </button>");
+            document.write("</div>");
+
+            document.write("<br>");
+
+            document.write("<div>");
+            document.write("<button id='btnGAShapesSeedResults' onclick='btnGAShapesSeedResults_Click()'> Seed = Shapes & Cross Over = Binary </button>");
+            document.write("</div>");
+
+            document.write("<br>");
+
+            document.write("<div>");
+            document.write("<button id='btnShowGeneticAlgoWithMidPointCrossOverResults' onclick='btnShowGeneticAlgoWithMidPointCrossOverResults_Click()'> Seed = Random & Cross Over = Mid Point  </button>");
+            document.write("</div>");
+
+            document.write("<br>");
+
+            document.write("<div>");
+            document.write("<button id='btnGAShapesSeedResults' onclick='btnGAShapesSeedResultsWithMidPointCrossOverResults_Click()'> Seed = Shapes & Cross Over = Mid Point </button>");
+            document.write("</div>");
+
+            document.write("<br>");
+
+            document.write("<div>");
+            document.write("<button id='btnClearGrid' onclick='ClearGrid()'> Clear Grid </button>");
+            document.write("</div>");
+
+            document.write("<br>");
+            document.write("<br>");
+
+            var grid = GetGrid();
+            //var grid = GetGrid_GridDensity(9);
+            PrintGrid(grid);
+
+            document.write("<h1 id='divFitnessValue'></h1>");
+
+            document.write("<h2 id='divSeedAlgo'></h2>");
+
+            document.write("<h2 >Following is the best Coverage Result found after 5 iterations.</h2>");
+            document.write("<h3 >Detailed Results in Console Window (F-12).</h3>");
+
+            document.write("<br>");
+            document.write("<br>");
+            document.write("===============================================");
+
+
+        }
+
+
+        // Take Center Points from UI
+        function btnShowResults_Click() {
+
+            ClearGrid();
+
+            var record = GetRecordFromUI();
+            var FitnessValue = FindFitnessValueOfRecord_With_GridDrawings(record);
+
+            document.getElementById('divFitnessValue').innerHTML = "FitnessValue" + FitnessValue;
+
+        }
+
+
+        // Seed = Random :: Cross Over = Binary
+        function btnShowGeneticAlgoResults_Click() {
+
+            console.clear();
+
+            var generation = Get_Initial_Generation_By_Random_Function();
+
+            // following are wrong fittnetss values corrected
+            //Fitness Value - 4 Record 8, 19, 8, 2, 0, 12, 8, 14
+            //Fitness Value - 5 Record 8, 19, 4, 2, 2, 6, 3, 7
+            //Fitness Value - 4 Record 9, 20, 8, 9, 3, 6, 8, 4
+            //Fitness Value - 2 Record 6, 4, 8, 1, 5, 8, 5, 7
+            //Fitness Value - 4 Record 4, 9, 4, 2, 3, 5, 0, 14
+            //Fitness Value - 4 Record 4, 19, 9, 9, 8, 14, 5, 0
+            //Fitness Value - 4 Record 9, 3, 1, 0, 2, 3, 8, 16
+            //Fitness Value - 5 Record 8, 9, 4, 4, 3, 12, 4, 13
+
+            //var generation = [
+            //    [[8, 19], [8, 2], [0, 12], [8, 14]],
+            //    [[8, 19], [4, 2], [2, 6], [3, 7]],
+            //    [[9, 20], [8, 9], [3, 6], [8, 4]],
+            //    [[6, 4], [8, 1], [5, 8], [5, 7]],
+            //    [[4, 9], [4, 2], [3, 5], [0, 14]],
+            //    [[4, 19], [9, 9], [8, 14], [5, 0]],
+            //    [[9, 3], [1, 0], [2, 3], [8, 16]],
+            //    [[8, 9], [4, 4], [3, 12], [4, 13]]
+            //];
+
+
+            //Fitness Value 13 Record 1, 9, 3, 20, 4, 3, 9, 11
+            //Fitness Value 14 Record 2, 7, 2, 13, 5, 8, 3, 11
+            //Fitness Value 9 Record 0, 20, 6, 12, 2, 16, 8, 13
+            //Fitness Value 13 Record 8, 18, 0, 6, 3, 8, 4, 11
+            //Fitness Value 14 Record 1, 8, 2, 20, 2, 1, 3, 10
+            //Fitness Value 13 Record 1, 0, 1, 3, 6, 3, 5, 13
+            //Fitness Value 14 Record 8, 5, 4, 6, 9, 7, 2, 9
+            //Fitness Value 16 Record 9, 4, 4, 12, 2, 1, 2, 11
+
+            //Fitness Value 30 Record 4, 2, 1, 4, 10, 3, 9, 11
+
+            //var generation = [
+            //    [[4, 2], [1, 4], [10, 3], [9, 11]],
+            //    [[2, 7], [2, 13], [5, 8], [3, 11]],
+            //    [[0, 20], [6, 12], [2, 16], [8, 13]],
+            //    [[8, 18], [0, 6], [3, 8], [4, 11]],
+            //    [[1, 8], [2, 20], [2, 1], [3, 10]],
+            //    [[1, 0], [1, 3], [6, 3], [5, 13]],
+            //    [[8, 5], [4, 6], [9, 7], [2, 9]],
+            //    [[9, 4], [4, 12], [2, 1], [2, 11]]
+            //];
+
+
+            //console.log(generation);
+
+            console.log("Initial Seed Random Generation");
+            console.log("===============");
+            Print_Generation(generation);
+            console.log("===============");
+
+            var startTime = performance.now();
+            
+            var all_records_list = Evaluate_FitnessValue_Of_Seed_Generation_Return_All_Records(generation);
+
+            //alert(top4_records_list);
+
+
+            console.log("Sorted Initial Seed Generation Results");
+            Print_Generation_Result_Table(all_records_list);
+            console.log("===============");
+
+
+            var top_records_list = [];
+            top_records_list[0] = all_records_list[0];
+
+
+            //console.log("TOP RECORD after random generation evaluation ");
+            //Print_Generation_Result_Table(top_records_list);
+            //console.log("===============");
+
+            //console.error("top records list before evaluation " + top_records_list.length)
+            //console.error("top4 records list before evaluation " + top4_records_list.length)
+
+            var master_record = [];
+
+            master_record[0] = [];// sorted generation table of previous iteration
+            master_record[1] = [];// topper of previous iteration
+            master_record[2] = all_records_list; // sorted generation table of all iterations
+            master_record[3] = top_records_list; // sorted generation table of TOPPERS all iterations
+
+            //master_record = GENETIC_ALGO_To_Evaluate_FitnessValue_Of_Generation_With_Binary_CrossOver(0, top_records_list, master_record[0], all_records_list);
+
+            for (var i = 0; i <= 5; i++) {
+
+                master_record = GENETIC_ALGO_To_Evaluate_FitnessValue_Of_Generation_With_Binary_CrossOver(i, master_record[3], master_record[0], master_record[2]);
+
+            }
+
+
+
+            //console.error("top records list after evaluation " + top_records_list.length)
+            //console.error("top4 records list after evaluation " + top4_records_list.length)
+
+
+            var endTime = performance.now();
+
+            ClearGrid();
+            // called just show the record on grid, otherwise fitness value calculated above
+            var FitnessValue = FindFitnessValueOfRecord_With_GridDrawings(master_record[3][0][1]);
+            document.getElementById('divFitnessValue').innerHTML = "FitnessValue: " + FitnessValue + " <br /> Elapsed time: " + (endTime - startTime) + "ms";
+            document.getElementById('divSeedAlgo').innerHTML = "Seed = Random & Cross Over = Binary";
+        }
+
+
+        // Seed = Shapres :: Cross Over = Binary
+        function btnGAShapesSeedResults_Click() {
+
+            console.clear();
+            var generation = Get_Initial_Generation_By_Shape_Equations();
+
+            //var generation = [
+            //    [[3, 3], [0, 6], [2, 3], [2, 5]],
+            //    [[2, 2], [2, 7], [4, 2], [3, 7]],
+            //    [[4, 7], [4, 8], [3, 6], [1, 5]],
+            //    [[0, 8], [3, 5], [2, 7], [3, 3]],
+            //    [[0, 0], [3, 1], [1, 3], [4, 1]],
+            //    [[0, 2], [4, 0], [1, 5], [1, 4]],
+            //    [[3, 1], [3, 7], [2, 3], [1, 8]],
+            //    [[1, 2], [0, 4], [0, 6], [3, 1]]
+            //];
+
+            //console.log(generation);
+
+            console.log("Initial Seed Shape Generation");
+            console.log("===============");
+            Print_Generation(generation);
+            console.log("===============");
+
+            var startTime = performance.now();
+
+
+            // Todo: Seperate the evaluation of fitness value and drawing the record
+            var all_records_list = Evaluate_FitnessValue_Of_Seed_Generation_Return_All_Records(generation);
+
+            //alert(top4_records_list);
+
+            console.log("===============");
+            console.log("Sorted Initial Seed Shape Generation Results");
+            Print_Generation_Result_Table(all_records_list);
+            console.log("===============");
+
+
+            var top_records_list = [];
+            top_records_list[0] = all_records_list[0];
+
+
+            //console.log("TOP RECORD after shape generation evaluation ");
+            //Print_Generation_Result_Table(top_records_list);
+            //console.log("===============");
+
+
+
+            var master_record = [];
+
+            master_record[0] = [];// sorted generation table of previous iteration
+            master_record[1] = [];// topper of previous iteration
+            master_record[2] = all_records_list; // sorted generation table of all iterations
+            master_record[3] = top_records_list; // sorted generation table of TOPPERS all iterations
+
+            //master_record = GENETIC_ALGO_To_Evaluate_FitnessValue_Of_Generation_With_Binary_CrossOver(top_records_list, all_records_list);
+
+            for (var i = 0; i <= 5; i++) {
+
+                master_record = GENETIC_ALGO_To_Evaluate_FitnessValue_Of_Generation_With_Binary_CrossOver(i, master_record[3], master_record[0], master_record[2]);
+
+            }
+
+
+            var endTime = performance.now();
+
+            ClearGrid();
+            // called just show the record on grid, otherwise fitness value calculated above
+            var FitnessValue = FindFitnessValueOfRecord_With_GridDrawings(master_record[3][0][1]);
+            document.getElementById('divFitnessValue').innerHTML = "FitnessValue: " + FitnessValue + " <br /> Elapsed time: " + (endTime - startTime) + "ms";
+            document.getElementById('divSeedAlgo').innerHTML = "Seed = Shape & Cross Over = Binary";
+
+        }
+
+
+        // 3- Seed = Random :: Cross Over = Mid Point
+        function btnShowGeneticAlgoWithMidPointCrossOverResults_Click() {
+
+            console.clear();
+
+            //var generation = Get_Initial_Generation_By_Random_Function();
+
+            //var generation = [
+            //    [[3, 3], [0, 6], [2, 3], [2, 5]],
+            //    [[2, 2], [2, 7], [4, 2], [3, 7]],
+            //    [[4, 7], [4, 8], [3, 6], [1, 5]],
+            //    [[0, 8], [3, 5], [2, 7], [3, 3]],
+            //    [[0, 0], [3, 1], [1, 3], [4, 1]],
+            //    [[0, 2], [4, 0], [1, 5], [1, 4]],
+            //    [[3, 1], [3, 7], [2, 3], [1, 8]],
+            //    [[1, 2], [0, 4], [0, 6], [3, 1]]
+            //];
+
+            //console.log(generation);
+
+
+            //GenerationHelpers.js: 5 1 Fitness Value 33 Record 4, 7, 1, 7, 2, 5, 4, 2
+            //GenerationHelpers.js: 5 2 Fitness Value 33 Record 1, 7, 2, 4, 3, 7, 7, 1
+            //GenerationHelpers.js: 5 3 Fitness Value 32 Record 5, 2, 6, 3, 1, 4, 1, 1
+            //GenerationHelpers.js: 5 4 Fitness Value 31 Record 5, 3, 3, 4, 3, 6, 7, 7
+            //GenerationHelpers.js: 5 5 Fitness Value 26 Record 2, 1, 2, 2, 4, 6, 5, 5
+            //GenerationHelpers.js: 5 6 Fitness Value 20 Record 3, 4, 4, 4, 3, 3, 7, 3
+            //GenerationHelpers.js: 5 7 Fitness Value 12 Record 7, 2, 7, 4, 7, 1, 7, 1
+            //GenerationHelpers.js: 5 8 Fitness Value 9 Record 2, 7, 3, 1, 2, 7, 2, 7
+
+            var generation = [
+                [[4, 7], [1, 7], [2, 5], [4, 2]],
+                [[1, 7], [2, 4], [3, 7], [7, 1]],
+                [[5, 2], [6, 3], [1, 4], [1, 1]],
+                [[5, 3], [3, 4], [3, 6], [7, 7]],
+                [[2, 1], [2, 2], [4, 6], [5, 5]],        
+                [[3, 4], [4, 4], [3, 3], [7, 3]],
+                [[7, 2], [7, 4], [7, 1], [7, 1]],
+                [[2, 7], [3, 1], [2, 7], [2, 7]]
+            ];
+
+
+
+            console.log("Initial Seed Random Generation");
+            console.log("===============");
+            Print_Generation(generation);
+            console.log("===============");
+
+            var startTime = performance.now();
+
+            // Todo: Seperate the evaluation of fitness value and drawing the record
+            var all_records_list = Evaluate_FitnessValue_Of_Seed_Generation_Return_All_Records(generation);
+
+            //alert(top4_records_list);
+
+
+            console.log("Sorted Initial Seed Generation Results");
+            Print_Generation_Result_Table(all_records_list);
+            console.log("===============");
+
+
+            var top_records_list = [];
+            top_records_list[0] = all_records_list[0];
+
+
+            //console.log("TOP RECORD after random generation evaluation ");
+            //Print_Generation_Result_Table(top_records_list);
+            // console.log("===============");
+
+
+
+
+
+
+
+
+
+            var master_record = [];
+
+            master_record[0] = [];// sorted generation table of previous iteration
+            master_record[1] = [];// topper of previous iteration
+            master_record[2] = all_records_list; // sorted generation table of all iterations
+            master_record[3] = top_records_list; // sorted generation table of TOPPERS all iterations
+
+            //master_record = GENETIC_ALGO_To_Evaluate_FitnessValue_Of_Generation_With_MidPoint_CrossOver(top_records_list, all_records_list);
+
+            for (var i = 0; i <= 5; i++) {
+
+                //console.error(" master_record[0]   " + master_record[0].length);
+                master_record = GENETIC_ALGO_To_Evaluate_FitnessValue_Of_Generation_With_MidPoint_CrossOver(i, master_record[3], master_record[0], master_record[2]);
+
+            }
+
+
+
+
+
+
+
+
+
+
+            var endTime = performance.now();
+
+            ClearGrid();
+            // called just show the record on grid, otherwise fitness value calculated above
+            var FitnessValue = FindFitnessValueOfRecord_With_GridDrawings(master_record[3][0][1]);
+            document.getElementById('divFitnessValue').innerHTML = "FitnessValue: " + FitnessValue + " <br /> Elapsed time: " + (endTime - startTime) + "ms";
+            document.getElementById('divSeedAlgo').innerHTML = "Seed = Random & Cross Over = Mid Point ";
+        }
+
+
+        // 4- Seed = Shapes :: Cross Over = Mid Point
+        function btnGAShapesSeedResultsWithMidPointCrossOverResults_Click() {
+
+            console.clear();
+
+            var generation = Get_Initial_Generation_By_Shape_Equations();
+
+            //var generation = [
+            //    [[3, 3], [0, 6], [2, 3], [2, 5]],
+            //    [[2, 2], [2, 7], [4, 2], [3, 7]],
+            //    [[4, 7], [4, 8], [3, 6], [1, 5]],
+            //    [[0, 8], [3, 5], [2, 7], [3, 3]],
+            //    [[0, 0], [3, 1], [1, 3], [4, 1]],
+            //    [[0, 2], [4, 0], [1, 5], [1, 4]],
+            //    [[3, 1], [3, 7], [2, 3], [1, 8]],
+            //    [[1, 2], [0, 4], [0, 6], [3, 1]]
+            //];
+
+            //console.log(generation);
+
+            console.log("Initial Seed Shape Generation");
+            console.log("===============");
+            Print_Generation(generation);
+            console.log("===============");
+
+            var startTime = performance.now();
+
+
+            // Todo: Seperate the evaluation of fitness value and drawing the record
+            var all_records_list = Evaluate_FitnessValue_Of_Seed_Generation_Return_All_Records(generation);
+
+            //alert(top4_records_list);
+
+            //console.log("===============");
+            console.log("Sorted Initial Seed Shape Generation Results");
+            Print_Generation_Result_Table(all_records_list);
+            console.log("===============");
+
+
+            var top_records_list = [];
+            top_records_list[0] = all_records_list[0];
+
+
+            //console.log("TOP RECORD after shape generation evaluation ");
+            //Print_Generation_Result_Table(top_records_list);
+            //console.log("===============");
+
+
+
+
+
+
+
+
+
+
+
+            var master_record = [];
+
+            master_record[0] = [];// sorted generation table of previous iteration
+            master_record[1] = [];// topper of previous iteration
+            master_record[2] = all_records_list; // sorted generation table of all iterations
+            master_record[3] = top_records_list; // sorted generation table of TOPPERS all iterations
+
+            //master_record = GENETIC_ALGO_To_Evaluate_FitnessValue_Of_Generation_With_MidPoint_CrossOver(top_records_list, all_records_list);
+
+            for (var i = 0; i <= 5; i++) {
+
+                master_record = GENETIC_ALGO_To_Evaluate_FitnessValue_Of_Generation_With_MidPoint_CrossOver(i, master_record[3], master_record[0], master_record[2]);
+
+            }
+
+
+
+
+            var endTime = performance.now();
+
+            ClearGrid();
+            // called just show the record on grid, otherwise fitness value calculated above
+            var FitnessValue = FindFitnessValueOfRecord_With_GridDrawings(master_record[3][0][1]);
+            document.getElementById('divFitnessValue').innerHTML = "FitnessValue: " + FitnessValue + " <br /> Elapsed time: " + (endTime - startTime) + "ms";
+            document.getElementById('divSeedAlgo').innerHTML = "Seed = Shape & Cross Over = Mid Point";
+        }
+
+
+
+
+                //// done
+                //function Evaluate_Shapes_Records() {
+
+                //    // ClearGrid();
+                //    //var record = Get_PlusSign_Shape_Record(4, 3); //1
+                //    //var record = Get_CrossSign_Shape_Record(4, 3); //2
+                //    //var record = Get_Y_Sign_Shape_Record(4, 3); //3
+                //    //var record = Get_Right_Tilted_Y_Sign_Shape_Record(4, 3); //4
+                //    //var record = Get_Inverted_Y_Sign_Shape_Record(4, 3); //5
+                //    //var record = Get_Left_Tilted_Y_Sign_Shape_Record(4, 3); //6
+                //    //var record = Get_T_Sign_Shape_Record(4, 3); //7
+                //    //var record = Get_Right_Tilted_T_Sign_Shape_Record(4, 3); //8
+                //    //var record = Get_Inverted_T_Sign_Shape_Record(4, 3); //9
+                //    //var record = Get_Left_Tilted_T_Sign_Shape_Record(4, 3); //10
+                //    //var record = Get_Top_EQL_Triangle_Shape_Record(4, 3); //11
+                //    //var record = Get_Right_EQL_Triangle_Shape_Record(4, 3); //12
+                //    //var record = Get_Bottom_EQL_Triangle_Shape_Record(4, 3); //13
+                //    //var record = Get_Left_EQL_Triangle_Shape_Record(4, 3); //14
+                //    //var record = Get_Left_Bottom_RightAngle_Triangle_Shape_Record(4, 3); //15
+                //    //var record = Get_Right_Bottom_RightAngle_Triangle_Shape_Record(4, 3); //16
+                //    //var record = Get_Right_Top_RightAngle_Triangle_Shape_Record(4, 3); //17
+                //    //var record = Get_Left_Top_RightAngle_Triangle_Shape_Record(4, 3); //18
+                //    //var record = Get_V_Sign_Shape_Record(4, 3); //19
+                //    //var record = Get_Inverted_V_Sign_Shape_Record(4, 3); //20
+                //    //var record = Get_Left_Angle_Bracket_Shape_Record(4, 3);  //21
+                //    //var record = Get_Right_Angle_Bracket_Shape_Record(4, 3); //22
+                //    //var record = Get_Vertical_Lines_Shape_Record(4, 3); //23
+                //    //var record = Get_Horizontal_Lines_Shape_Record(4, 3); //24
+                //    //var record = Get_Half_Rectangle_Within_Record(4, 3); //25
+
+                //    //var FitnessValue = FindFitnessValueOfRecord(record);
+                //    //document.getElementById('divFitnessValue').innerHTML = "FitnessValue" + FitnessValue;
+
+
+                //}
+
+
+                //// done
+                //function xxxbtnGAShapesSeedResults_Click() {
+
+                //    var generation = Get_Initial_Generation_By_Shape_Equations();
+
+                //    // Todo: Seperate the evaluation of fitness value and drawing the record
+                //    var maxfitnessvaluerecordlist = Evaluate_FitnessValue_Of_Seed_Generation(generation);
+
+                //    ClearGrid();
+                //    // called just show the record on grid, otherwise fitness value calculated above
+                //    var FitnessValue = FindFitnessValueOfRecord(maxfitnessvaluerecordlist[0][1]);
+                //    document.getElementById('divFitnessValue').innerHTML = "FitnessValue" + FitnessValue;
+
+                //}
+
+
+                //// done Random Seed Generation
+                //function xxxbtnShowGeneticAlgoResults_Click() {
+
+                //    var generation = Get_Initial_Generation_By_Random_Function();
+
+                //    // Todo: Seperate the evaluation of fitness value and drawing the record
+                //    var maxfitnessvaluerecordlist = Evaluate_FitnessValue_Of_Seed_Generation(generation);
+
+
+                //    ClearGrid();
+                //    // called just show the record on grid, otherwise fitness value calculated above
+                //    var FitnessValue = FindFitnessValueOfRecord(maxfitnessvaluerecordlist[0][1]);
+                //    document.getElementById('divFitnessValue').innerHTML = "FitnessValue" + FitnessValue;
+
+                //}
+
+
+
+
+
+
+    </script>
+
+</body>
+</html>

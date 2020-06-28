@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+VisualStudioVersion = 15.0.28307.489
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{82A8D097-3310-400D-B042-69706C9ECC82}"
+	ProjectSection(SolutionItems) = preProject
+		circle-coverage.html = circle-coverage.html
+		drawing.html = drawing.html
+		polygon.html = polygon.html
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "js", "js", "{67B89706-0836-4099-8E85-6E487C5671F1}"
+EndProject
+Global
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{67B89706-0836-4099-8E85-6E487C5671F1} = {82A8D097-3310-400D-B042-69706C9ECC82}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {CACE24CE-8DC2-48C8-AC9C-05212768377F}
+	EndGlobalSection
+EndGlobal
