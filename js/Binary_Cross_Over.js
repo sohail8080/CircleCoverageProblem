@@ -1,124 +1,73 @@
-﻿
+﻿function Crossover_Generation_Of_Four(g) {
 
-function Random_No_Of_Chars_To_Take_From_Two_Crossover_Coordinates() {
+    var new_record = [];
 
-    var number = Math.floor((Math.random() * 5) + 1);
+    new_record[0] = Crossover_Two_Decimal_Records(g[0], g[1]);
+    new_record[1] = Crossover_Two_Decimal_Records(g[0], g[2]);
+    new_record[2] = Crossover_Two_Decimal_Records(g[0], g[3]);
+    new_record[3] = Crossover_Two_Decimal_Records(g[1], g[2]);
 
-    var crossoover_cutpoint = [];
+    new_record[4] = Crossover_Two_Decimal_Records(g[1], g[3]);
+    new_record[5] = Crossover_Two_Decimal_Records(g[2], g[3]);
+    new_record[6] = Crossover_Two_Decimal_Records(g[1], g[0]);
+    new_record[7] = Crossover_Two_Decimal_Records(g[2], g[1]);
 
-    crossoover_cutpoint[0] = number;
-    crossoover_cutpoint[1] = 6 - number;
+    return new_record;
+}
 
-    //alert("no 1 "+ crossoover_cutpoint[0]);
-    //alert("no 2 " + crossoover_cutpoint[1]);
 
-    return crossoover_cutpoint;
+//Crossover_Generation_Of_Four
+function Crossover_Generation_On_Map(
+    generation, //topper_of_previous_generation
+    polygon_coverage_on_cartesian_grid,
+    grid_length,
+    number_of_records_in_each_crossover_generations
+) {
 
+    var new_record = [];
+
+
+    new_record[0] = Crossover_Two_Decimal_Records_Map(generation[0], generation[1], polygon_coverage_on_cartesian_grid, grid_length);
+    new_record[1] = Crossover_Two_Decimal_Records_Map(generation[0], generation[2], polygon_coverage_on_cartesian_grid, grid_length);
+    new_record[2] = Crossover_Two_Decimal_Records_Map(generation[0], generation[3], polygon_coverage_on_cartesian_grid, grid_length);
+    new_record[3] = Crossover_Two_Decimal_Records_Map(generation[1], generation[2], polygon_coverage_on_cartesian_grid, grid_length);
+
+    new_record[4] = Crossover_Two_Decimal_Records_Map(generation[1], generation[3], polygon_coverage_on_cartesian_grid, grid_length);
+    new_record[5] = Crossover_Two_Decimal_Records_Map(generation[2], generation[3], polygon_coverage_on_cartesian_grid, grid_length);
+    new_record[6] = Crossover_Two_Decimal_Records_Map(generation[1], generation[0], polygon_coverage_on_cartesian_grid, grid_length);
+    new_record[7] = Crossover_Two_Decimal_Records_Map(generation[2], generation[1], polygon_coverage_on_cartesian_grid, grid_length);
+
+    return new_record;
 }
 
 
 
-function Random_Starting_Index_Of_Coordinates_For_Crossover(no_of_characters) {
+function Crossover_Two_Decimal_Records_Map(r1, r2, polygon_coverage_on_cartesian_grid, grid_length) {
 
-    // index = 0, 1, 2, ........ (6-no_of_characters)
-    // for 1 char, index options out of = 0, 1, 2, 3, 4, 5
-    var min = 0;
-    var max = 6 - no_of_characters;
+    var new_record = [];
+  
+    new_record[0] = Crossover_Two_Decimal_Points_Map(r1[0], r2[0], polygon_coverage_on_cartesian_grid, grid_length);
+    new_record[1] = Crossover_Two_Decimal_Points_Map(r1[1], r2[1], polygon_coverage_on_cartesian_grid, grid_length);
+    new_record[2] = Crossover_Two_Decimal_Points_Map(r1[2], r2[2], polygon_coverage_on_cartesian_grid, grid_length);
+    new_record[3] = Crossover_Two_Decimal_Points_Map(r1[3], r2[3], polygon_coverage_on_cartesian_grid, grid_length);
 
-    return Math.floor(Math.random() * (max - min + 1)) + min;
+    return new_record;
 }
 
 
+function Crossover_Two_Decimal_Records(r1, r2) {
 
-function Crossover_Two_Binary_Coordinates(c1, c2) {
+    var new_record = [];
 
-    var no_of_characters = Random_No_Of_Chars_To_Take_From_Two_Crossover_Coordinates();
+    new_record[0] = Crossover_Two_Decimal_Points(r1[0], r2[0]);
+    new_record[1] = Crossover_Two_Decimal_Points(r1[1], r2[1]);
+    new_record[2] = Crossover_Two_Decimal_Points(r1[2], r2[2]);
+    new_record[3] = Crossover_Two_Decimal_Points(r1[3], r2[3]);
 
-    var c1_start_index = Random_Starting_Index_Of_Coordinates_For_Crossover(no_of_characters[0]);
-    var c2_start_index = Random_Starting_Index_Of_Coordinates_For_Crossover(no_of_characters[1]);
-
-    //alert("no_of_characters 1: " + no_of_characters[0]);
-    //alert("no_of_characters 2: " + no_of_characters[1]);
-    //console.log("no_of_characters one " + no_of_characters[0] + "  c1_start_index: " + c1_start_index);
-    //console.log("no_of_characters two " + no_of_characters[1] + "  c2_start_index: " + c2_start_index);
-
-    //alert("01010 = " + "01010".substr(2, 1));
-
-    var value1 = c1.substr(c1_start_index, no_of_characters[0]);
-    var value2 = c2.substr(c2_start_index, no_of_characters[1]);
-
-    //console.log(value1);
-    //console.log(value2);
-
-    return value1 + value2;
-
-    //return c1.substr(c1_start_index, no_of_characters[0]) + c2.substr(c2_start_index, no_of_characters[1]);
-
+    return new_record;
 }
 
 
-function Crossover_Two_Decimal_Points(p1, p2) {
-
-    var grid = GetGrid();
-
-    var binary_point1 = Convert_Decimal_Point_To_Binary(p1);
-    var binary_point2 = Convert_Decimal_Point_To_Binary(p2);
-
-    // cross over X
-    var crossover_x; //= Crossover_Two_Binary_Coordinates(binary_point1[0], binary_point2[0]);
-
-    do {
-
-        crossover_x = Crossover_Two_Binary_Coordinates(binary_point1[0], binary_point2[0]);
-
-        var crossover_xd = Convert_Binary_To_Decimal(crossover_x);
-
-        //console.error(crossover_xd);
-
-        if (crossover_xd <= 0 || crossover_xd >= (grid[0].length - 1)) {
-
-            crossover_xd = (crossover_xd % (grid[0].length - 2)) + 1;
-
-            //console.error("changed to " + crossover_xd);
-        }
-
-        var crossover_xds = crossover_xd.toString();
-
-    }
-    while (!Validate_X_Coordinate(crossover_xds, grid));
-
-
-    // cross over Y
-    var crossover_y; // = Crossover_Two_Binary_Coordinates(binary_point1[1], binary_point2[1]);
-
-    do {
-        //string is returned
-        crossover_y = Crossover_Two_Binary_Coordinates(binary_point1[1], binary_point2[1]);
-
-        // string is passed, int is returned
-        var crossover_yd = Convert_Binary_To_Decimal(crossover_y);
-
-        //console.error(crossover_yd);
-
-        if (crossover_yd <= 0 || crossover_yd >= (grid.length - 1)) {
-
-            crossover_yd = (crossover_yd % (grid.length - 2)) + 1;
-
-            //console.error("changed to " + crossover_yd);
-        }
-
-        var crossover_yds = crossover_yd.toString();
-    }
-    while (!Validate_Y_Coordinate(crossover_yds, grid));
-
-
-    var decimal_point = [];
-    decimal_point[0] = crossover_xd;
-    decimal_point[1] = crossover_yd;
-
-
-    return decimal_point;
-}
 
 
 function Crossover_Two_Decimal_Points_Map(p1, p2, polygon_coverage_on_cartesian_grid, grid_length) {
@@ -189,74 +138,126 @@ function Crossover_Two_Decimal_Points_Map(p1, p2, polygon_coverage_on_cartesian_
 }
 
 
-function Crossover_Two_Decimal_Records(r1, r2) {
+function Crossover_Two_Decimal_Points(p1, p2) {
 
-    var new_record = [];
+    var grid = GetGrid();
 
-    new_record[0] = Crossover_Two_Decimal_Points(r1[0], r2[0]);
-    new_record[1] = Crossover_Two_Decimal_Points(r1[1], r2[1]);
-    new_record[2] = Crossover_Two_Decimal_Points(r1[2], r2[2]);
-    new_record[3] = Crossover_Two_Decimal_Points(r1[3], r2[3]);
+    var binary_point1 = Convert_Decimal_Point_To_Binary(p1);
+    var binary_point2 = Convert_Decimal_Point_To_Binary(p2);
 
-    return new_record;
+    // cross over X
+    var crossover_x; //= Crossover_Two_Binary_Coordinates(binary_point1[0], binary_point2[0]);
+
+    do {
+
+        crossover_x = Crossover_Two_Binary_Coordinates(binary_point1[0], binary_point2[0]);
+
+        var crossover_xd = Convert_Binary_To_Decimal(crossover_x);
+
+        //console.error(crossover_xd);
+
+        if (crossover_xd <= 0 || crossover_xd >= (grid[0].length - 1)) {
+
+            crossover_xd = (crossover_xd % (grid[0].length - 2)) + 1;
+
+            //console.error("changed to " + crossover_xd);
+        }
+
+        var crossover_xds = crossover_xd.toString();
+
+    }
+    while (!Validate_X_Coordinate(crossover_xds, grid));
+
+
+    // cross over Y
+    var crossover_y; // = Crossover_Two_Binary_Coordinates(binary_point1[1], binary_point2[1]);
+
+    do {
+        //string is returned
+        crossover_y = Crossover_Two_Binary_Coordinates(binary_point1[1], binary_point2[1]);
+
+        // string is passed, int is returned
+        var crossover_yd = Convert_Binary_To_Decimal(crossover_y);
+
+        //console.error(crossover_yd);
+
+        if (crossover_yd <= 0 || crossover_yd >= (grid.length - 1)) {
+
+            crossover_yd = (crossover_yd % (grid.length - 2)) + 1;
+
+            //console.error("changed to " + crossover_yd);
+        }
+
+        var crossover_yds = crossover_yd.toString();
+    }
+    while (!Validate_Y_Coordinate(crossover_yds, grid));
+
+
+    var decimal_point = [];
+    decimal_point[0] = crossover_xd;
+    decimal_point[1] = crossover_yd;
+
+
+    return decimal_point;
 }
 
 
-function Crossover_Two_Decimal_Records_Map(r1, r2, polygon_coverage_on_cartesian_grid, grid_length) {
 
-    var new_record = [];
-  
-    new_record[0] = Crossover_Two_Decimal_Points_Map(r1[0], r2[0], polygon_coverage_on_cartesian_grid, grid_length);
-    new_record[1] = Crossover_Two_Decimal_Points_Map(r1[1], r2[1], polygon_coverage_on_cartesian_grid, grid_length);
-    new_record[2] = Crossover_Two_Decimal_Points_Map(r1[2], r2[2], polygon_coverage_on_cartesian_grid, grid_length);
-    new_record[3] = Crossover_Two_Decimal_Points_Map(r1[3], r2[3], polygon_coverage_on_cartesian_grid, grid_length);
 
-    return new_record;
+function Crossover_Two_Binary_Coordinates(c1, c2) {
+
+    var no_of_characters = Random_No_Of_Chars_To_Take_From_Two_Crossover_Coordinates();
+
+    var c1_start_index = Random_Starting_Index_Of_Coordinates_For_Crossover(no_of_characters[0]);
+    var c2_start_index = Random_Starting_Index_Of_Coordinates_For_Crossover(no_of_characters[1]);
+
+    //alert("no_of_characters 1: " + no_of_characters[0]);
+    //alert("no_of_characters 2: " + no_of_characters[1]);
+    //console.log("no_of_characters one " + no_of_characters[0] + "  c1_start_index: " + c1_start_index);
+    //console.log("no_of_characters two " + no_of_characters[1] + "  c2_start_index: " + c2_start_index);
+
+    //alert("01010 = " + "01010".substr(2, 1));
+
+    var value1 = c1.substr(c1_start_index, no_of_characters[0]);
+    var value2 = c2.substr(c2_start_index, no_of_characters[1]);
+
+    //console.log(value1);
+    //console.log(value2);
+
+    return value1 + value2;
+
+    //return c1.substr(c1_start_index, no_of_characters[0]) + c2.substr(c2_start_index, no_of_characters[1]);
+
 }
 
 
-function Crossover_Generation_Of_Four(g) {
 
-    var new_record = [];
 
-    new_record[0] = Crossover_Two_Decimal_Records(g[0], g[1]);
-    new_record[1] = Crossover_Two_Decimal_Records(g[0], g[2]);
-    new_record[2] = Crossover_Two_Decimal_Records(g[0], g[3]);
-    new_record[3] = Crossover_Two_Decimal_Records(g[1], g[2]);
+function Convert_Decimal_Point_To_Binary(point) {
 
-    new_record[4] = Crossover_Two_Decimal_Records(g[1], g[3]);
-    new_record[5] = Crossover_Two_Decimal_Records(g[2], g[3]);
-    new_record[6] = Crossover_Two_Decimal_Records(g[1], g[0]);
-    new_record[7] = Crossover_Two_Decimal_Records(g[2], g[1]);
+    //point[0] = Convert_Decimal_To_Binary(point[0]);
+    //point[1] = Convert_Decimal_To_Binary(point[1]);
 
-    return new_record;
-}
-
-//Crossover_Generation_Of_Four
-function Crossover_Generation_On_Map(
-    generation, //topper_of_previous_generation
-    polygon_coverage_on_cartesian_grid,
-    grid_length,
-    number_of_records_in_each_crossover_generations
-) {
-
-    var new_record = [];
-
-   
-    new_record[0] = Crossover_Two_Decimal_Records_Map(generation[0], generation[1], polygon_coverage_on_cartesian_grid, grid_length);
-    new_record[1] = Crossover_Two_Decimal_Records_Map(generation[0], generation[2], polygon_coverage_on_cartesian_grid, grid_length);
-    new_record[2] = Crossover_Two_Decimal_Records_Map(generation[0], generation[3], polygon_coverage_on_cartesian_grid, grid_length);
-    new_record[3] = Crossover_Two_Decimal_Records_Map(generation[1], generation[2], polygon_coverage_on_cartesian_grid, grid_length);
-
-    new_record[4] = Crossover_Two_Decimal_Records_Map(generation[1], generation[3], polygon_coverage_on_cartesian_grid, grid_length);
-    new_record[5] = Crossover_Two_Decimal_Records_Map(generation[2], generation[3], polygon_coverage_on_cartesian_grid, grid_length);
-    new_record[6] = Crossover_Two_Decimal_Records_Map(generation[1], generation[0], polygon_coverage_on_cartesian_grid, grid_length);
-    new_record[7] = Crossover_Two_Decimal_Records_Map(generation[2], generation[1], polygon_coverage_on_cartesian_grid, grid_length);
-
-    return new_record;
+    var binary_point = [];
+    binary_point[0] = Convert_Decimal_To_Binary(point[0]);
+    binary_point[1] = Convert_Decimal_To_Binary(point[1]);
+    //alert(binary_point[0] + "," + binary_point[1]);
+    return binary_point;
 }
 
 
+function Convert_Binary_Point_To_Decimal(point) {
+
+    //point[0] = Convert_Binary_To_Decimal(point[0]);
+    //point[1] = Convert_Binary_To_Decimal(point[1]);
+
+    var decimal_point = [];
+    decimal_point[0] = Convert_Binary_To_Decimal(point[0]);
+    decimal_point[1] = Convert_Binary_To_Decimal(point[1]);
+    //alert(decimal_point[0] + "," + decimal_point[1] );
+    return decimal_point;
+
+}
 
 
 function Convert_Decimal_To_Binary(num) {
@@ -277,136 +278,32 @@ function Convert_Binary_To_Decimal(num) {
 }
 
 
+function Random_No_Of_Chars_To_Take_From_Two_Crossover_Coordinates() {
 
-function Convert_Decimal_Point_To_Binary(point) {
+    var number = Math.floor((Math.random() * 5) + 1);
 
-    //point[0] = Convert_Decimal_To_Binary(point[0]);
-    //point[1] = Convert_Decimal_To_Binary(point[1]);
+    var crossoover_cutpoint = [];
 
-    var binary_point = [];
-    binary_point[0] = Convert_Decimal_To_Binary(point[0]);
-    binary_point[1] = Convert_Decimal_To_Binary(point[1]);
-    //alert(binary_point[0] + "," + binary_point[1]);
-    return binary_point;
-}
+    crossoover_cutpoint[0] = number;
+    crossoover_cutpoint[1] = 6 - number;
 
-function Convert_Binary_Point_To_Decimal(point) {
+    //alert("no 1 "+ crossoover_cutpoint[0]);
+    //alert("no 2 " + crossoover_cutpoint[1]);
 
-    //point[0] = Convert_Binary_To_Decimal(point[0]);
-    //point[1] = Convert_Binary_To_Decimal(point[1]);
-
-    var decimal_point = [];
-    decimal_point[0] = Convert_Binary_To_Decimal(point[0]);
-    decimal_point[1] = Convert_Binary_To_Decimal(point[1]);
-    //alert(decimal_point[0] + "," + decimal_point[1] );
-    return decimal_point;
+    return crossoover_cutpoint;
 
 }
 
 
+function Random_Starting_Index_Of_Coordinates_For_Crossover(no_of_characters) {
+
+    // index = 0, 1, 2, ........ (6-no_of_characters)
+    // for 1 char, index options out of = 0, 1, 2, 3, 4, 5
+    var min = 0;
+    var max = 6 - no_of_characters;
+
+    return Math.floor(Math.random() * (max - min + 1)) + min;
+}
 
 
 
-//// (AAA-BBB, CCC-DDD) (OOO-XXX, YYY-ZZZ) ==> 
-//// (AAA-OOO, CCC-YYY) (BBB-XXX, DDD-ZZZ)
-//function Cross_XXAABB_And_YYAABB(point1, point2) {
-
-//    var point1_xa = point1[0].substr(0, 3);
-//    var point1_xb = point1[0].substr(3, 3);
-
-//    var point1_ya = point1[1].substr(0, 3);
-//    var point1_yb = point1[1].substr(3, 3);
-
-//    var point2_xa = point2[0].substr(0, 3);
-//    var point2_xb = point2[0].substr(3, 3);
-
-//    var point2_ya = point2[1].substr(0, 3);
-//    var point2_yb = point2[1].substr(3, 3);
-
-//    //X
-//    point1[0] = point1_xa + "" + point2_xa;
-//    point2[0] = point1_xb + "" + point2_xb;
-
-//    //Y
-//    point1[1] = point1_ya + "" + point2_ya;
-//    point2[1] = point1_yb + "" + point2_yb;
-
-//}
-
-//// (AAA-BBB, CCC-DDD) (OOO-XXX, YYY-ZZZ) ==> 
-//// (AAA-XXX, CCC-ZZZ) (OOO-BBB, YYY-DDD)
-//function Cross_XXABAB_And_YYABAB(point1, point2) {
-
-//    var point1_xa = point1[0].substr(0, 3);
-//    var point1_xb = point1[0].substr(3, 3);
-
-//    var point1_ya = point1[1].substr(0, 3);
-//    var point1_yb = point1[1].substr(3, 3);
-
-//    var point2_xa = point2[0].substr(0, 3);
-//    var point2_xb = point2[0].substr(3, 3);
-
-//    var point2_ya = point2[1].substr(0, 3);
-//    var point2_yb = point2[1].substr(3, 3);
-
-//    //X
-//    point1[0] = point1_xa + "" + point2_xb;
-//    point2[0] = point2_xa + "" + point1_xb;
-
-//    //Y
-//    point1[1] = point1_ya + "" + point2_yb;
-//    point2[1] = point2_ya + "" + point1_yb;
-
-//}
-
-
-////----------
-
-//function Cross_XYAABB_And_XYAABB(point1, point2) {
-
-//    var point1_xa = point1[0].substr(0, 3);
-//    var point1_xb = point1[0].substr(3, 3);
-
-//    var point1_ya = point1[1].substr(0, 3);
-//    var point1_yb = point1[1].substr(3, 3);
-
-//    var point2_xa = point2[0].substr(0, 3);
-//    var point2_xb = point2[0].substr(3, 3);
-
-//    var point2_ya = point2[1].substr(0, 3);
-//    var point2_yb = point2[1].substr(3, 3);
-
-//    //X
-//    point1[0] = point1_xa + "" + point2_ya;
-//    point2[0] = point1_xb + "" + point2_yb;
-
-//    //Y
-//    point1[1] = point2_xa + "" + point1_ya;
-//    point2[1] = point2_xb + "" + point1_yb;
-
-//}
-
-
-//function Cross_XYABAB_And_XYABAB(point1, point2) {
-
-//    var point1_xa = point1[0].substr(0, 3);
-//    var point1_xb = point1[0].substr(3, 3);
-
-//    var point1_ya = point1[1].substr(0, 3);
-//    var point1_yb = point1[1].substr(3, 3);
-
-//    var point2_xa = point2[0].substr(0, 3);
-//    var point2_xb = point2[0].substr(3, 3);
-
-//    var point2_ya = point2[1].substr(0, 3);
-//    var point2_yb = point2[1].substr(3, 3);
-
-//    //X
-//    point1[0] = point1_xa + "" + point2_yb;
-//    point2[0] = point2_xa + "" + point1_yb;
-
-//    //Y
-//    point1[1] = point1_xb + "" + point2_ya;
-//    point2[1] = point2_xb + "" + point1_ya;
-
-//}
