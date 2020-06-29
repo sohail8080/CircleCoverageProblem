@@ -10,6 +10,7 @@
     <link rel="stylesheet" href="https://js.arcgis.com/3.32/dijit/themes/nihilo/nihilo.css">
     <link rel="stylesheet" href="https://js.arcgis.com/3.32/esri/css/esri.css">
     <style>
+
         html, body, #mainWindow {
             font-family: sans-serif;
             height: 100%;
@@ -26,6 +27,7 @@
             overflow: auto;
             padding: 0.5em;
         }
+
     </style>
 
     <script src="https://js.arcgis.com/3.32/"></script>
@@ -167,7 +169,7 @@
 
                 Show_Grid_Points_On_Map(graphics_layer, latlong_grid);
 
-                var polygon_coverage = get_polygon_coverage_on_latlong_grid(polygon, latlong_grid);
+                //var polygon_coverage = get_polygon_coverage_on_latlong_grid(polygon, latlong_grid);
 
                 var result_array = get_polygon_coverage_on_latlong_cartesian_grid(polygon, latlong_grid);
 
@@ -187,17 +189,13 @@
 
                 var startTime = performance.now();
 
-                var all_records_list = Evaluate_FitnessValue_Of_Seed_Generation_Return_All_Records_GIS(cartesian_generation, map, polygon, polygon_coverage, latlong_grid);
+                var all_records_list = Evaluate_FitnessValue_Of_Seed_Generation_Return_All_Records_GIS(cartesian_generation, map, polygon, polygon_coverage_on_latlong_grid, latlong_grid);
 
                 console.log("Sorted Initial Seed Generation Results");
                 Print_Generation_Result_Table(all_records_list);
                 console.log("===============");
 
-                draw_polygon();
-                show_record_on_map(graphics_layer, all_records_list[0], latlong_grid)
-
-
-              
+                
                 var top_records_list = [];
                 top_records_list[0] = all_records_list[0];
 
@@ -208,12 +206,29 @@
                 master_record[2] = all_records_list; // sorted generation table of all iterations
                 master_record[3] = top_records_list; // sorted generation table of TOPPERS all iterations
 
-                for (var i = 0; i <= 5; i++) {
+                for (var iteration_count = 0; iteration_count <= 5; iteration_count++) {
 
-                    master_record = GENETIC_ALGO_To_Evaluate_FitnessValue_Of_Generation_With_Binary_CrossOver_GIS(i, master_record[3], master_record[0], master_record[2], cartesian_generation, map, polygon, polygon_coverage, latlong_grid, number_of_top_records_goto_to_next_generation, number_of_records_in_each_crossover_generations, number_of_crossovers_before_mutations, required_coverage);
+                    master_record = GENETIC_ALGO_To_Evaluate_FitnessValue_Of_Generation_With_Binary_CrossOver_GIS(
+                        iteration_count,   // 1
+                        master_record[3], // 2 top_records_list
+                        master_record[0], // 3prev_gen_record_list
+                        master_record[2], // 4 all_records_list
+                        cartesian_generation, //5
+                        map,                   //6
+                        polygon,                //7
+                        polygon_coverage_on_latlong_grid,   //8
+                        polygon_coverage_on_cartesian_grid, //9
+                        latlong_grid,       //10
+                        number_of_top_records_goto_to_next_generation, //11
+                        number_of_records_in_each_crossover_generations, //12
+                        number_of_crossovers_before_mutations, //13
+                        required_coverage); //14
                 }
 
                 var endTime = performance.now();
+
+                draw_polygon();
+                show_record_on_map(graphics_layer, master_record[3][0], latlong_grid)
 
                 return;
 
@@ -307,7 +322,22 @@
 
 
 
-            function GENETIC_ALGO_To_Evaluate_FitnessValue_Of_Generation_With_Binary_CrossOver_GIS(iteration_count, top_records_list, prev_gen_record_list, all_records_list, cartesian_generation, map, polygon, polygon_coverage, latlong_grid, number_of_top_records_goto_to_next_generation, number_of_records_in_each_crossover_generations, number_of_crossovers_before_mutations, required_coverage) {
+            function GENETIC_ALGO_To_Evaluate_FitnessValue_Of_Generation_With_Binary_CrossOver_GIS(
+                iteration_count, //1
+                top_records_list, //2
+                prev_gen_record_list, //3
+                all_records_list, //4
+                cartesian_generation, //5
+                map, //6
+                polygon, //7
+                polygon_coverage_on_latlong_grid, //8
+                polygon_coverage_on_cartesian_grid, //9
+                latlong_grid, //10
+                number_of_top_records_goto_to_next_generation, //11
+                number_of_records_in_each_crossover_generations, //12
+                number_of_crossovers_before_mutations, //13
+                required_coverage //14
+            ) {
 
                 //console.log("top 4 records after random generation evaluation");
                 //Print_Generation_Result_Table(top4_records_list);
@@ -377,7 +407,12 @@
 
                 
                 // Binary Cross Over takes 4 values and return 8 values
-                var generation = Crossover_Generation_On_Map(topper_of_previous_generation, polygon_coverage, latlong_grid.length, number_of_records_in_each_crossover_generations);
+                var generation = Crossover_Generation_On_Map(
+                    topper_of_previous_generation, //1
+                    polygon_coverage_on_cartesian_grid, //2
+                    latlong_grid.length, //3
+                    number_of_records_in_each_crossover_generations //4
+                );
 
 
                 var latlong_generation = Map_Cartesian_Generation_To_LatLong_Generation(generation, latlong_grid);
@@ -397,7 +432,13 @@
                     console.log("Evaluating Record " + i);
                     console.log("Record Values " + record);
 
-                    var FitnessValue = Get_FitnessValue_Of_Record_GIS(record, map, polygon, polygon_coverage, latlong_grid);
+                    var FitnessValue = Get_FitnessValue_Of_Record_GIS(
+                        record,
+                        map,
+                        polygon,
+                        polygon_coverage_on_latlong_grid,
+                        latlong_grid
+                    );
 
                     console.log("Record " + (i + 1) + " Fitness Value " + FitnessValue);
 
@@ -805,6 +846,9 @@
 
                 //console.error(cartesian_record);
                 //console.error(latlong_grid);
+
+               // console.error("cartesian_record" + cartesian_record);
+               
 
                 draw_circle(graphics_layer, Map_Cartesian_Point_To_LatLong_Point(cartesian_record[1][0], latlong_grid), "blue", 1);
                 draw_circle(graphics_layer, Map_Cartesian_Point_To_LatLong_Point(cartesian_record[1][1], latlong_grid), "green", 2);

@@ -1,5 +1,5 @@
 ﻿
-e
+
 function Random_No_Of_Chars_To_Take_From_Two_Crossover_Coordinates() {
 
     var number = Math.floor((Math.random() * 5) + 1);
@@ -121,7 +121,7 @@ function Crossover_Two_Decimal_Points(p1, p2) {
 }
 
 
-function Crossover_Two_Decimal_Points_Map(p1, p2, polygon_coverage_on_cartesian_grid) {
+function Crossover_Two_Decimal_Points_Map(p1, p2, polygon_coverage_on_cartesian_grid, grid_length) {
 
 
     var binary_point1 = Convert_Decimal_Point_To_Binary(p1);
@@ -141,9 +141,9 @@ function Crossover_Two_Decimal_Points_Map(p1, p2, polygon_coverage_on_cartesian_
 
             //console.error(crossover_xd);
 
-            if (crossover_xd <= 0 || crossover_xd >= (grid[0].length - 1)) {
+            if (crossover_xd <= 0 || crossover_xd >= (grid_length - 1)) {
 
-                crossover_xd = (crossover_xd % (grid[0].length - 2)) + 1;
+                crossover_xd = (crossover_xd % (grid_length - 2)) + 1;
 
                 //console.error("changed to " + crossover_xd);
             }
@@ -166,9 +166,9 @@ function Crossover_Two_Decimal_Points_Map(p1, p2, polygon_coverage_on_cartesian_
 
             //console.error(crossover_yd);
 
-            if (crossover_yd <= 0 || crossover_yd >= (grid.length - 1)) {
+            if (crossover_yd <= 0 || crossover_yd >= (grid_length - 1)) {
 
-                crossover_yd = (crossover_yd % (grid.length - 2)) + 1;
+                crossover_yd = (crossover_yd % (grid_length - 2)) + 1;
 
                 //console.error("changed to " + crossover_yd);
             }
@@ -202,14 +202,14 @@ function Crossover_Two_Decimal_Records(r1, r2) {
 }
 
 
-function Crossover_Two_Decimal_Records_Map(r1, r2, polygon_coverage) {
+function Crossover_Two_Decimal_Records_Map(r1, r2, polygon_coverage_on_cartesian_grid, grid_length) {
 
     var new_record = [];
-
-    new_record[0] = Crossover_Two_Decimal_Points(r1[0], r2[0]);
-    new_record[1] = Crossover_Two_Decimal_Points(r1[1], r2[1]);
-    new_record[2] = Crossover_Two_Decimal_Points(r1[2], r2[2]);
-    new_record[3] = Crossover_Two_Decimal_Points(r1[3], r2[3]);
+  
+    new_record[0] = Crossover_Two_Decimal_Points_Map(r1[0], r2[0], polygon_coverage_on_cartesian_grid, grid_length);
+    new_record[1] = Crossover_Two_Decimal_Points_Map(r1[1], r2[1], polygon_coverage_on_cartesian_grid, grid_length);
+    new_record[2] = Crossover_Two_Decimal_Points_Map(r1[2], r2[2], polygon_coverage_on_cartesian_grid, grid_length);
+    new_record[3] = Crossover_Two_Decimal_Points_Map(r1[3], r2[3], polygon_coverage_on_cartesian_grid, grid_length);
 
     return new_record;
 }
@@ -233,22 +233,25 @@ function Crossover_Generation_Of_Four(g) {
 }
 
 //Crossover_Generation_Of_Four
-function Crossover_Generation_On_Map(generation, polygon_coverage, grid_length, number_of_records_in_each_crossover_generations) {
-
-
-
+function Crossover_Generation_On_Map(
+    generation, //topper_of_previous_generation
+    polygon_coverage_on_cartesian_grid,
+    grid_length,
+    number_of_records_in_each_crossover_generations
+) {
 
     var new_record = [];
 
-    new_record[0] = Crossover_Two_Decimal_Records(generation[0], generation[1]);
-    new_record[1] = Crossover_Two_Decimal_Records(generation[0], generation[2]);
-    new_record[2] = Crossover_Two_Decimal_Records(generation[0], generation[3]);
-    new_record[3] = Crossover_Two_Decimal_Records(generation[1], generation[2]);
+   
+    new_record[0] = Crossover_Two_Decimal_Records_Map(generation[0], generation[1], polygon_coverage_on_cartesian_grid, grid_length);
+    new_record[1] = Crossover_Two_Decimal_Records_Map(generation[0], generation[2], polygon_coverage_on_cartesian_grid, grid_length);
+    new_record[2] = Crossover_Two_Decimal_Records_Map(generation[0], generation[3], polygon_coverage_on_cartesian_grid, grid_length);
+    new_record[3] = Crossover_Two_Decimal_Records_Map(generation[1], generation[2], polygon_coverage_on_cartesian_grid, grid_length);
 
-    new_record[4] = Crossover_Two_Decimal_Records(generation[1], generation[3]);
-    new_record[5] = Crossover_Two_Decimal_Records(generation[2], generation[3]);
-    new_record[6] = Crossover_Two_Decimal_Records(generation[1], generation[0]);
-    new_record[7] = Crossover_Two_Decimal_Records(generation[2], generation[1]);
+    new_record[4] = Crossover_Two_Decimal_Records_Map(generation[1], generation[3], polygon_coverage_on_cartesian_grid, grid_length);
+    new_record[5] = Crossover_Two_Decimal_Records_Map(generation[2], generation[3], polygon_coverage_on_cartesian_grid, grid_length);
+    new_record[6] = Crossover_Two_Decimal_Records_Map(generation[1], generation[0], polygon_coverage_on_cartesian_grid, grid_length);
+    new_record[7] = Crossover_Two_Decimal_Records_Map(generation[2], generation[1], polygon_coverage_on_cartesian_grid, grid_length);
 
     return new_record;
 }
