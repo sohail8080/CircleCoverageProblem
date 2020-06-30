@@ -41,11 +41,81 @@ function Crossover_Generation_On_Map(
 }
 
 
+//Crossover_Generation_Of_Four
+function Crossover_Generation_On_Map_Configurable(
+
+    toppers_of_previous_generation, //topper_of_previous_generation
+    polygon_coverage_on_cartesian_grid,
+    grid_length,
+    number_of_records_in_each_crossover_generations
+) {
+
+    //console.log("Crossover Generation On Map Configurable 1");
+
+    var new_record = [];
+    var index = 0;
+    var flag = false;
+
+    while (flag == false) {
+
+        //console.log("Inside While Loop");
+
+        var innerloopcounter = 2;
+
+        for (var i = 1; i < toppers_of_previous_generation.length; i++) {
+
+            //console.log("Inside Outer For Loop");
+          
+            for (var j = innerloopcounter; j < toppers_of_previous_generation.length; j++) {
+
+                //console.log("Inside Inner For Loop");
+
+                new_record[index] = Crossover_Two_Decimal_Records_Map(
+                    toppers_of_previous_generation[i],
+                    toppers_of_previous_generation[j],
+                    polygon_coverage_on_cartesian_grid,
+                    grid_length);
+
+                index++;
+
+                //console.log("I " + i);
+                //console.log("J " + j);
+                //console.log("INDEX " + index);
+
+                if (index >= number_of_records_in_each_crossover_generations) {                
+                    flag = true;
+                    break;
+                }
+            }// inner for loop
+
+            innerloopcounter++;
+
+            if (flag == true) {
+                break;
+            }
+        }// outer for loop
+    }// while
+
+    //new_record[0] = Crossover_Two_Decimal_Records_Map(generation[0], generation[1], polygon_coverage_on_cartesian_grid, grid_length);
+    //new_record[1] = Crossover_Two_Decimal_Records_Map(generation[0], generation[2], polygon_coverage_on_cartesian_grid, grid_length);
+    //new_record[2] = Crossover_Two_Decimal_Records_Map(generation[0], generation[3], polygon_coverage_on_cartesian_grid, grid_length);
+    //new_record[3] = Crossover_Two_Decimal_Records_Map(generation[1], generation[2], polygon_coverage_on_cartesian_grid, grid_length);
+
+    //new_record[4] = Crossover_Two_Decimal_Records_Map(generation[1], generation[3], polygon_coverage_on_cartesian_grid, grid_length);
+    //new_record[5] = Crossover_Two_Decimal_Records_Map(generation[2], generation[3], polygon_coverage_on_cartesian_grid, grid_length);
+    //new_record[6] = Crossover_Two_Decimal_Records_Map(generation[1], generation[0], polygon_coverage_on_cartesian_grid, grid_length);
+    //new_record[7] = Crossover_Two_Decimal_Records_Map(generation[2], generation[1], polygon_coverage_on_cartesian_grid, grid_length);
+
+    return new_record;
+}
+
 
 function Crossover_Two_Decimal_Records_Map(r1, r2, polygon_coverage_on_cartesian_grid, grid_length) {
 
+    //console.log("Crossover_Two_Decimal_Records_Map");
+
     var new_record = [];
-  
+
     new_record[0] = Crossover_Two_Decimal_Points_Map(r1[0], r2[0], polygon_coverage_on_cartesian_grid, grid_length);
     new_record[1] = Crossover_Two_Decimal_Points_Map(r1[1], r2[1], polygon_coverage_on_cartesian_grid, grid_length);
     new_record[2] = Crossover_Two_Decimal_Points_Map(r1[2], r2[2], polygon_coverage_on_cartesian_grid, grid_length);
@@ -68,16 +138,14 @@ function Crossover_Two_Decimal_Records(r1, r2) {
 }
 
 
-
-
 function Crossover_Two_Decimal_Points_Map(p1, p2, polygon_coverage_on_cartesian_grid, grid_length) {
 
+    console.log("Crossover_Two_Decimal_Points_Map");
 
     var binary_point1 = Convert_Decimal_Point_To_Binary(p1);
     var binary_point2 = Convert_Decimal_Point_To_Binary(p2);
 
     do {
-
 
         // cross over X
         var crossover_x; //= Crossover_Two_Binary_Coordinates(binary_point1[0], binary_point2[0]);
@@ -202,8 +270,6 @@ function Crossover_Two_Decimal_Points(p1, p2) {
 }
 
 
-
-
 function Crossover_Two_Binary_Coordinates(c1, c2) {
 
     var no_of_characters = Random_No_Of_Chars_To_Take_From_Two_Crossover_Coordinates();
@@ -229,8 +295,6 @@ function Crossover_Two_Binary_Coordinates(c1, c2) {
     //return c1.substr(c1_start_index, no_of_characters[0]) + c2.substr(c2_start_index, no_of_characters[1]);
 
 }
-
-
 
 
 function Convert_Decimal_Point_To_Binary(point) {

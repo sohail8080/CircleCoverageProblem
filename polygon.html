@@ -27,7 +27,6 @@
             overflow: auto;
             padding: 0.5em;
         }
-
     </style>
 
     <script src="https://js.arcgis.com/3.32/"></script>
@@ -109,7 +108,7 @@
                     d.on("click", activateTool);
                 }
 
-               
+
                 if (d.declaredClass === "dijit.form.Button" && d.id === "btnClearMap") {
                     d.on("click", btnClearMap_Handler);
                 }
@@ -122,29 +121,67 @@
             });
 
 
-            
+
 
             function btnClearMap_Handler() {
-
                 graphics_layer.clear();
-
             }
 
 
+
             function execut_algo() {
+
+                console.log("~0 ===========> " + ~0);
+                console.log("~1 ===========> " + ~1);
+                console.log("~2 ===========> " + ~2);
+                console.log("~3 ===========> " + ~3);
+                console.log("~4 ===========> " + ~4);
+                console.log("~5 ===========> " + ~5);
+                console.log("~6 ===========> " + ~6);
+                console.log("~7 ===========> " + ~7);
+                console.log("~8 ===========> " + ~8);
+                console.log("~9 ===========> " + ~9);
+                console.log("~10 ===========> " + ~10);
+                console.log("~11 ===========> " + ~11);
+                console.log("~12 ===========> " + ~12);
+                console.log("~13 ===========> " + ~13);
+                console.log("~14 ===========> " + ~14);
+                console.log("~15 ===========> " + ~15);
+
+                return;
 
                 console.clear();
                 graphics_layer.clear();
 
                 var grid_length = 15;
                 var random_generation_record_count = 30;
-                var grid_buffer_x = 2;
-                var grid_buffer_y = 3;
-                var number_of_top_records_goto_to_next_generation = 4;
-                var number_of_records_in_each_crossover_generations = 8;
+                var grid_buffer_x = 0;
+                var grid_buffer_y = 0;
+                var number_of_top_records_goto_to_next_generation = 10;
+                var number_of_records_in_each_crossover_generations = 20;
                 var number_of_crossovers_before_mutations = 5;
                 var required_coverage = 75; // 75 %
-                
+
+
+                if (random_generation_record_count < number_of_top_records_goto_to_next_generation) {
+                    alert("Random-Generation-Records should be greater or equal to Records-Taken-From-Previous-Generation");
+                    return;
+                }
+
+                if (number_of_top_records_goto_to_next_generation > number_of_records_in_each_crossover_generations) {
+                    alert("Records-Taken-From-Previous-Generation should be less than or equal to Records-In-CrossOver-Generatoin");
+                    return;
+                }
+
+                if (number_of_top_records_goto_to_next_generation < 2) {
+                    alert("Records-Taken-From-Previous-Generation should be greater than or equal to 2");
+                    return;
+                }
+
+                if (number_of_records_in_each_crossover_generations < 2) {
+                    alert("Records-In-CrossOver-Generatoin should be greater than or equal to 2");
+                    return;
+                }
 
                 var polygon_drawings_results = get_polygon();
 
@@ -159,13 +196,13 @@
 
 
                 var index_grid = Generate_Cartesian_Grid(grid_length);
-              
+
                 //console.log("lat_long_grid");
                 //Print_Grid_Spatially_Like_Map(lat_long_grid);
                 //console.log("lat_long_point_grid");
                 //Print_Grid_Points_Spatially_Like_Map(latlong_grid);
                 //console.log("index_grid");
-                //Print_Grid_Spatially_Like_Map(index_grid);
+                Print_Grid_Spatially_Like_Map(index_grid);
 
                 Show_Grid_Points_On_Map(graphics_layer, latlong_grid);
 
@@ -181,7 +218,7 @@
 
                 var cartesian_generation = Get_Initial_Generation_By_Random_Function_Map(grid_length, polygon_coverage_on_cartesian_grid, random_generation_record_count, grid_buffer_x, grid_buffer_y)
 
-                
+
                 console.log("Initial Seed Random Generation");
                 console.log("===============");
                 Print_Generation(cartesian_generation);
@@ -195,7 +232,7 @@
                 Print_Generation_Result_Table(all_records_list);
                 console.log("===============");
 
-                
+
                 var top_records_list = [];
                 top_records_list[0] = all_records_list[0];
 
@@ -208,7 +245,7 @@
 
                 for (var iteration_count = 0; iteration_count <= 5; iteration_count++) {
 
-                    master_record = GENETIC_ALGO_To_Evaluate_FitnessValue_Of_Generation_With_Binary_CrossOver_GIS(
+                    master_record = GENETIC_ALGO_To_Evaluate_FitnessValue_Of_Generation_With_Binary_CrossOver_Map_Configurable(
                         iteration_count,   // 1
                         master_record[3], // 2 top_records_list
                         master_record[0], // 3prev_gen_record_list
@@ -225,10 +262,11 @@
                         required_coverage); //14
                 }
 
+
                 var endTime = performance.now();
 
                 draw_polygon();
-                show_record_on_map(graphics_layer, master_record[3][0], latlong_grid)
+                show_record_on_map(graphics_layer, master_record[3][0], latlong_grid);
 
                 return;
 
@@ -285,12 +323,13 @@
 
                     record = latlong_generation[i];
 
-                    console.log("Evaluating Record " + i);
-                    console.log("Record Values " + record);
+                    console.log("Evaluating Record " + (i+1));
+                    console.log("Record Values ");
+                    print_point_array_to_console(record);
 
-                    FitnessValue = Get_FitnessValue_Of_Record_GIS(record, map, polygon, polygon_coverage, latlong_grid);
+                    FitnessValue = Get_FitnessValue_Of_Record_Map(record, map, polygon, polygon_coverage, latlong_grid);
 
-                    console.log("Record " + (i+1) + " Fitness Value " + FitnessValue);
+                    console.log("Record " + (i + 1) + " Fitness Value " + FitnessValue);
 
                     if (FitnessValue > maxfitnessvalue) {
 
@@ -322,7 +361,7 @@
 
 
 
-            function GENETIC_ALGO_To_Evaluate_FitnessValue_Of_Generation_With_Binary_CrossOver_GIS(
+            function GENETIC_ALGO_To_Evaluate_FitnessValue_Of_Generation_With_Binary_CrossOver_Map(
                 iteration_count, //1
                 top_records_list, //2
                 prev_gen_record_list, //3
@@ -405,7 +444,7 @@
                 Print_Generation(topper_of_previous_generation);
                 console.log("===============");
 
-                
+
                 // Binary Cross Over takes 4 values and return 8 values
                 var generation = Crossover_Generation_On_Map(
                     topper_of_previous_generation, //1
@@ -432,7 +471,7 @@
                     console.log("Evaluating Record " + i);
                     console.log("Record Values " + record);
 
-                    var FitnessValue = Get_FitnessValue_Of_Record_GIS(
+                    var FitnessValue = Get_FitnessValue_Of_Record_Map(
                         record,
                         map,
                         polygon,
@@ -507,9 +546,184 @@
                 //return sortedr2[0][1];
             }
 
-           
 
-            function Get_FitnessValue_Of_Record_GIS(record, map, polygon, polygon_coverage, latlong_grid) {
+
+
+            function GENETIC_ALGO_To_Evaluate_FitnessValue_Of_Generation_With_Binary_CrossOver_Map_Configurable(
+                iteration_count, //1
+                top_records_list, //2
+                prev_gen_record_list, //3
+                all_records_list, //4
+                cartesian_generation, //5
+                map, //6
+                polygon, //7
+                polygon_coverage_on_latlong_grid, //8
+                polygon_coverage_on_cartesian_grid, //9
+                latlong_grid, //10
+                number_of_top_records_goto_to_next_generation, //11
+                number_of_records_in_each_crossover_generations, //12
+                number_of_crossovers_before_mutations, //13
+                required_coverage //14
+            ) {
+
+                //console.log("GENETIC ALGO 1");
+
+                if (number_of_top_records_goto_to_next_generation > number_of_records_in_each_crossover_generations) {
+                    alert("Records-Taken-From-Previous-Generation should be less than or equal to Records-In-CrossOver-Generatoin");
+                    return;
+                }
+
+                if (number_of_top_records_goto_to_next_generation < 2) {
+                    alert("Records-Taken-From-Previous-Generation should be greater than or equal to 2");
+                    return;
+                }
+
+                if (number_of_records_in_each_crossover_generations < 2) {
+                    alert("Records-In-CrossOver-Generatoin should be greater than or equal to 2");
+                    return;
+                }
+
+
+                var Generation_Result_Table = [];// result of generation with fitness value
+                var maxfitnessvalue = -99999999999;
+                var maxfitnessvalueindex = -1
+                var maxfitnessvaluerecord = null;
+                var record;
+                var FitnessValue;
+
+                // Binary Cross Over takes 4 values and return 8 values
+                var topper_of_previous_generation = [];
+
+                if (prev_gen_record_list == null || prev_gen_record_list.length <= 0) {
+
+                    // Case Ist Iteration
+                    if (all_records_list == null || all_records_list.length <= 0) {
+                        alert("error:GENETIC_ALGO_To_Evaluate_FitnessValue_Of_Generation_With_Binary_CrossOver");
+                    }
+
+                    for (var i = 0; i < number_of_top_records_goto_to_next_generation; i++) {
+                        topper_of_previous_generation[i] = all_records_list[i][1];
+                    }
+
+                }
+                else {
+                    for (var i = 0; i < number_of_top_records_goto_to_next_generation; i++) {
+                        topper_of_previous_generation[i] = prev_gen_record_list[i][1];
+                    }
+                }
+
+                console.log("===============");
+                console.error("Iteration [" + [iteration_count + 1] + "] Top " + number_of_top_records_goto_to_next_generation+" Records before Binary Cross-Over ");
+                Print_Generation(topper_of_previous_generation);
+                console.log("===============");
+
+                //console.log("GENETIC ALGO 2");
+
+                // Binary Cross Over takes 4 values and return 8 values
+                var generation = Crossover_Generation_On_Map_Configurable(
+                    topper_of_previous_generation, //1
+                    polygon_coverage_on_cartesian_grid, //2
+                    latlong_grid.length, //3
+                    number_of_records_in_each_crossover_generations //4
+                );
+
+                var latlong_generation = Map_Cartesian_Generation_To_LatLong_Generation(generation, latlong_grid);
+
+                console.log("Iteration [" + [iteration_count + 1] + "] New Generation after Binary Cross-Over ");
+                Print_Generation(generation);
+                console.log("===============");
+
+                var Top_Record_Result = [];
+                Top_Record_Result[0] = [];
+
+
+                for (var i = 0; i < latlong_generation.length; i++) {
+
+                    var record = latlong_generation[i];
+
+                    console.log("Evaluating Record " + i);
+                    console.log("Record Values " + record);
+
+                    var FitnessValue = Get_FitnessValue_Of_Record_Map(
+                        record,
+                        map,
+                        polygon,
+                        polygon_coverage_on_latlong_grid,
+                        latlong_grid
+                    );
+
+                    console.log("Record " + (i + 1) + " Fitness Value " + FitnessValue);
+
+                    if (FitnessValue > maxfitnessvalue) {
+
+                        maxfitnessvalue = FitnessValue;
+                        maxfitnessvalueindex = i;
+                        maxfitnessvaluerecord = cartesian_generation[i];
+
+                        Top_Record_Result[0][0] = FitnessValue;
+                        Top_Record_Result[0][1] = cartesian_generation[i];
+
+                    }
+
+                    var Record_Result = [];
+                    Record_Result[0] = FitnessValue;
+                    Record_Result[1] = cartesian_generation[i];
+
+                    Generation_Result_Table[i] = Record_Result;
+
+                }
+
+                console.log("Iteration [" + [iteration_count + 1] + "] Binary Cross Over Generation results");
+                Print_Generation_Result_Table(Generation_Result_Table);
+                console.log("===============");
+
+
+                //var Generation_Top4_Result_Table = Sort_Generation_Result_Table_Return_Top4_Records(Generation_Result_Table);
+
+                // following sort will eliminate duplicate records present in the table
+                // duplication means same Fitness Value & Points, all such points will be removed
+                var Generation_Top4_Result_Table = Sort_Generation_Result_Table(Generation_Result_Table);
+
+                //console.log("===============");
+                console.log("Iteration [" + [iteration_count + 1] + "] Sorted Binary Cross Over Generation results");
+                Print_Generation_Result_Table(Generation_Top4_Result_Table);
+                console.log("===============");
+
+                var r1 = Merge_Generation_Result_Tables(all_records_list, Generation_Top4_Result_Table);
+                // following sort will eliminate duplicate records present in the table
+                // duplication means same Fitness Value & Points, all such points will be removed
+                var sortedr1 = Sort_Generation_Result_Table(r1);
+                console.log("Iteration [" + [iteration_count + 1] + "] Detailed Fitness Value Result Table Up-To-Now");
+                console.log("===============");
+                Print_Generation_Result_Table(sortedr1);
+
+
+                var r2 = Merge_Generation_Result_Tables(top_records_list, Top_Record_Result);
+                // following sort will eliminate duplicate records present in the table
+                // duplication means same Fitness Value & Points, all such points will be removed
+                var sortedr2 = Sort_Generation_Result_Table(r2);
+                console.log("Iteration [" + [iteration_count + 1] + "] Iteration Top Fitness Value Results Table Up-To-Now");
+                console.log("===============");
+                Print_Generation_Result_Table(sortedr2);
+
+
+                var master_record = [];
+
+                master_record[0] = Generation_Top4_Result_Table;// sorted generation table of this iteration
+                master_record[1] = Top_Record_Result;// topper of this iteration
+                master_record[2] = sortedr1; // sorted generation table of all iterations
+                master_record[3] = sortedr2; // sorted generation table of TOPPERS all iterations
+
+                return master_record;
+                //master_record[3][0][1] // this record to show on screen
+                //return sortedr2[0][1];
+            }
+
+
+
+
+
+            function Get_FitnessValue_Of_Record_Map(record, map, polygon, polygon_coverage, latlong_grid) {
 
 
                 var center_point_1 = record[0]; //new esri.geometry.Point({ "x": record[0][0], "y": record[0][1], "spatialReference": map.spatialReference });
@@ -847,8 +1061,8 @@
                 //console.error(cartesian_record);
                 //console.error(latlong_grid);
 
-               // console.error("cartesian_record" + cartesian_record);
-               
+                // console.error("cartesian_record" + cartesian_record);
+
 
                 draw_circle(graphics_layer, Map_Cartesian_Point_To_LatLong_Point(cartesian_record[1][0], latlong_grid), "blue", 1);
                 draw_circle(graphics_layer, Map_Cartesian_Point_To_LatLong_Point(cartesian_record[1][1], latlong_grid), "green", 2);
@@ -1187,11 +1401,11 @@
                     graphics_layer.add(labelPointGraphic);
                 }
 
-              
+
 
                 var circle_symbol = new SimpleFillSymbol().setColor(null).outline.setColor(circle_color).setWidth(2);
 
-               
+
 
 
                 var circle_geometry_rings = circle_geometry.rings;
@@ -1352,7 +1566,7 @@
 
                 for (var i = 0; i < poly_rings_obj.length; i++) {
 
-                    str = str + " new esri.geometry.Point(" + poly_rings_obj[i][0] + ", " + poly_rings_obj[i][1]+", map.spatialReference),";
+                    str = str + " new esri.geometry.Point(" + poly_rings_obj[i][0] + ", " + poly_rings_obj[i][1] + ", map.spatialReference),";
                 }
 
                 console.error(str);
@@ -1380,18 +1594,18 @@
     <div id="mainWindow" data-dojo-type="dijit/layout/BorderContainer" data-dojo-props="design:'headline'">
         <div id="header" data-dojo-type="dijit/layout/ContentPane" data-dojo-props="region:'top'">
             <!--<span>Draw:<br /></span>
-    <button data-dojo-type="dijit/form/Button">Point</button>
-    <button data-dojo-type="dijit/form/Button">Multi Point</button>
-    <button data-dojo-type="dijit/form/Button">Line</button>
-    <button data-dojo-type="dijit/form/Button">Polyline</button>
-    <button data-dojo-type="dijit/form/Button">Polygon</button>
-    <button data-dojo-type="dijit/form/Button">Freehand Polyline</button>
-    <button data-dojo-type="dijit/form/Button">Freehand Polygon</button>
+            <button data-dojo-type="dijit/form/Button">Point</button>
+            <button data-dojo-type="dijit/form/Button">Multi Point</button>
+            <button data-dojo-type="dijit/form/Button">Line</button>
+            <button data-dojo-type="dijit/form/Button">Polyline</button>
+            <button data-dojo-type="dijit/form/Button">Polygon</button>
+            <button data-dojo-type="dijit/form/Button">Freehand Polyline</button>
+            <button data-dojo-type="dijit/form/Button">Freehand Polygon</button>
 
-    <button data-dojo-type="dijit/form/Button">Arrow</button>
-    <button data-dojo-type="dijit/form/Button">Triangle</button>
-    <button data-dojo-type="dijit/form/Button">Circle</button>
-    <button data-dojo-type="dijit/form/Button">Ellipse</button>-->
+            <button data-dojo-type="dijit/form/Button">Arrow</button>
+            <button data-dojo-type="dijit/form/Button">Triangle</button>
+            <button data-dojo-type="dijit/form/Button">Circle</button>
+            <button data-dojo-type="dijit/form/Button">Ellipse</button>-->
 
             <button data-dojo-type="dijit/form/Button">Polygon</button>
             <button data-dojo-props="id:'btnExecutAlgo'" data-dojo-type="dijit/form/Button">Find Coverage</button>
