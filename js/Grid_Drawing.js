@@ -363,14 +363,14 @@ function Generate_Lat_Long_Grid(polygon_extent, grid_length) {
 
     }
 
-    console.log(("xmax " + xmax));
-    console.log(("ymax " + ymax));
-    console.log(("xmin " + xmin));
-    console.log(("ymin " + ymin));
-    console.log(("x_distance" + x_distance));
-    console.log(("y_distance" + y_distance));
-    console.log(("x_interval" + x_interval));
-    console.log(("y_interval" + y_interval));
+    //console.log(("xmax " + xmax));
+    //console.log(("ymax " + ymax));
+    //console.log(("xmin " + xmin));
+    //console.log(("ymin " + ymin));
+    //console.log(("x_distance" + x_distance));
+    //console.log(("y_distance" + y_distance));
+    //console.log(("x_interval" + x_interval));
+    //console.log(("y_interval" + y_interval));
 
     return grid;
 }
@@ -421,14 +421,14 @@ function Generate_Lat_Long_Points_Grid(polygon_extent, grid_length, map) {
 
     }
 
-    console.log(("xmax " + xmax));
-    console.log(("ymax " + ymax));
-    console.log(("xmin " + xmin));
-    console.log(("ymin " + ymin));
-    console.log(("x_distance" + x_distance));
-    console.log(("y_distance" + y_distance));
-    console.log(("x_interval" + x_interval));
-    console.log(("y_interval" + y_interval));
+    //console.log(("xmax " + xmax));
+    //console.log(("ymax " + ymax));
+    //console.log(("xmin " + xmin));
+    //console.log(("ymin " + ymin));
+    //console.log(("x_distance" + x_distance));
+    //console.log(("y_distance" + y_distance));
+    //console.log(("x_interval" + x_interval));
+    //console.log(("y_interval" + y_interval));
 
     return grid;
 }
@@ -478,14 +478,14 @@ function Generate_Lat_Long_Grid_Spatially_Like_Map(polygon_extent, grid_length) 
 
     }
 
-    console.log(("xmax " + xmax));
-    console.log(("ymax " + ymax));
-    console.log(("xmin " + xmin));
-    console.log(("ymin " + ymin));
-    console.log(("x_distance" + x_distance));
-    console.log(("y_distance" + y_distance));
-    console.log(("x_interval" + x_interval));
-    console.log(("y_interval" + y_interval));
+    //console.log(("xmax " + xmax));
+    //console.log(("ymax " + ymax));
+    //console.log(("xmin " + xmin));
+    //console.log(("ymin " + ymin));
+    //console.log(("x_distance" + x_distance));
+    //console.log(("y_distance" + y_distance));
+    //console.log(("x_interval" + x_interval));
+    //console.log(("y_interval" + y_interval));
 
     return grid;
 }

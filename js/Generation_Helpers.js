@@ -124,7 +124,7 @@ function Sort_Generation_Result_Table_Return_Top4_Records(Generation_Result_Tabl
                 //console.log("Fitness Value " + FitnessValue_Top4_List[i] + " Result " + resss);
 
                 if (!resss) {
-                   
+
                     New_Generation_Result_Table[index] = Generation_Result_Table[j];
                     index++;
                     break;
@@ -163,6 +163,8 @@ function Merge_Generation_Result_Tables(Generation_Result_Table1, Generation_Res
 
 function RecordDuplicated(Generation_Result_Table, Record) {
 
+    //alert("RecordDuplicated");
+
     if (Generation_Result_Table.length <= 0) {
         return false;
     }
@@ -175,28 +177,27 @@ function RecordDuplicated(Generation_Result_Table, Record) {
 
         for (var j = 0; j < 4; j++) {
 
-
-            try {
-                if ((Generation_Result_Table[i][1][j][0] != Record[j][0]) ||
-                    (Generation_Result_Table[i][1][j][1] != Record[j][1])) {
-                    flag = false;
-                    break;
-                }
+            //try {
+            if ((Generation_Result_Table[i][1][j][0] != Record[j][0]) ||
+                (Generation_Result_Table[i][1][j][1] != Record[j][1])) {
+                flag = false;
+                break;
             }
-            catch (err) {
-                console.error(" i =" + i + " j =" + j);
-                console.error("Generation_Result_Table Length " + Generation_Result_Table.length);
-                console.error("Generation_Result_Table Full " + Print_Generation_Result_Table(Generation_Result_Table));
-                console.error("Generation_Result_Table Element at " + [i] + " " + Generation_Result_Table[i]);
-                console.error("Record " + Record[j]);
-                //throw err;
-            }
+            //}
+            //catch (err) {
+            //    console.error(" i =" + i + " j =" + j);
+            //    console.error("Generation_Result_Table Length " + Generation_Result_Table.length);
+            //    console.error("Generation_Result_Table Full " + Print_Generation_Result_Table(Generation_Result_Table));
+            //    console.error("Generation_Result_Table Element at " + [i] + " " + Generation_Result_Table[i]);
+            //    console.error("Record " + Record[j]);
+            //    //throw err;
+            //}
         }
 
         if (flag == true) {
 
             //for (var j = 0; j < 4; j++) {
-            //    console.log(Generation_Result_Table[i][1][j][0]+ "," + Generation_Result_Table[i][1][j][1]+ "==" + Record[j][0] + "," + Record[j][1]);
+            //    console.error(Generation_Result_Table[i][1][j][0]+ "," + Generation_Result_Table[i][1][j][1]+ "==" + Record[j][0] + "," + Record[j][1]);
             //}
 
             break;

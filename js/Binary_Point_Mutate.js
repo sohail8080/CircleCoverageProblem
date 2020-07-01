@@ -1,9 +1,22 @@
-﻿function Mutate_Cartesian_Generation(cartesian_generation) {
+﻿function Mutate_Cartesian_Generation(cartesian_generation, polygon_coverage_on_cartesian_grid, grid_length) {
 
     var mutated_cartesian_generation = [];
 
     for (var i = 0; i < cartesian_generation.length; i++) {
-        mutated_cartesian_generation[i] = Mutate_Cartesian_Record(cartesian_generation[i][1]);
+
+        //mutated_cartesian_generation[i] = Mutate_Cartesian_Record(
+        //    cartesian_generation[i][1],
+        //    polygon_coverage_on_cartesian_grid,
+        //    grid_length);
+
+        mutated_cartesian_generation[i] = [];
+
+        mutated_cartesian_generation[i][0] = 0;
+
+        mutated_cartesian_generation[i][1] = Mutate_Cartesian_Record(
+            cartesian_generation[i][1],
+            polygon_coverage_on_cartesian_grid,
+            grid_length);
     }
 
     return mutated_cartesian_generation;
@@ -11,19 +24,82 @@
 }
 
 
-function Mutate_Cartesian_Record(cartesian_record) {
+function Generate_Random_Number(min_bound, max_bound) {
+
+    return Math.floor(Math.random() * (max_bound - min_bound + 1)) + min_bound;
+
+}
+
+
+function Mutate_Cartesian_Record(cartesian_record, polygon_coverage_on_cartesian_grid, grid_length) {
 
     var mutated_cartesian_record = [];
 
-    mutated_cartesian_record[0] = Mutate_Cartesian_Point(cartesian_record[0]);
-    mutated_cartesian_record[1] = Mutate_Cartesian_Point(cartesian_record[1]);
-    mutated_cartesian_record[2] = Mutate_Cartesian_Point(cartesian_record[2]);
-    mutated_cartesian_record[3] = Mutate_Cartesian_Point(cartesian_record[3]);
+
+    //alert("cartesian_record[0]"+ cartesian_record[0]);
+    //alert("cartesian_record[1]" + cartesian_record[1]);
+    //alert("cartesian_record[2]" + cartesian_record[2]);
+    //alert("cartesian_record[3]" + cartesian_record[3]);
+
+
+    mutated_cartesian_record[0] = Mutate_Cartesian_Point(
+        Generate_Random_Number(1, 3),
+        cartesian_record[0],
+        polygon_coverage_on_cartesian_grid,
+        grid_length);
+
+    mutated_cartesian_record[1] = Mutate_Cartesian_Point(
+        Generate_Random_Number(1, 3),
+        cartesian_record[1],
+        polygon_coverage_on_cartesian_grid,
+        grid_length);
+
+
+    mutated_cartesian_record[2] = Mutate_Cartesian_Point(
+        Generate_Random_Number(1, 3),
+        cartesian_record[2],
+        polygon_coverage_on_cartesian_grid,
+        grid_length);
+
+
+    mutated_cartesian_record[3] = Mutate_Cartesian_Point(
+        Generate_Random_Number(1, 3),
+        cartesian_record[3],
+        polygon_coverage_on_cartesian_grid,
+        grid_length);
+
+
+    //mutated_cartesian_record[0] = Mutate_Cartesian_Point_XYZ_Coordinate(        
+    //    cartesian_record[0],
+    //    polygon_coverage_on_cartesian_grid,
+    //    grid_length);
+
+
+    //mutated_cartesian_record[1] = Mutate_Cartesian_Point_XYZ_Coordinate(
+    //    cartesian_record[1],
+    //    polygon_coverage_on_cartesian_grid,
+    //    grid_length);
+
+
+    //mutated_cartesian_record[2] = Mutate_Cartesian_Point_XYZ_Coordinate(
+    //    cartesian_record[2],
+    //    polygon_coverage_on_cartesian_grid,
+    //    grid_length);
+
+
+    //mutated_cartesian_record[3] = Mutate_Cartesian_Point_XYZ_Coordinate(
+    //    cartesian_record[3],
+    //    polygon_coverage_on_cartesian_grid,
+    //    grid_length);
+
 
     return mutated_cartesian_record;
 
 }
 
+
+
+function Mutate_Cartesian_Point_XYZ_Coordinate(cartesian_point, polygon_coverage_on_cartesian_grid, grid_length) {
 
     //var bin_x_cord = conver cartesian_point[0];
     //var bin_y_cord = conver cartesian_point[1];
@@ -33,7 +109,101 @@ function Mutate_Cartesian_Record(cartesian_record) {
 
     //var mut_car_x_cord = conver cartesian_point[0];
     //var mut_car_y_cord = conver cartesian_point[1];
+
+
+    var mutated_cartesian_point = [];
+    var minus_factor = grid_length - 1;
+    var flag = false;
+
+    do {
+
+        //if (minus_factor <= 1) {
+        //    break;
+        //}
+
+        if (minus_factor <= 1) {
+            return cartesian_point;
+        }
+
+
+        mutated_cartesian_point[0] = Math.abs(minus_factor - cartesian_point[0]);
+        mutated_cartesian_point[1] = Math.abs(minus_factor - cartesian_point[1]);
+
+
+        flag = Is_Point_Within_Polygon(polygon_coverage_on_cartesian_grid, mutated_cartesian_point);
+
+        if (flag == true) {
+            break;
+        }
+
+
+        mutated_cartesian_point[0] = cartesian_point[0];
+        mutated_cartesian_point[1] = Math.abs(minus_factor - cartesian_point[1]);
+
+
+        flag = Is_Point_Within_Polygon(polygon_coverage_on_cartesian_grid, mutated_cartesian_point);
+
+
+        if (flag == true) {
+            break;
+        }
+
+
+        mutated_cartesian_point[0] = Math.abs(minus_factor - cartesian_point[0]);
+        mutated_cartesian_point[1] = cartesian_point[1];
+
+
+        flag = Is_Point_Within_Polygon(polygon_coverage_on_cartesian_grid, mutated_cartesian_point);
+
+
+        if (flag == true) {
+            break;
+        }
+
+        minus_factor--;
+
+    } while (flag == false);
+
+    return mutated_cartesian_point;
+
+}
+
+
+
+function Mutate_Cartesian_Point(random_number, cartesian_point, polygon_coverage_on_cartesian_grid, grid_length) {
+
+    var mutated_cartesian_point = [];
+
+    //if (random_number == 1) {
+    mutated_cartesian_point = Mutate_Cartesian_Point_XY_Coordinate(cartesian_point, polygon_coverage_on_cartesian_grid, grid_length);
+    //}
+
+    if (mutated_cartesian_point.length == 1) { return mutated_cartesian_point; }
+
+    //if (random_number == 2) {
+    mutated_cartesian_point = Mutate_Cartesian_Point_X_Coordinate(cartesian_point, polygon_coverage_on_cartesian_grid, grid_length);
+    //}
+
+    if (mutated_cartesian_point.length == 1) { return mutated_cartesian_point; }
+
+    //if (random_number == 3) {
+    mutated_cartesian_point = Mutate_Cartesian_Point_Y_Coordinate(cartesian_point, polygon_coverage_on_cartesian_grid, grid_length);
+    //}
+
+
+    if (mutated_cartesian_point.length == 0) {
+        alert("Mutation Function failed to generated new Point. Using the same point.");
+        return cartesian_point;
+    }
+
+    return mutated_cartesian_point;
+
+}
+
+
+
 function Mutate_Cartesian_Point_XY_Coordinate(cartesian_point, polygon_coverage_on_cartesian_grid, grid_length) {
+
 
     var mutated_cartesian_point = [];
     var minus_factor = grid_length - 1;
@@ -45,8 +215,8 @@ function Mutate_Cartesian_Point_XY_Coordinate(cartesian_point, polygon_coverage_
             break;
         }
 
-        mutated_cartesian_point[0] = minus_factor - cartesian_point[0];
-        mutated_cartesian_point[1] = minus_factor - cartesian_point[1];
+        mutated_cartesian_point[0] = Math.abs(minus_factor - cartesian_point[0]);
+        mutated_cartesian_point[1] = Math.abs(minus_factor - cartesian_point[1]);
 
         flag = Is_Point_Within_Polygon(polygon_coverage_on_cartesian_grid, mutated_cartesian_point);
 
@@ -72,7 +242,7 @@ function Mutate_Cartesian_Point_X_Coordinate(cartesian_point, polygon_coverage_o
             break;
         }
 
-        mutated_cartesian_point[0] = minus_factor - cartesian_point[0];
+        mutated_cartesian_point[0] = Math.abs(minus_factor - cartesian_point[0]);
         mutated_cartesian_point[1] = cartesian_point[1];
 
         flag = Is_Point_Within_Polygon(polygon_coverage_on_cartesian_grid, mutated_cartesian_point);
@@ -100,7 +270,7 @@ function Mutate_Cartesian_Point_Y_Coordinate(cartesian_point, polygon_coverage_o
         }
 
         mutated_cartesian_point[0] = cartesian_point[0];
-        mutated_cartesian_point[1] = minus_factor - cartesian_point[1];
+        mutated_cartesian_point[1] = Math.abs(minus_factor - cartesian_point[1]);
 
         flag = Is_Point_Within_Polygon(polygon_coverage_on_cartesian_grid, mutated_cartesian_point);
 
@@ -111,7 +281,6 @@ function Mutate_Cartesian_Point_Y_Coordinate(cartesian_point, polygon_coverage_o
     return mutated_cartesian_point;
 
 }
-
 
 
 

@@ -140,7 +140,7 @@ function Crossover_Two_Decimal_Records(r1, r2) {
 
 function Crossover_Two_Decimal_Points_Map(p1, p2, polygon_coverage_on_cartesian_grid, grid_length) {
 
-    console.log("Crossover_Two_Decimal_Points_Map");
+    //console.log("Crossover_Two_Decimal_Points_Map");
 
     var binary_point1 = Convert_Decimal_Point_To_Binary(p1);
     var binary_point2 = Convert_Decimal_Point_To_Binary(p2);
