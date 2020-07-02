@@ -293,7 +293,7 @@
                         var mutated_cartesian_generation = Mutate_Cartesian_Generation(master_record[0], polygon_coverage_on_cartesian_grid, grid_length);
                         master_record[0] = mutated_cartesian_generation;
 
-                        console.error("GENERATION MUTATION PERFORMED SUCCESSFULLY.");
+                        //console.error("GENERATION MUTATION PERFORMED SUCCESSFULLY.");
 
                     }                   
                 }
@@ -304,6 +304,20 @@
                 draw_polygon();
                 show_record_on_map(graphics_layer, master_record[3][0], latlong_grid);
 
+
+                var font = Font("30", Font.STYLE_NORMAL, Font.VARIANT_NORMAL, Font.WEIGHT_BOLDER);
+                var textSymbol = new TextSymbol("Fitness Value " + master_record[3][0][0], font, "red");
+                var labelPointGraphic = new Graphic(latlong_grid[7][7].offset(-8000, 0), textSymbol);
+                graphics_layer.add(labelPointGraphic);
+
+
+                var font2 = Font("20", Font.STYLE_NORMAL, Font.VARIANT_NORMAL, Font.WEIGHT_BOLDER);
+                var textSymbol2 = new TextSymbol("Time " + (endTime - startTime).toFixed(2) + "ms", font2, "red");
+                var labelPointGraphic2 = new Graphic(latlong_grid[7][7].offset(-8000, -700), textSymbol2);
+                graphics_layer.add(labelPointGraphic2);
+
+
+                //alert(latlong_grid[7][7]);
                 return;
 
                 Clear_Map();
@@ -1229,6 +1243,7 @@
 
             }
 
+
             function Highligh_Point_On_Map(graphics_layer, circle_number, point) {
 
                 var point_symbology = Get_Point_Symbolology(circle_number);
@@ -1244,6 +1259,7 @@
 
 
             }
+
 
             function Show_Grid_Points_On_Map(graphics_layer, latlong_grid) {
 
@@ -1272,7 +1288,6 @@
                     }
                 }
             }
-
 
 
             function show_lat_long_points_on_map(graphics_layer, points_array) {
@@ -1311,8 +1326,6 @@
                 return polygon_coverage;
 
             }
-
-
 
 
             function get_polygon_coverage_on_latlong_cartesian_grid(polygon, latlong_grid) {
@@ -1455,11 +1468,7 @@
                 }
 
 
-
                 var circle_symbol = new SimpleFillSymbol().setColor(null).outline.setColor(circle_color).setWidth(2);
-
-
-
 
                 var circle_geometry_rings = circle_geometry.rings;
 
