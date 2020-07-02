@@ -62,6 +62,29 @@ function GetRandomPoint_Map(grid_length, polygon_coverage_on_cartesian_grid, gri
 
 }
 
+
+
+
+function GetRandomPoint_Map_Polygon(grid_length, polygon_coverage_on_cartesian_grid, grid_buffer_x, grid_buffer_y) {
+
+    var point = [];
+
+    var random_index;
+    var min_bound = 0;
+    var max_bound = polygon_coverage_on_cartesian_grid.length - 1;
+
+    random_index = Math.floor(Math.random() * (max_bound - min_bound + 1)) + min_bound;
+    point = polygon_coverage_on_cartesian_grid[random_index];
+
+    return point;
+
+}
+
+
+
+
+
+
 function Is_Point_Within_Polygon(polygon_coverage_on_cartesian_grid, point) {
 
     var flag = false;
@@ -72,7 +95,7 @@ function Is_Point_Within_Polygon(polygon_coverage_on_cartesian_grid, point) {
             polygon_coverage_on_cartesian_grid[i][1] == point[1]) {
 
             flag = true;
-            break;        
+            break;
         }
     }
 
@@ -107,6 +130,20 @@ function GetRandomRecord_Map(grid_length, polygon_coverage_on_cartesian_grid, gr
 }
 
 
+function GetRandomRecord_Map_Polygon(grid_length, polygon_coverage_on_cartesian_grid, grid_buffer_x, grid_buffer_y) {
+
+    var record = new Array(4);
+    record[0] = GetRandomPoint_Map_Polygon(grid_length, polygon_coverage_on_cartesian_grid, grid_buffer_x, grid_buffer_y);
+    record[1] = GetRandomPoint_Map_Polygon(grid_length, polygon_coverage_on_cartesian_grid, grid_buffer_x, grid_buffer_y);
+    record[2] = GetRandomPoint_Map_Polygon(grid_length, polygon_coverage_on_cartesian_grid, grid_buffer_x, grid_buffer_y);
+    record[3] = GetRandomPoint_Map_Polygon(grid_length, polygon_coverage_on_cartesian_grid, grid_buffer_x, grid_buffer_y);
+
+    return record;
+
+}
+
+
+
 
 function Get_Initial_Generation_By_Random_Function() {
 
@@ -124,6 +161,86 @@ function Get_Initial_Generation_By_Random_Function() {
     return set;
 
 }
+
+
+
+
+function Get_Initial_LatLong_Generation_By_Random_Function_Map(
+    grid_length,
+    polygon_coverage_on_latlong_grid,
+    random_generation_record_count,
+    grid_buffer_x,
+    grid_buffer_y) {
+
+    var generation = new Array(random_generation_record_count);
+    var random_index;
+    var min_bound = 0;
+    var max_bound = polygon_coverage_on_latlong_grid.length - 1;
+
+    for (var i = 0; i < random_generation_record_count; i++) {
+
+        random_index = Math.floor(Math.random() * (max_bound - min_bound + 1)) + min_bound;
+        generation[i] = polygon_coverage_on_latlong_grid[random_index];
+
+    }
+
+    return generation;
+
+}
+
+
+function Generate_Random_Number(min_bound, max_bound) {
+
+    return Math.floor(Math.random() * (max_bound - min_bound + 1)) + min_bound;
+
+}
+
+
+
+
+//function Get_Initial_Cartesian_Generation_By_Random_Function_Map_Polygon(
+//    grid_length,
+//    polygon_coverage_on_cartesian_grid,
+//    random_generation_record_count,
+//    grid_buffer_x,
+//    grid_buffer_y) {
+
+
+//    var generation = new Array(random_generation_record_count);
+//    var random_index;
+//    var min_bound = 0;
+//    var max_bound = polygon_coverage_on_cartesian_grid.length - 1;
+
+//    for (var i = 0; i < random_generation_record_count; i++) {
+
+//        random_index = Math.floor(Math.random() * (max_bound - min_bound + 1)) + min_bound;
+//        generation[i] = polygon_coverage_on_cartesian_grid[random_index];
+
+//    }
+
+//    return generation;
+
+//}
+
+
+
+
+function Get_Initial_Cartesian_Generation_By_Random_Function_Map_Polygon(grid_length, polygon_coverage_on_cartesian_grid, random_generation_record_count, grid_buffer_x, grid_buffer_y) {
+
+    var generation = new Array(random_generation_record_count);
+
+    for (var i = 0; i < random_generation_record_count; i++) {
+
+        generation[i] = GetRandomRecord_Map_Polygon(grid_length, polygon_coverage_on_cartesian_grid, grid_buffer_x, grid_buffer_y);
+
+    }
+
+    return generation;
+
+}
+
+
+
 
 
 
