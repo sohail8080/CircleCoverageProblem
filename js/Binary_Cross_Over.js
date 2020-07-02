@@ -52,6 +52,8 @@ function Crossover_Generation_On_Map_Configurable(
 
     //console.log("Crossover Generation On Map Configurable 1");
 
+
+
     var new_record = [];
     var index = 0;
     var flag = false;
