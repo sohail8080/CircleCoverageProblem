@@ -3,19 +3,24 @@
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
     <meta name="viewport" content="width=device-width,user-scalable=no">
-
     <meta name="viewport" content="initial-scale=1, maximum-scale=1,user-scalable=no">
     <title>Maps Toolbar</title>
 
-    <link rel="stylesheet" href="https://js.arcgis.com/3.32/dijit/themes/nihilo/nihilo.css">
-    <link rel="stylesheet" href="https://js.arcgis.com/3.32/esri/css/esri.css">
+    <link href="css/nihilo.css" rel="stylesheet" />
+    <link href="css/esri.css" rel="stylesheet" />
+
+    <!--<link rel="stylesheet" href="https://js.arcgis.com/3.32/dijit/themes/nihilo/nihilo.css">
+    <link rel="stylesheet" href="https://js.arcgis.com/3.32/esri/css/esri.css">-->
+    <!--<link href="css/bootstrap.css" rel="stylesheet" />-->
     <style>
+
 
         html, body, #mainWindow {
             font-family: sans-serif;
             height: 100%;
             width: 100%;
         }
+
 
         html, body {
             margin: 0;
@@ -28,9 +33,7 @@
             padding: 0.5em;
         }
     </style>
-
     <script src="https://js.arcgis.com/3.32/"></script>
-
     <script src="js/Binary_Cross_Over.js"></script>
     <script src="js/Grid_Analysis.js"></script>
     <script src="js/Grid_Drawing.js"></script>
@@ -42,7 +45,6 @@
     <script src="js/Binary_Point_Mutate.js"></script>
     <script src="js/Decimal_Point_Mutate.js"></script>
     <script src="js/Mid_Point_Mutate.js"></script>
-
 
     <script>
         var map, toolbar, symbol, geomTask;
@@ -158,15 +160,34 @@
                 console.clear();
                 graphics_layer.clear();
 
-                var generation_count = 20;
-                var grid_length = 15;
-                var random_generation_record_count = 30;
+
+                //var number_of_circles = 4;
+                //var radius_of_circles = 4; // in km
+                //var grid_length = 15;
+                //var random_generation_record_count = 30;
+                //var number_of_records_in_each_crossover_generations = 30;
+                //var number_of_top_records_goto_to_next_generation = 10;
+                //var generation_count = 20;
+                //var number_of_crossovers_before_mutations = 4;
+                //var required_coverage = 75; // 75 %
+                //var grid_buffer_x = 0;
+                //var grid_buffer_y = 0;
+                //var polygon_selector = 1;
+
+
+                var number_of_circles = parseInt(document.getElementById('txtCircles').value);
+                var radius_of_circles = parseInt(document.getElementById('txtRadius').value); // in km
+                var grid_length = parseInt(document.getElementById('txtGridLength').value);
+                var random_generation_record_count = parseInt(document.getElementById('txtRandomSet').value);
+                var number_of_records_in_each_crossover_generations = parseInt(document.getElementById('txtCrossOverSet').value);
+                var number_of_top_records_goto_to_next_generation = parseInt(document.getElementById('txtPrevGenerationSets').value);
+                var generation_count = parseInt(document.getElementById('txtGenerations').value);
+                var number_of_crossovers_before_mutations = parseInt(document.getElementById('txtMutateAfter').value);
+                var required_coverage = parseInt(document.getElementById('txtReqCoverage').value); // 75 %
                 var grid_buffer_x = 0;
                 var grid_buffer_y = 0;
-                var number_of_top_records_goto_to_next_generation = 10;
-                var number_of_records_in_each_crossover_generations = 30;
-                var number_of_crossovers_before_mutations = 4;
-                var required_coverage = 75; // 75 %
+                var polygon_selector = parseInt(document.getElementById('selectPolygon').value); // 75 %
+
 
 
                 if (random_generation_record_count < number_of_top_records_goto_to_next_generation) {
@@ -192,7 +213,7 @@
 
                 //Generate_NOT_Numbers();
 
-                var polygon_drawings_results = get_polygon();
+                var polygon_drawings_results = get_polygon(polygon_selector);
                 var polygon = polygon_drawings_results[0];
                 var polygon_graphic = polygon_drawings_results[1];
                 var polygon_extent = polygon.getExtent();
@@ -295,24 +316,24 @@
 
                         //console.error("GENERATION MUTATION PERFORMED SUCCESSFULLY.");
 
-                    }                   
+                    }
                 }
 
 
                 var endTime = performance.now();
 
-                draw_polygon();
+                draw_polygon(polygon_selector);
                 show_record_on_map(graphics_layer, master_record[3][0], latlong_grid);
 
 
                 var font = Font("30", Font.STYLE_NORMAL, Font.VARIANT_NORMAL, Font.WEIGHT_BOLDER);
-                var textSymbol = new TextSymbol("Fitness Value " + master_record[3][0][0], font, "red");
+                var textSymbol = new TextSymbol("Fitness Value " + master_record[3][0][0], font, "black");
                 var labelPointGraphic = new Graphic(latlong_grid[7][7].offset(-8000, 0), textSymbol);
                 graphics_layer.add(labelPointGraphic);
 
 
                 var font2 = Font("20", Font.STYLE_NORMAL, Font.VARIANT_NORMAL, Font.WEIGHT_BOLDER);
-                var textSymbol2 = new TextSymbol("Time " + (endTime - startTime).toFixed(2) + "ms", font2, "red");
+                var textSymbol2 = new TextSymbol("Time " + (endTime - startTime).toFixed(2) + "ms", font2, "black");
                 var labelPointGraphic2 = new Graphic(latlong_grid[7][7].offset(-8000, -700), textSymbol2);
                 graphics_layer.add(labelPointGraphic2);
 
@@ -734,7 +755,7 @@
                 Print_Generation_Result_Table(Generation_Result_Table);
                 console.log("===============");
 
-               
+
                 // following sort will eliminate duplicate records present in the table
                 // duplication means same Fitness Value & Points, all such points will be removed
                 var Generation_Sorted_Result_Table = Sort_Generation_Result_Table(Generation_Result_Table);
@@ -889,7 +910,7 @@
 
                 return total_cir_cov;
 
- 
+
 
             }
 
@@ -989,7 +1010,7 @@
 
                 return total_cir_cov;
 
- 
+
 
             }
 
@@ -1365,30 +1386,114 @@
             }
 
 
-            function draw_polygon() {
+            function draw_polygon(polygon_selector) {
+
+                var polygon_rings;
 
 
-                //new esri.geometry.Point(8130013.992984243, 3986850.133248301, map.spatialReference), new esri.geometry.Point(8140275.664031514, 3986295.9647932346, map.spatialReference), new esri.geometry.Point(8136128.955247048, 3984041.072458825, map.spatialReference), new esri.geometry.Point(8131351.640979231, 3982455.0041219094, map.spatialReference), new esri.geometry.Point(8128103.067277116, 3984614.350170963, map.spatialReference), new esri.geometry.Point(8130013.992984243, 3986850.133248301, map.spatialReference),
+                if (polygon_selector == 1) {
+                    //1
+                    polygon_rings = [
+                        new esri.geometry.Point(8134141.592511637, 3987041.225819014, map.spatialReference),
+                        new esri.geometry.Point(8137485.712499109, 3982550.550407266, map.spatialReference),
+                        new esri.geometry.Point(8137485.712499109, 3982550.550407266, map.spatialReference),
+                        new esri.geometry.Point(8126173.0323129175, 3986143.0907366644, map.spatialReference),
+                        new esri.geometry.Point(8129058.53013068, 3987041.225819014, map.spatialReference),
+                        new esri.geometry.Point(8134141.592511637, 3987041.225819014, map.spatialReference)
+                    ];
+                }
 
-                //new esri.geometry.Point(8129765.572642316, 3987041.225819014, map.spatialReference), new esri.geometry.Point(8135899.644162193, 3985913.779651809, map.spatialReference), new esri.geometry.Point(8137523.931013251, 3985187.627883101, map.spatialReference), new esri.geometry.Point(8135307.257192984, 3983066.5003481903, map.spatialReference), new esri.geometry.Point(8132784.835259576, 3982569.659664337, map.spatialReference), new esri.geometry.Point(8131867.590920156, 3982684.3152067647, map.spatialReference), new esri.geometry.Point(8128103.067277116, 3982474.1133789807, map.spatialReference), new esri.geometry.Point(8127663.554364477, 3984136.618744181, map.spatialReference), new esri.geometry.Point(8128485.252418541, 3986219.5277649495, map.spatialReference), new esri.geometry.Point(8129765.572642316, 3987041.225819014, map.spatialReference),
 
-                //new esri.geometry.Point(8128619.01721804, 3986964.788790729, map.spatialReference), new esri.geometry.Point(8130912.128066593, 3987155.8813614417, map.spatialReference), new esri.geometry.Point(8133071.4741156455, 3987079.4443331566, map.spatialReference), new esri.geometry.Point(8137065.308843541, 3986697.259191731, map.spatialReference), new esri.geometry.Point(8139109.999350167, 3985474.26673917, map.spatialReference), new esri.geometry.Point(8138976.234550668, 3984289.4928007512, map.spatialReference), new esri.geometry.Point(8137925.225411748, 3982779.861492121, map.spatialReference), new esri.geometry.Point(8135307.257192984, 3982531.4411501945, map.spatialReference), new esri.geometry.Point(8130606.379953452, 3983009.1725769765, map.spatialReference), new esri.geometry.Point(8127759.100649833, 3983620.668803257, map.spatialReference), new esri.geometry.Point(8126497.889683129, 3985034.7538265307, map.spatialReference), new esri.geometry.Point(8126784.528539198, 3986639.9314205176, map.spatialReference), new esri.geometry.Point(8128619.01721804, 3986964.788790729, map.spatialReference),
+                if (polygon_selector == 2) {
+                    //2
+                    polygon_rings = [
+                        new esri.geometry.Point(8130013.992984243, 3986850.133248301, map.spatialReference),
+                        new esri.geometry.Point(8140275.664031514, 3986295.9647932346, map.spatialReference),
+                        new esri.geometry.Point(8136128.955247048, 3984041.072458825, map.spatialReference),
+                        new esri.geometry.Point(8131351.640979231, 3982455.0041219094, map.spatialReference),
+                        new esri.geometry.Point(8128103.067277116, 3984614.350170963, map.spatialReference),
+                        new esri.geometry.Point(8130013.992984243, 3986850.133248301, map.spatialReference)
+                    ];
+                }
 
 
-                // new esri.geometry.Point(8128733.672760468, 3987289.6461609406, map.spatialReference), new esri.geometry.Point(8130663.707724666, 3986926.5702765863, map.spatialReference), new esri.geometry.Point(8139320.20117795, 3985130.300111887, map.spatialReference), new esri.geometry.Point(8138364.738324387, 3983353.139204259, map.spatialReference), new esri.geometry.Point(8128982.093102395, 3982149.2560087694, map.spatialReference), new esri.geometry.Point(8126516.998940201, 3982970.954062834, map.spatialReference), new esri.geometry.Point(8126784.528539198, 3984748.114970462, map.spatialReference), new esri.geometry.Point(8127587.117336192, 3986353.2925644484, map.spatialReference), new esri.geometry.Point(8128733.672760468, 3987289.6461609406, map.spatialReference),
+                if (polygon_selector == 3) {
+                    //3
+                    polygon_rings = [
+                        new esri.geometry.Point(8128791.000531682, 3987366.0831892258, map.spatialReference),
+                        new esri.geometry.Point(8141001.815800222, 3985646.2500528116, map.spatialReference),
+                        new esri.geometry.Point(8128332.378361971, 3983047.391091119, map.spatialReference),
+                        new esri.geometry.Point(8130644.598467595, 3985512.4852533126, map.spatialReference),
+                        new esri.geometry.Point(8128791.000531682, 3987366.0831892258, map.spatialReference)
+                    ];
+                }
 
-                //new esri.geometry.Point(8132268.885318653, 3987576.2850170094, map.spatialReference), new esri.geometry.Point(8132708.398231291, 3985397.829710885, map.spatialReference), new esri.geometry.Point(8137466.603242038, 3985244.9556543147, map.spatialReference), new esri.geometry.Point(8129689.135614031, 3980907.1542991367, map.spatialReference), new esri.geometry.Point(8128504.361675613, 3985264.064911386, map.spatialReference), new esri.geometry.Point(8132268.885318653, 3987576.2850170094, map.spatialReference),
 
-                //new esri.geometry.Point(8128791.000531682, 3987366.0831892258, map.spatialReference), new esri.geometry.Point(8141001.815800222, 3985646.2500528116, map.spatialReference), new esri.geometry.Point(8128332.378361971, 3983047.391091119, map.spatialReference), new esri.geometry.Point(8130644.598467595, 3985512.4852533126, map.spatialReference), new esri.geometry.Point(8128791.000531682, 3987366.0831892258, map.spatialReference),
+                if (polygon_selector == 4) {
+                    //4
+                    polygon_rings = [
+                        new esri.geometry.Point(8132268.885318653, 3987576.2850170094, map.spatialReference),
+                        new esri.geometry.Point(8132708.398231291, 3985397.829710885, map.spatialReference),
+                        new esri.geometry.Point(8137466.603242038, 3985244.9556543147, map.spatialReference),
+                        new esri.geometry.Point(8129689.135614031, 3980907.1542991367, map.spatialReference),
+                        new esri.geometry.Point(8128504.361675613, 3985264.064911386, map.spatialReference),
+                        new esri.geometry.Point(8132268.885318653, 3987576.2850170094, map.spatialReference)
+                    ];
+                }
 
-                var polygon_rings = [
-                    new esri.geometry.Point(8134141.592511637, 3987041.225819014, map.spatialReference),
-                    new esri.geometry.Point(8137485.712499109, 3982550.550407266, map.spatialReference),
-                    new esri.geometry.Point(8137485.712499109, 3982550.550407266, map.spatialReference),
-                    new esri.geometry.Point(8126173.0323129175, 3986143.0907366644, map.spatialReference),
-                    new esri.geometry.Point(8129058.53013068, 3987041.225819014, map.spatialReference),
-                    new esri.geometry.Point(8134141.592511637, 3987041.225819014, map.spatialReference)
-                ];
+
+                if (polygon_selector == 5) {
+                    //5
+                    polygon_rings = [
+                        new esri.geometry.Point(8128733.672760468, 3987289.6461609406, map.spatialReference),
+                        new esri.geometry.Point(8130663.707724666, 3986926.5702765863, map.spatialReference),
+                        new esri.geometry.Point(8139320.20117795, 3985130.300111887, map.spatialReference),
+                        new esri.geometry.Point(8138364.738324387, 3983353.139204259, map.spatialReference),
+                        new esri.geometry.Point(8128982.093102395, 3982149.2560087694, map.spatialReference),
+                        new esri.geometry.Point(8126516.998940201, 3982970.954062834, map.spatialReference),
+                        new esri.geometry.Point(8126784.528539198, 3984748.114970462, map.spatialReference),
+                        new esri.geometry.Point(8127587.117336192, 3986353.2925644484, map.spatialReference),
+                        new esri.geometry.Point(8128733.672760468, 3987289.6461609406, map.spatialReference)
+                    ];
+                }
+
+
+                if (polygon_selector == 6) {
+                    //6
+                    polygon_rings = [
+                        new esri.geometry.Point(8128619.01721804, 3986964.788790729, map.spatialReference),
+                        new esri.geometry.Point(8130912.128066593, 3987155.8813614417, map.spatialReference),
+                        new esri.geometry.Point(8133071.4741156455, 3987079.4443331566, map.spatialReference),
+                        new esri.geometry.Point(8137065.308843541, 3986697.259191731, map.spatialReference),
+                        new esri.geometry.Point(8139109.999350167, 3985474.26673917, map.spatialReference),
+                        new esri.geometry.Point(8138976.234550668, 3984289.4928007512, map.spatialReference),
+                        new esri.geometry.Point(8137925.225411748, 3982779.861492121, map.spatialReference),
+                        new esri.geometry.Point(8135307.257192984, 3982531.4411501945, map.spatialReference),
+                        new esri.geometry.Point(8130606.379953452, 3983009.1725769765, map.spatialReference),
+                        new esri.geometry.Point(8127759.100649833, 3983620.668803257, map.spatialReference),
+                        new esri.geometry.Point(8126497.889683129, 3985034.7538265307, map.spatialReference),
+                        new esri.geometry.Point(8126784.528539198, 3986639.9314205176, map.spatialReference),
+                        new esri.geometry.Point(8128619.01721804, 3986964.788790729, map.spatialReference)
+                    ];
+                }
+
+
+                if (polygon_selector == 7) {
+                    //7
+                    polygon_rings = [
+                        new esri.geometry.Point(8129765.572642316, 3987041.225819014, map.spatialReference),
+                        new esri.geometry.Point(8135899.644162193, 3985913.779651809, map.spatialReference),
+                        new esri.geometry.Point(8137523.931013251, 3985187.627883101, map.spatialReference),
+                        new esri.geometry.Point(8135307.257192984, 3983066.5003481903, map.spatialReference),
+                        new esri.geometry.Point(8132784.835259576, 3982569.659664337, map.spatialReference),
+                        new esri.geometry.Point(8131867.590920156, 3982684.3152067647, map.spatialReference),
+                        new esri.geometry.Point(8128103.067277116, 3982474.1133789807, map.spatialReference),
+                        new esri.geometry.Point(8127663.554364477, 3984136.618744181, map.spatialReference),
+                        new esri.geometry.Point(8128485.252418541, 3986219.5277649495, map.spatialReference),
+                        new esri.geometry.Point(8129765.572642316, 3987041.225819014, map.spatialReference)
+                    ];
+
+                }
 
 
                 var polygon_symbol = new SimpleFillSymbol().setColor(null).outline.setColor("red").setWidth(3);
@@ -1411,17 +1516,113 @@
             }
 
 
-            function get_polygon() {
+            function get_polygon(polygon_selector) {
 
 
-                var polygon_rings = [
-                    new esri.geometry.Point(8134141.592511637, 3987041.225819014, map.spatialReference),
-                    new esri.geometry.Point(8137485.712499109, 3982550.550407266, map.spatialReference),
-                    new esri.geometry.Point(8137485.712499109, 3982550.550407266, map.spatialReference),
-                    new esri.geometry.Point(8126173.0323129175, 3986143.0907366644, map.spatialReference),
-                    new esri.geometry.Point(8129058.53013068, 3987041.225819014, map.spatialReference),
-                    new esri.geometry.Point(8134141.592511637, 3987041.225819014, map.spatialReference)
-                ];
+                if (polygon_selector == 1) {
+                    //1
+                    polygon_rings = [
+                        new esri.geometry.Point(8134141.592511637, 3987041.225819014, map.spatialReference),
+                        new esri.geometry.Point(8137485.712499109, 3982550.550407266, map.spatialReference),
+                        new esri.geometry.Point(8137485.712499109, 3982550.550407266, map.spatialReference),
+                        new esri.geometry.Point(8126173.0323129175, 3986143.0907366644, map.spatialReference),
+                        new esri.geometry.Point(8129058.53013068, 3987041.225819014, map.spatialReference),
+                        new esri.geometry.Point(8134141.592511637, 3987041.225819014, map.spatialReference)
+                    ];
+                }
+
+
+                if (polygon_selector == 2) {
+                    //2
+                    polygon_rings = [
+                        new esri.geometry.Point(8130013.992984243, 3986850.133248301, map.spatialReference),
+                        new esri.geometry.Point(8140275.664031514, 3986295.9647932346, map.spatialReference),
+                        new esri.geometry.Point(8136128.955247048, 3984041.072458825, map.spatialReference),
+                        new esri.geometry.Point(8131351.640979231, 3982455.0041219094, map.spatialReference),
+                        new esri.geometry.Point(8128103.067277116, 3984614.350170963, map.spatialReference),
+                        new esri.geometry.Point(8130013.992984243, 3986850.133248301, map.spatialReference)
+                    ];
+                }
+
+
+                if (polygon_selector == 3) {
+                    //3
+                    polygon_rings = [
+                        new esri.geometry.Point(8128791.000531682, 3987366.0831892258, map.spatialReference),
+                        new esri.geometry.Point(8141001.815800222, 3985646.2500528116, map.spatialReference),
+                        new esri.geometry.Point(8128332.378361971, 3983047.391091119, map.spatialReference),
+                        new esri.geometry.Point(8130644.598467595, 3985512.4852533126, map.spatialReference),
+                        new esri.geometry.Point(8128791.000531682, 3987366.0831892258, map.spatialReference)
+                    ];
+                }
+
+
+                if (polygon_selector == 4) {
+                    //4
+                    polygon_rings = [
+                        new esri.geometry.Point(8132268.885318653, 3987576.2850170094, map.spatialReference),
+                        new esri.geometry.Point(8132708.398231291, 3985397.829710885, map.spatialReference),
+                        new esri.geometry.Point(8137466.603242038, 3985244.9556543147, map.spatialReference),
+                        new esri.geometry.Point(8129689.135614031, 3980907.1542991367, map.spatialReference),
+                        new esri.geometry.Point(8128504.361675613, 3985264.064911386, map.spatialReference),
+                        new esri.geometry.Point(8132268.885318653, 3987576.2850170094, map.spatialReference)
+                    ];
+                }
+
+
+                if (polygon_selector == 5) {
+                    //5
+                    polygon_rings = [
+                        new esri.geometry.Point(8128733.672760468, 3987289.6461609406, map.spatialReference),
+                        new esri.geometry.Point(8130663.707724666, 3986926.5702765863, map.spatialReference),
+                        new esri.geometry.Point(8139320.20117795, 3985130.300111887, map.spatialReference),
+                        new esri.geometry.Point(8138364.738324387, 3983353.139204259, map.spatialReference),
+                        new esri.geometry.Point(8128982.093102395, 3982149.2560087694, map.spatialReference),
+                        new esri.geometry.Point(8126516.998940201, 3982970.954062834, map.spatialReference),
+                        new esri.geometry.Point(8126784.528539198, 3984748.114970462, map.spatialReference),
+                        new esri.geometry.Point(8127587.117336192, 3986353.2925644484, map.spatialReference),
+                        new esri.geometry.Point(8128733.672760468, 3987289.6461609406, map.spatialReference)
+                    ];
+                }
+
+
+                if (polygon_selector == 6) {
+                    //6
+                    polygon_rings = [
+                        new esri.geometry.Point(8128619.01721804, 3986964.788790729, map.spatialReference),
+                        new esri.geometry.Point(8130912.128066593, 3987155.8813614417, map.spatialReference),
+                        new esri.geometry.Point(8133071.4741156455, 3987079.4443331566, map.spatialReference),
+                        new esri.geometry.Point(8137065.308843541, 3986697.259191731, map.spatialReference),
+                        new esri.geometry.Point(8139109.999350167, 3985474.26673917, map.spatialReference),
+                        new esri.geometry.Point(8138976.234550668, 3984289.4928007512, map.spatialReference),
+                        new esri.geometry.Point(8137925.225411748, 3982779.861492121, map.spatialReference),
+                        new esri.geometry.Point(8135307.257192984, 3982531.4411501945, map.spatialReference),
+                        new esri.geometry.Point(8130606.379953452, 3983009.1725769765, map.spatialReference),
+                        new esri.geometry.Point(8127759.100649833, 3983620.668803257, map.spatialReference),
+                        new esri.geometry.Point(8126497.889683129, 3985034.7538265307, map.spatialReference),
+                        new esri.geometry.Point(8126784.528539198, 3986639.9314205176, map.spatialReference),
+                        new esri.geometry.Point(8128619.01721804, 3986964.788790729, map.spatialReference)
+                    ];
+                }
+
+
+                if (polygon_selector == 7) {
+                    //7
+                    polygon_rings = [
+                        new esri.geometry.Point(8129765.572642316, 3987041.225819014, map.spatialReference),
+                        new esri.geometry.Point(8135899.644162193, 3985913.779651809, map.spatialReference),
+                        new esri.geometry.Point(8137523.931013251, 3985187.627883101, map.spatialReference),
+                        new esri.geometry.Point(8135307.257192984, 3983066.5003481903, map.spatialReference),
+                        new esri.geometry.Point(8132784.835259576, 3982569.659664337, map.spatialReference),
+                        new esri.geometry.Point(8131867.590920156, 3982684.3152067647, map.spatialReference),
+                        new esri.geometry.Point(8128103.067277116, 3982474.1133789807, map.spatialReference),
+                        new esri.geometry.Point(8127663.554364477, 3984136.618744181, map.spatialReference),
+                        new esri.geometry.Point(8128485.252418541, 3986219.5277649495, map.spatialReference),
+                        new esri.geometry.Point(8129765.572642316, 3987041.225819014, map.spatialReference)
+                    ];
+
+                }
+
 
 
                 var polygon_symbol = new SimpleFillSymbol().setColor(null).outline.setColor("red");
@@ -1651,31 +1852,97 @@
         });
     </script>
 </head>
+
 <body class="nihilo">
 
     <div id="mainWindow" data-dojo-type="dijit/layout/BorderContainer" data-dojo-props="design:'headline'">
         <div id="header" data-dojo-type="dijit/layout/ContentPane" data-dojo-props="region:'top'">
-            <!--<span>Draw:<br /></span>
-            <button data-dojo-type="dijit/form/Button">Point</button>
-            <button data-dojo-type="dijit/form/Button">Multi Point</button>
-            <button data-dojo-type="dijit/form/Button">Line</button>
-            <button data-dojo-type="dijit/form/Button">Polyline</button>
-            <button data-dojo-type="dijit/form/Button">Polygon</button>
-            <button data-dojo-type="dijit/form/Button">Freehand Polyline</button>
-            <button data-dojo-type="dijit/form/Button">Freehand Polygon</button>
 
-            <button data-dojo-type="dijit/form/Button">Arrow</button>
-            <button data-dojo-type="dijit/form/Button">Triangle</button>
-            <button data-dojo-type="dijit/form/Button">Circle</button>
-            <button data-dojo-type="dijit/form/Button">Ellipse</button>-->
+            <table>
 
-            <button data-dojo-type="dijit/form/Button">Polygon</button>
-            <button data-dojo-props="id:'btnExecutAlgo'" data-dojo-type="dijit/form/Button">Find Coverage</button>
-            <button data-dojo-props="id:'btnClearMap'" data-dojo-type="dijit/form/Button">Clear Map</button>
+                <tr>
+                    <td> <label>Circles</label> </td>
+                    <td> <input type="text" id="txtCircles" value="4" disabled style="width:50px;"> </td>
+
+                    <td> <label>Radius (km)</label></td>
+                    <td> <input type="text" id="txtRadius" value="4" disabled style="width:50px;"></td>
+
+                    <td> <label>Grid Density</label></td>
+                    <td> <input type="text" id="txtGridLength" value="15" style="width:50px;"></td>
+
+                    <td> <label>Random Sets</label> </td>
+                    <td>  <input type="text" id="txtRandomSet" value="30" style="width:50px;"></td>
+
+                    <td>  <label>Cross Over Sets</label> </td>
+                    <td>  <input type="text" id="txtCrossOverSet" value="30" style="width:50px;"> </td>
+
+
+
+                </tr>
+
+
+
+
+                <tr>
+                    <td> <label>Prev. Gen Sets</label> </td>
+                    <td>  <input type="text" id="txtPrevGenerationSets" value="10" style="width:50px;"> </td>
+
+                    <td><label>Generations</label></td>
+                    <td> <input type="text" id="txtGenerations" value="20" style="width:50px;"></td>
+
+
+
+                    <td>   <label>Mutate After Gen.</label> </td>
+                    <td>  <input type="text" id="txtMutateAfter" value="4" style="width:50px;"></td>
+
+                    <td> <label>Req. Coverage (%) </label></td>
+                    <td>  <input type="text" id="txtReqCoverage" value="75" disabled style="width:50px;"></td>
+
+                    <td> <button data-dojo-props="id:'btnExecutAlgo'" data-dojo-type="dijit/form/Button">Find Coverage</button> </td>
+                    <td>  <button data-dojo-props="id:'btnClearMap'" data-dojo-type="dijit/form/Button">Clear Map</button></td>
+                </tr>
+
+
+                <tr>
+                    <td> <label>Polygon</label> </td>
+                    <td>
+                        <select name="cars" id="selectPolygon">
+                            <option value="1">One</option>
+                            <option value="2">Two</option>
+                            <option value="3">Three</option>
+                            <option value="4">Four</option>
+                            <option value="5">Five</option>
+                            <option value="6">Six</option>
+                            <option value="7">Seven</option>                           
+                        </select>
+                    </td>
+                </tr>
+
+
+
+            </table>
+
+            <!--
+
+
+
+
+
+
+
+
+
+
+
+
+            <!--<button data-dojo-type="dijit/form/Button">Polygon</button>-->
+
 
         </div>
         <div id="map" data-dojo-type="dijit/layout/ContentPane" data-dojo-props="region:'center'"></div>
     </div>
 
 </body>
+
+
 </html>
