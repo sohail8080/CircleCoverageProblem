@@ -95,7 +95,10 @@
                 zoom: 13
             });
 
-            var graphics_layer = new esri.layers.GraphicsLayer({ id: "graphics_layer" });
+            var hand_drawn_polygon_by_user;
+
+
+            var graphics_layer = new esri.layers.GraphicsLayer({ id: "circlecovg_graphics_layer" });
             map.addLayer(graphics_layer);
 
             map.on("load", createToolbar);
@@ -106,8 +109,13 @@
 
                 // d is a reference to a dijit
                 // could be a layout container or a button
-                if (d.declaredClass === "dijit.form.Button" && d.id != "btnExecutAlgo") {
+                if (d.declaredClass === "dijit.form.Button" && d.id === "btnDrawPolygon") {
                     d.on("click", activateTool);
+                }
+
+
+                if (d.declaredClass === "dijit.form.Button" && d.id === "btnReevaluatePolygonCoverage") {
+                    d.on("click", btnReevaluatePolygonCoverage_Handler);
                 }
 
 
@@ -117,15 +125,48 @@
 
 
                 if (d.declaredClass === "dijit.form.Button" && d.id === "btnExecutAlgo") {
-                    d.on("click", execut_algo(null));
+                    d.on("click", execut_algo_saved_polygon);
                 }
 
             });
 
+            
 
+            function btnReevaluatePolygonCoverage_Handler() {
+
+
+                if (hand_drawn_polygon_by_user == null) {
+                    return null;
+                }
+
+                execut_algo(hand_drawn_polygon_by_user);
+               
+                //alert("btnReevaluatePolygonCoverage_Handler");
+
+                //var map_graphics_layer = map.getLayer("circlecovg_graphics_layer");
+
+                //if (map_graphics_layer == null) { return; }
+
+                //var all_graphics = map_graphics_layer.graphics;
+
+                //for (var i = 0; i < all_graphics.length; i++) {
+
+                //    //if (console.log(all_graphics[i].data-geometry-type))
+                //    //console.log(all_graphics[i].toJson());
+
+                //    console.log(all_graphics[i].symbol.style);
+                //    console.log(all_graphics[i].symbol.type);
+
+                //}
+
+            }
 
 
             function btnClearMap_Handler() {
+                //alert("clear called");
+
+                hand_drawn_polygon_by_user = null;
+
                 graphics_layer.clear();
             }
 
@@ -153,6 +194,11 @@
 
             }
 
+
+            function execut_algo_saved_polygon() {
+                hand_drawn_polygon_by_user = null;
+                execut_algo(null);
+            }
 
 
             function execut_algo(hand_drawn_polygon_by_user) {
@@ -229,8 +275,8 @@
                 }
 
 
-                if (hand_drawn_polygon_by_user != null) {                    
-                    polygon = hand_drawn_polygon_by_user;                   
+                if (hand_drawn_polygon_by_user != null) {
+                    polygon = hand_drawn_polygon_by_user;
                     polygon_extent = hand_drawn_polygon_by_user.getExtent();
                 }
 
@@ -364,7 +410,7 @@
                     latlong_grid);
 
                 var endTime = performance.now();
-             
+
                 if (hand_drawn_polygon_by_user == null) {
                     draw_polygon(polygon_selector);
                 }
@@ -2168,7 +2214,7 @@
 
 
                 //var polygon_symbol = new SimpleFillSymbol().setColor(null).outline.setColor("red");
-                var hand_drawn_polygon_by_user = new Polygon();
+                hand_drawn_polygon_by_user = new Polygon();
                 hand_drawn_polygon_by_user.addRing(hand_drawn_polygon_rings);
                 hand_drawn_polygon_by_user.spatialReference = map.spatialReference;
 
@@ -2182,10 +2228,16 @@
 
 
             function activateTool() {
+
                 //alert("activateTool");
-                var tool = this.label.toUpperCase().replace(/ /g, "_");
+                //var tool = this.label.toUpperCase().replace(/ /g, "_");
+                var tool = "polygon".toUpperCase().replace(/ /g, "_");
                 toolbar.activate(Draw[tool]);
                 map.hideZoomSlider();
+
+                console.clear();
+                graphics_layer.clear();
+
             }
 
 
@@ -2238,8 +2290,8 @@
                     <td> <label>Req. Coverage (%) </label></td>
                     <td>  <input type="text" id="txtReqCoverage" value="75" disabled style="width:50px;"></td>
 
-                    <td> <button data-dojo-props="id:'btnExecutAlgo'" data-dojo-type="dijit/form/Button">Find Coverage</button> </td>
-                    <td>  <button data-dojo-props="id:'btnClearMap'" data-dojo-type="dijit/form/Button">Clear Map</button></td>
+                    <td>  </td>
+                    <td>  </td>
                 </tr>
 
 
@@ -2263,7 +2315,20 @@
                     </td>
 
                     <td>
-                        <button data-dojo-type="dijit/form/Button">Polygon</button>
+                        <button data-dojo-props="id:'btnExecutAlgo'" data-dojo-type="dijit/form/Button">Find Coverage</button>
+                    </td>
+
+                    <td>
+                        <button data-dojo-props="id:'btnDrawPolygon'" data-dojo-type="dijit/form/Button">Draw Polygon</button>
+                    </td>
+
+                    <td>
+                        <button data-dojo-props="id:'btnReevaluatePolygonCoverage'" data-dojo-type="dijit/form/Button"> Re-evaluate Polygon Coverage</button>
+                    </td>
+
+
+                    <td>
+                        <button data-dojo-props="id:'btnClearMap'" data-dojo-type="dijit/form/Button">Clear Map</button>
                     </td>
 
                 </tr>
@@ -2272,7 +2337,7 @@
 
             </table>
 
-          
+
 
 
 
