@@ -117,7 +117,7 @@
 
 
                 if (d.declaredClass === "dijit.form.Button" && d.id === "btnExecutAlgo") {
-                    d.on("click", execut_algo);
+                    d.on("click", execut_algo(null));
                 }
 
             });
@@ -155,7 +155,7 @@
 
 
 
-            function execut_algo() {
+            function execut_algo(hand_drawn_polygon_by_user) {
 
                 console.clear();
                 graphics_layer.clear();
@@ -213,10 +213,28 @@
 
                 //Generate_NOT_Numbers();
 
-                var polygon_drawings_results = get_polygon(polygon_selector);
-                var polygon = polygon_drawings_results[0];
-                var polygon_graphic = polygon_drawings_results[1];
-                var polygon_extent = polygon.getExtent();
+                var polygon_drawings_results;
+                var polygon;
+                var polygon_graphic;
+                var polygon_extent;
+
+
+                if (hand_drawn_polygon_by_user == null) {
+
+                    polygon_drawings_results = get_polygon(polygon_selector);
+                    polygon = polygon_drawings_results[0];
+                    polygon_graphic = polygon_drawings_results[1];
+                    polygon_extent = polygon.getExtent();
+
+                }
+
+
+                if (hand_drawn_polygon_by_user != null) {                    
+                    polygon = hand_drawn_polygon_by_user;                   
+                    polygon_extent = hand_drawn_polygon_by_user.getExtent();
+                }
+
+
 
 
                 //var lat_long_grid = Generate_Lat_Long_Grid(polygon_extent, grid_length);
@@ -346,8 +364,17 @@
                     latlong_grid);
 
                 var endTime = performance.now();
+             
+                if (hand_drawn_polygon_by_user == null) {
+                    draw_polygon(polygon_selector);
+                }
 
-                draw_polygon(polygon_selector);
+                if (hand_drawn_polygon_by_user != null) {
+                    var polygon_symbol = new SimpleFillSymbol().setColor(null).outline.setColor("red").setWidth(3);
+                    var polygon_graphic = new esri.Graphic(hand_drawn_polygon_by_user, polygon_symbol, { keeper: true });
+                    graphics_layer.add(polygon_graphic);
+                }
+
                 show_record_on_map(graphics_layer, fittest_record_found, latlong_grid);
                 //show_record_on_map(graphics_layer, master_record[3][0], latlong_grid);
 
@@ -2129,16 +2156,26 @@
                 var poly_rings_obj = evt.geometry.rings[0];
 
                 var str = "";
+                var hand_drawn_polygon_rings = [];
 
                 for (var i = 0; i < poly_rings_obj.length; i++) {
 
                     str = str + " new esri.geometry.Point(" + poly_rings_obj[i][0] + ", " + poly_rings_obj[i][1] + ", map.spatialReference),";
+                    hand_drawn_polygon_rings[i] = new esri.geometry.Point(poly_rings_obj[i][0], poly_rings_obj[i][1], map.spatialReference);
                 }
 
-                console.error(str);
+                //console.error(str);
 
-                var graphic = new Graphic(evt.geometry, symbol);
-                map.graphics.add(graphic);
+
+                //var polygon_symbol = new SimpleFillSymbol().setColor(null).outline.setColor("red");
+                var hand_drawn_polygon_by_user = new Polygon();
+                hand_drawn_polygon_by_user.addRing(hand_drawn_polygon_rings);
+                hand_drawn_polygon_by_user.spatialReference = map.spatialReference;
+
+                execut_algo(hand_drawn_polygon_by_user);
+
+                //var graphic = new Graphic(evt.geometry, symbol);
+                //map.graphics.add(graphic);
 
 
             }
