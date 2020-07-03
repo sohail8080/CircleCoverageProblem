@@ -1,5 +1,10 @@
-﻿function Mutate_Cartesian_Generation(cartesian_generation, polygon_coverage_on_cartesian_grid, grid_length) {
+﻿function Mutate_Cartesian_Generation(
+    iteration_count,
+    cartesian_generation,
+    polygon_coverage_on_cartesian_grid,
+    grid_length) {
 
+   
     var mutated_cartesian_generation = [];
 
     for (var i = 0; i < cartesian_generation.length; i++) {
@@ -19,6 +24,7 @@
             grid_length);
     }
 
+    
     return mutated_cartesian_generation;
 
 }

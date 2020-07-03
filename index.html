@@ -130,7 +130,7 @@
 
             });
 
-            
+
 
             function btnReevaluatePolygonCoverage_Handler() {
 
@@ -140,7 +140,7 @@
                 }
 
                 execut_algo(hand_drawn_polygon_by_user);
-               
+
                 //alert("btnReevaluatePolygonCoverage_Handler");
 
                 //var map_graphics_layer = map.getLayer("circlecovg_graphics_layer");
@@ -331,7 +331,7 @@
                     grid_buffer_y);
 
 
-
+                // Needed only for debugging @@@@@@@@@@@@@@@@@@@@@@@@@@
                 console.log("Initial Seed Random Generation");
                 console.log("===============");
                 Print_Generation(cartesian_generation);
@@ -343,8 +343,6 @@
                 //    cartesian_generation,
                 //    polygon_coverage_on_cartesian_grid,
                 //    grid_length);
-
-
                 //console.log("Mutated Initial Seed Random Generation");
                 //console.log("===============");
                 //Print_Generation(mutated_cartesian_generation);
@@ -354,10 +352,6 @@
                 var startTime = performance.now();
 
                 var all_records_list = Evaluate_FitnessValue_Of_Seed_Generation_Return_All_Records_GIS(cartesian_generation, map, polygon, polygon_coverage_on_latlong_grid, latlong_grid);
-
-                console.log("Sorted Initial Seed Generation Results");
-                Print_Generation_Result_Table(all_records_list);
-                console.log("===============");
 
 
                 var top_records_list = [];
@@ -371,7 +365,7 @@
                 master_record[3] = top_records_list; // sorted generation table of TOPPERS all iterations
 
 
-                for (var iteration_count = 0; iteration_count <= generation_count; iteration_count++) {
+                for (var iteration_count = 0; iteration_count < generation_count; iteration_count++) {
 
                     master_record = GENETIC_ALGO_To_Evaluate_FitnessValue_Of_Generation_With_Binary_CrossOver_Map_Configurable(
                         iteration_count,  //  1 iteration count
@@ -389,10 +383,26 @@
                         number_of_crossovers_before_mutations, //13
                         required_coverage); //14
 
-                    if (iteration_count % 5 == 0) {
-                        var mutated_cartesian_generation = Mutate_Cartesian_Generation(master_record[0], polygon_coverage_on_cartesian_grid, grid_length);
-                        master_record[0] = mutated_cartesian_generation;
+                    if ((iteration_count+1) % number_of_crossovers_before_mutations == 0) {
 
+                        //if (iteration_count != 0) {
+
+                            var mutated_cartesian_generation = Mutate_Cartesian_Generation(
+                                iteration_count,
+                                master_record[0],
+                                polygon_coverage_on_cartesian_grid,
+                                grid_length);
+
+                            master_record[0] = mutated_cartesian_generation;
+
+                            // Needed only for debugging @@@@@@@@@@@@@@@@@@@@@@@@@@
+                            console.log("Iteration [ " + (iteration_count+1) + " ] Mutation Performed Successfully.");
+                            console.log("===============");
+                            Print_Generation(mutated_cartesian_generation);
+                            console.log("===============");
+
+
+                        //}
                         //console.error("GENERATION MUTATION PERFORMED SUCCESSFULLY.");
 
                     }
@@ -590,11 +600,18 @@
 
                 }
 
+                 // Needed only for debugging @@@@@@@@@@@@@@@@@@@@@@@@@@
                 console.log("Initial Seed Generation Results");
                 Print_Generation_Result_Table(Generation_Result_Table);
                 console.log("===============");
 
                 var Sorted_Generation_Result_Table = Sort_Generation_Result_Table(Generation_Result_Table);
+
+
+                // Needed only for debugging @@@@@@@@@@@@@@@@@@@@@@@@@@
+                console.log("Sorted Initial Seed Generation Results");
+                Print_Generation_Result_Table(Sorted_Generation_Result_Table);
+                console.log("===============");
 
                 return Sorted_Generation_Result_Table;
 
@@ -811,24 +828,6 @@
                 required_coverage //14
             ) {
 
-                //console.log("GENETIC ALGO 1");
-
-                //if (number_of_top_records_goto_to_next_generation > number_of_records_in_each_crossover_generations) {
-                //    alert("Records-Taken-From-Previous-Generation should be less than or equal to Records-In-CrossOver-Generatoin");
-                //    return;
-                //}
-
-                //if (number_of_top_records_goto_to_next_generation < 2) {
-                //    alert("Records-Taken-From-Previous-Generation should be greater than or equal to 2");
-                //    return;
-                //}
-
-                //if (number_of_records_in_each_crossover_generations < 2) {
-                //    alert("Records-In-CrossOver-Generatoin should be greater than or equal to 2");
-                //    return;
-                //}
-
-
                 var Generation_Result_Table = [];// result of generation with fitness value
                 var maxfitnessvalue = -99999999999;
                 var maxfitnessvalueindex = -1
@@ -836,7 +835,7 @@
                 var record;
                 var FitnessValue;
 
-                // Binary Cross Over takes 4 values and return 8 values
+                // Binary Cross Over takes any number of values and return any number of values
                 var topper_of_previous_generation = [];
 
                 if (prev_gen_record_list == null || prev_gen_record_list.length <= 0) {
@@ -857,13 +856,13 @@
                     }
                 }
 
-
+                // Needed only for debugging @@@@@@@@@@@@@@@@@@@@@@@@@@
                 console.log("===============");
                 console.error("Iteration [" + [iteration_count + 1] + "] Top " + number_of_top_records_goto_to_next_generation + " Records before Binary Cross-Over ");
                 Print_Generation(topper_of_previous_generation);
                 console.log("===============");
 
-                //console.log("GENETIC ALGO 2");
+
 
                 // Binary Cross Over takes 4 values and return 8 values
                 var generation = Crossover_Generation_On_Map_Configurable(
@@ -875,9 +874,12 @@
 
                 var latlong_generation = Map_Cartesian_Generation_To_LatLong_Generation(generation, latlong_grid);
 
+
+                // Needed only for debugging @@@@@@@@@@@@@@@@@@@@@@@@@@
                 console.log("Iteration [" + [iteration_count + 1] + "] New Generation after Binary Cross-Over ");
                 Print_Generation(generation);
                 console.log("===============");
+
 
                 var Top_Record_Result = [];
                 Top_Record_Result[0] = [];
@@ -921,6 +923,7 @@
 
                 }
 
+                 // Needed only for debugging @@@@@@@@@@@@@@@@@@@@@@@@@@
                 // Printing unsorted generation results
                 console.log("Iteration [" + [iteration_count + 1] + "] Binary Cross Over Generation results");
                 Print_Generation_Result_Table(Generation_Result_Table);
@@ -942,19 +945,27 @@
                 //console.error("Generation_Sorted_Result_Tablennnnnnnnnnnnnnnn" + Generation_Sorted_Result_Table.length);
 
 
-                var Master_Result_Table = Merge_Generation_Result_Tables(all_records_list, Generation_Sorted_Result_Table);
-                //alert("called");
-                console.log("Iteration [" + [iteration_count + 1] + "] WITHOUT SORTINGuuuuuuuuuuuuuuuuuuuuuuu");
-                console.log("===============");
-                Print_Generation_Result_Table(Master_Result_Table);
+                 // Needed only for debugging @@@@@@@@@@@@@@@@@@@@@@@@@@
+                // No need to maintain this master list
+                //var Master_Result_Table = Merge_Generation_Result_Tables(all_records_list, Generation_Sorted_Result_Table);
 
 
+
+                //console.log("Iteration [" + [iteration_count + 1] + "] WITHOUT SORTINGuuuuuuuuuuuuuuuuuuuuuuu");
+                //console.log("===============");
+                //Print_Generation_Result_Table(Master_Result_Table);
+
+
+                 // Needed only for debugging @@@@@@@@@@@@@@@@@@@@@@@@@@
+                // No need to maintain this master list
                 // following sort will eliminate duplicate records present in the table
                 // duplication means same Fitness Value & Points, all such points will be removed
-                var Sorted_Master_Result_Table = Sort_Generation_Result_Table(Master_Result_Table);
-                console.log("Iteration [" + [iteration_count + 1] + "] Detailed Fitness Value Result Table Up-To-Now");
-                console.log("===============");
-                Print_Generation_Result_Table(Sorted_Master_Result_Table);
+                //var Sorted_Master_Result_Table = Sort_Generation_Result_Table(Master_Result_Table);
+                //console.log("Iteration [" + [iteration_count + 1] + "] Detailed Fitness Value Result Table Up-To-Now");
+                //console.log("===============");
+                //Print_Generation_Result_Table(Sorted_Master_Result_Table);
+
+
 
                 //console.error("Master_Result_Table" + Master_Result_Table.length);
                 //console.error("Sorted_Master_Result_Table" + Sorted_Master_Result_Table.length);
@@ -964,7 +975,7 @@
                 // following sort will eliminate duplicate records present in the table
                 // duplication means same Fitness Value & Points, all such points will be removed
                 var Sorted_Toppers_Result_Table = Sort_Generation_Result_Table(Toppers_Result_Table);
-                console.log("Iteration [" + [iteration_count + 1] + "] Iteration Top Fitness Value Results Table Up-To-Now");
+                console.log("Iteration [" + [iteration_count + 1] + "] Topper Fitness Value Results Table Up-To-Now");
                 console.log("===============");
                 Print_Generation_Result_Table(Sorted_Toppers_Result_Table);
 
@@ -973,7 +984,9 @@
 
                 master_record[0] = Generation_Sorted_Result_Table;// sorted generation table of this iteration
                 master_record[1] = Top_Record_Result;// topper of this iteration
-                master_record[2] = Sorted_Master_Result_Table; // sorted generation table of all iterations
+                // Needed only for debugging @@@@@@@@@@@@@@@@@@@@@@@@@@
+                master_record[2] = null; // No need to maintain this master list  
+                //master_record[2] = Sorted_Master_Result_Table; // sorted generation table of all iterations 
                 master_record[3] = Sorted_Toppers_Result_Table; // sorted generation table of TOPPERS all iterations
 
                 return master_record;
