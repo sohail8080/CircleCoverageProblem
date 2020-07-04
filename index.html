@@ -222,7 +222,7 @@
 
 
                 var number_of_circles = parseInt(document.getElementById('txtCircles').value);
-                var radius_of_circles = parseInt(document.getElementById('txtRadius').value); // in km
+                var radius_of_circle_in_meters = parseInt(document.getElementById('txtRadius').value); // in km
                 var grid_length = parseInt(document.getElementById('txtGridLength').value);
                 var random_generation_record_count = parseInt(document.getElementById('txtRandomSet').value);
                 var number_of_records_in_each_crossover_generations = parseInt(document.getElementById('txtCrossOverSet').value);
@@ -351,7 +351,13 @@
 
                 var startTime = performance.now();
 
-                var all_records_list = Evaluate_FitnessValue_Of_Seed_Generation_Return_All_Records_GIS(cartesian_generation, map, polygon, polygon_coverage_on_latlong_grid, latlong_grid);
+                var all_records_list = Evaluate_FitnessValue_Of_Seed_Generation_Return_All_Records_GIS(
+                    cartesian_generation,
+                    map,
+                    polygon,
+                    polygon_coverage_on_latlong_grid,
+                    latlong_grid,
+                    radius_of_circle_in_meters);
 
 
                 var top_records_list = [];
@@ -381,11 +387,12 @@
                         number_of_top_records_goto_to_next_generation, //11
                         number_of_records_in_each_crossover_generations, //12
                         number_of_crossovers_before_mutations, //13
-                        required_coverage); //14
+                        required_coverage, //14
+                        radius_of_circle_in_meters); 
 
-                    if ((iteration_count+1) % number_of_crossovers_before_mutations == 0) {
+                    if ((iteration_count + 1) % number_of_crossovers_before_mutations == 0) {
 
-                        if ((iteration_count+1) != generation_count) {
+                        if ((iteration_count + 1) != generation_count) {
 
                             var mutated_cartesian_generation = Mutate_Cartesian_Generation(
                                 iteration_count,
@@ -396,7 +403,7 @@
                             master_record[0] = mutated_cartesian_generation;
 
                             // Needed only for debugging @@@@@@@@@@@@@@@@@@@@@@@@@@
-                            console.log("Iteration [ " + (iteration_count+1) + " ] Mutation Performed Successfully.");
+                            console.log("Iteration [ " + (iteration_count + 1) + " ] Mutation Performed Successfully.");
                             console.log("===============");
                             Print_Generation(mutated_cartesian_generation);
                             console.log("===============");
@@ -417,7 +424,8 @@
                     map,
                     polygon,
                     polygon_coverage_on_latlong_grid,
-                    latlong_grid);
+                    latlong_grid,
+                    radius_of_circle_in_meters);
 
                 var endTime = performance.now();
 
@@ -431,8 +439,8 @@
                     graphics_layer.add(polygon_graphic);
                 }
 
-                show_record_on_map(graphics_layer, fittest_record_found, latlong_grid);
-                //show_record_on_map(graphics_layer, master_record[3][0], latlong_grid);
+                show_record_on_map(graphics_layer, fittest_record_found, latlong_grid, radius_of_circle_in_meters);
+                //show_record_on_map(graphics_layer, master_record[3][0], latlong_grid, radius_of_circle_in_meters);
 
                 var total_polygon_points_covered_on_grid = polygon_coverage_on_cartesian_grid.length;
                 var total_polygon_points_covered_by_circles = master_record[3][0][0];
@@ -507,7 +515,8 @@
                 map,
                 polygon,
                 polygon_coverage_on_latlong_grid,
-                latlong_grid) {
+                latlong_grid,
+                radius_of_circle_in_meters) {
 
                 // passed value is master_record[3]
 
@@ -551,7 +560,8 @@
                         map,
                         polygon,
                         polygon_coverage_on_latlong_grid,
-                        latlong_grid);
+                        latlong_grid,
+                        radius_of_circle_in_meters);
 
 
                     if (tieing_topper_outside_circle_coverage < lowest_outside_circle_coverage) {
@@ -571,12 +581,16 @@
                 //toppers_generation_table[i][1][2] // circle three center
                 //toppers_generation_table[i][1][3] // circle four center
 
-
-
             }
 
 
-            function Evaluate_FitnessValue_Of_Seed_Generation_Return_All_Records_GIS(cartesian_generation, map, polygon, polygon_coverage, latlong_grid) {
+            function Evaluate_FitnessValue_Of_Seed_Generation_Return_All_Records_GIS(
+                cartesian_generation,
+                map,
+                polygon,
+                polygon_coverage,
+                latlong_grid,
+                radius_of_circle_in_meters) {
 
                 var Generation_Result_Table = [];// result of generation with fitness value
                 var maxfitnessvalue = -1;
@@ -595,7 +609,13 @@
                     //console.log("Record Values ");
                     //print_point_array_to_console(record);
 
-                    FitnessValue = Get_FitnessValue_Of_Record_Map(record, map, polygon, polygon_coverage, latlong_grid);
+                    FitnessValue = Get_FitnessValue_Of_Record_Map(
+                        record,
+                        map,
+                        polygon,
+                        polygon_coverage,
+                        latlong_grid,
+                        radius_of_circle_in_meters);
 
                     //console.log("Record " + (i + 1) + " Fitness Value " + FitnessValue);
 
@@ -616,7 +636,7 @@
 
                 }
 
-                 // Needed only for debugging @@@@@@@@@@@@@@@@@@@@@@@@@@
+                // Needed only for debugging @@@@@@@@@@@@@@@@@@@@@@@@@@
                 console.log("Initial Seed Generation Results");
                 Print_Generation_Result_Table(Generation_Result_Table);
                 console.log("===============");
@@ -650,7 +670,8 @@
                 number_of_top_records_goto_to_next_generation, //11
                 number_of_records_in_each_crossover_generations, //12
                 number_of_crossovers_before_mutations, //13
-                required_coverage //14
+                required_coverage, //14
+                radius_of_circle_in_meters
             ) {
 
                 //console.log("top 4 records after random generation evaluation");
@@ -754,7 +775,8 @@
                         map,
                         polygon,
                         polygon_coverage_on_latlong_grid,
-                        latlong_grid
+                        latlong_grid,
+                        radius_of_circle_in_meters
                     );
 
                     //console.log("Record " + (i + 1) + " Fitness Value " + FitnessValue);
@@ -841,7 +863,8 @@
                 number_of_top_records_goto_to_next_generation, //11
                 number_of_records_in_each_crossover_generations, //12
                 number_of_crossovers_before_mutations, //13
-                required_coverage //14
+                required_coverage, //14
+                radius_of_circle_in_meters
             ) {
 
                 var Generation_Result_Table = [];// result of generation with fitness value
@@ -913,7 +936,8 @@
                         map,
                         polygon,
                         polygon_coverage_on_latlong_grid,
-                        latlong_grid
+                        latlong_grid,
+                        radius_of_circle_in_meters
                     );
 
                     //console.log("Record " + (i + 1) + " Fitness Value " + FitnessValue);
@@ -939,7 +963,7 @@
 
                 }
 
-                 // Needed only for debugging @@@@@@@@@@@@@@@@@@@@@@@@@@
+                // Needed only for debugging @@@@@@@@@@@@@@@@@@@@@@@@@@
                 // Printing unsorted generation results
                 console.log("Iteration [" + [iteration_count + 1] + "] Binary Cross Over Generation results");
                 Print_Generation_Result_Table(Generation_Result_Table);
@@ -961,7 +985,7 @@
                 //console.error("Generation_Sorted_Result_Tablennnnnnnnnnnnnnnn" + Generation_Sorted_Result_Table.length);
 
 
-                 // Needed only for debugging @@@@@@@@@@@@@@@@@@@@@@@@@@
+                // Needed only for debugging @@@@@@@@@@@@@@@@@@@@@@@@@@
                 // No need to maintain this master list
                 //var Master_Result_Table = Merge_Generation_Result_Tables(all_records_list, Generation_Sorted_Result_Table);
 
@@ -972,7 +996,7 @@
                 //Print_Generation_Result_Table(Master_Result_Table);
 
 
-                 // Needed only for debugging @@@@@@@@@@@@@@@@@@@@@@@@@@
+                // Needed only for debugging @@@@@@@@@@@@@@@@@@@@@@@@@@
                 // No need to maintain this master list
                 // following sort will eliminate duplicate records present in the table
                 // duplication means same Fitness Value & Points, all such points will be removed
@@ -1001,8 +1025,8 @@
                 master_record[0] = Generation_Sorted_Result_Table;// sorted generation table of this iteration
                 master_record[1] = Top_Record_Result;// topper of this iteration
                 // Needed only for debugging @@@@@@@@@@@@@@@@@@@@@@@@@@
-                master_record[2] = null; // No need to maintain this master list  
-                //master_record[2] = Sorted_Master_Result_Table; // sorted generation table of all iterations 
+                master_record[2] = null; // No need to maintain this master list
+                //master_record[2] = Sorted_Master_Result_Table; // sorted generation table of all iterations
                 master_record[3] = Sorted_Toppers_Result_Table; // sorted generation table of TOPPERS all iterations
 
                 return master_record;
@@ -1019,7 +1043,8 @@
                 map,
                 polygon,
                 polygon_coverage,
-                latlong_grid) {
+                latlong_grid,
+                radius_of_circle_in_meters) {
 
 
                 var center_point_1 = record[0]; //new esri.geometry.Point({ "x": record[0][0], "y": record[0][1], "spatialReference": map.spatialReference });
@@ -1027,10 +1052,10 @@
                 var center_point_3 = record[2]; //new esri.geometry.Point({ "x": record[2][0], "y": record[2][1], "spatialReference": map.spatialReference });
                 var center_point_4 = record[3]; //new esri.geometry.Point({ "x": record[3][0], "y": record[3][1], "spatialReference": map.spatialReference });
 
-                var circle_polygon_1 = get_circle_polygon(center_point_1);
-                var circle_polygon_2 = get_circle_polygon(center_point_2);
-                var circle_polygon_3 = get_circle_polygon(center_point_3);
-                var circle_polygon_4 = get_circle_polygon(center_point_4);
+                var circle_polygon_1 = get_circle_polygon(center_point_1, radius_of_circle_in_meters);
+                var circle_polygon_2 = get_circle_polygon(center_point_2, radius_of_circle_in_meters);
+                var circle_polygon_3 = get_circle_polygon(center_point_3, radius_of_circle_in_meters);
+                var circle_polygon_4 = get_circle_polygon(center_point_4, radius_of_circle_in_meters);
 
                 var cir_cov_ins_poly_1 = get_circle_coverage_inside_polygon(circle_polygon_1, polygon_coverage);
                 var cir_cov_ins_poly_2 = get_circle_coverage_inside_polygon(circle_polygon_2, polygon_coverage);
@@ -1123,14 +1148,15 @@
 
             ////////////////////
 
-            
+
 
             function Get_Circle_Outside_Coverage_Of_Record_Map(
                 cartesian_record,
                 map,
                 polygon,
                 polygon_coverage_on_latlong_grid,
-                latlong_grid) {
+                latlong_grid,
+                radius_of_circle_in_meters) {
 
 
                 // Zarooooori
@@ -1140,10 +1166,10 @@
                 var center_point_4 = Map_Cartesian_Point_To_LatLong_Point(cartesian_record[3], latlong_grid); //new esri.geometry.Point({ "x": record[3][0], "y": record[3][1], "spatialReference": map.spatialReference });
 
                 // Zarooori
-                var circle_polygon_1 = get_circle_polygon(center_point_1);
-                var circle_polygon_2 = get_circle_polygon(center_point_2);
-                var circle_polygon_3 = get_circle_polygon(center_point_3);
-                var circle_polygon_4 = get_circle_polygon(center_point_4);
+                var circle_polygon_1 = get_circle_polygon(center_point_1, radius_of_circle_in_meters);
+                var circle_polygon_2 = get_circle_polygon(center_point_2, radius_of_circle_in_meters);
+                var circle_polygon_3 = get_circle_polygon(center_point_3, radius_of_circle_in_meters);
+                var circle_polygon_4 = get_circle_polygon(center_point_4, radius_of_circle_in_meters);
 
 
                 // Lat Long Points covered by a circle on grid
@@ -1173,7 +1199,13 @@
 
             /////////////////////////////
 
-            function Get_FitnessValue_Of_Record_Map_With_Comments(record, map, polygon, polygon_coverage, latlong_grid) {
+            function Get_FitnessValue_Of_Record_Map_With_Comments(
+                record,
+                map,
+                polygon,
+                polygon_coverage,
+                latlong_grid,
+                radius_of_circle_in_meters) {
 
 
                 var center_point_1 = record[0]; //new esri.geometry.Point({ "x": record[0][0], "y": record[0][1], "spatialReference": map.spatialReference });
@@ -1181,10 +1213,12 @@
                 var center_point_3 = record[2]; //new esri.geometry.Point({ "x": record[2][0], "y": record[2][1], "spatialReference": map.spatialReference });
                 var center_point_4 = record[3]; //new esri.geometry.Point({ "x": record[3][0], "y": record[3][1], "spatialReference": map.spatialReference });
 
-                var circle_polygon_1 = get_circle_polygon(center_point_1);
-                var circle_polygon_2 = get_circle_polygon(center_point_2);
-                var circle_polygon_3 = get_circle_polygon(center_point_3);
-                var circle_polygon_4 = get_circle_polygon(center_point_4);
+
+                var circle_polygon_1 = get_circle_polygon(center_point_1, radius_of_circle_in_meters);
+                var circle_polygon_2 = get_circle_polygon(center_point_2, radius_of_circle_in_meters);
+                var circle_polygon_3 = get_circle_polygon(center_point_3, radius_of_circle_in_meters);
+                var circle_polygon_4 = get_circle_polygon(center_point_4, radius_of_circle_in_meters);
+
 
                 var cir_cov_ins_poly_1 = get_circle_coverage_inside_polygon(circle_polygon_1, polygon_coverage);
                 var cir_cov_ins_poly_2 = get_circle_coverage_inside_polygon(circle_polygon_2, polygon_coverage);
@@ -1401,18 +1435,20 @@
 
 
 
-            function show_record_on_map(graphics_layer, cartesian_record, latlong_grid) {
+            function show_record_on_map(
+                graphics_layer,
+                cartesian_record,
+                latlong_grid,
+                radius_of_circle_in_meters) {
 
                 //console.error(cartesian_record);
                 //console.error(latlong_grid);
-
                 // console.error("cartesian_record" + cartesian_record);
 
-
-                draw_circle(graphics_layer, Map_Cartesian_Point_To_LatLong_Point(cartesian_record[1][0], latlong_grid), "blue", 1);
-                draw_circle(graphics_layer, Map_Cartesian_Point_To_LatLong_Point(cartesian_record[1][1], latlong_grid), "green", 2);
-                draw_circle(graphics_layer, Map_Cartesian_Point_To_LatLong_Point(cartesian_record[1][2], latlong_grid), "black", 3);
-                draw_circle(graphics_layer, Map_Cartesian_Point_To_LatLong_Point(cartesian_record[1][3], latlong_grid), "red", 4);
+                draw_circle(graphics_layer, Map_Cartesian_Point_To_LatLong_Point(cartesian_record[1][0], latlong_grid), "blue", 1, radius_of_circle_in_meters);
+                draw_circle(graphics_layer, Map_Cartesian_Point_To_LatLong_Point(cartesian_record[1][1], latlong_grid), "green", 2, radius_of_circle_in_meters);
+                draw_circle(graphics_layer, Map_Cartesian_Point_To_LatLong_Point(cartesian_record[1][2], latlong_grid), "black", 3, radius_of_circle_in_meters);
+                draw_circle(graphics_layer, Map_Cartesian_Point_To_LatLong_Point(cartesian_record[1][3], latlong_grid), "red", 4, radius_of_circle_in_meters);
             }
 
 
@@ -1822,10 +1858,7 @@
 
                 }
 
-
-
                 var polygon_symbol = new SimpleFillSymbol().setColor(null).outline.setColor("red").setWidth(3);
-
 
                 var polygon = new Polygon();
                 polygon.addRing(polygon_rings);
@@ -2021,15 +2054,6 @@
                 }
 
 
-
-
-
-
-
-
-
-
-
                 var polygon_symbol = new SimpleFillSymbol().setColor(null).outline.setColor("red");
                 var polygon = new Polygon();
                 polygon.addRing(polygon_rings);
@@ -2047,11 +2071,11 @@
             }
 
 
-            function draw_circle(graphics_layer, circle_center, color, cir_number) {
+            function draw_circle(graphics_layer, circle_center, color, cir_number, radius_in_meters) {
 
                 var circle_geometry = new Circle({
                     center: circle_center,
-                    radius: 1500,
+                    radius: radius_in_meters,
                     geodesic: true
                 });
 
@@ -2105,11 +2129,11 @@
             }
 
 
-            function get_circle_polygon(circle_center) {
+            function get_circle_polygon(circle_center, radius_of_circle_in_meters) {
 
                 var circle_geometry = new Circle({
                     center: circle_center,
-                    radius: 1500,
+                    radius: radius_of_circle_in_meters,
                     geodesic: true
                 });
 
@@ -2285,8 +2309,8 @@
                     <td> <label>Circles</label> </td>
                     <td> <input type="text" id="txtCircles" value="4" disabled style="width:50px;"> </td>
 
-                    <td> <label>Radius (km)</label></td>
-                    <td> <input type="text" id="txtRadius" value="4" disabled style="width:50px;"></td>
+                    <td> <label>Radius (m)</label></td>
+                    <td> <input type="text" id="txtRadius" value="1500" style="width:50px;"></td>
 
                     <td> <label>Grid Density</label></td>
                     <td> <input type="text" id="txtGridLength" value="15" style="width:50px;"></td>
