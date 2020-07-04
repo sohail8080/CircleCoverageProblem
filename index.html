@@ -385,7 +385,7 @@
 
                     if ((iteration_count+1) % number_of_crossovers_before_mutations == 0) {
 
-                        //if (iteration_count != 0) {
+                        if ((iteration_count+1) != generation_count) {
 
                             var mutated_cartesian_generation = Mutate_Cartesian_Generation(
                                 iteration_count,
@@ -402,7 +402,7 @@
                             console.log("===============");
 
 
-                        //}
+                        }
                         //console.error("GENERATION MUTATION PERFORMED SUCCESSFULLY.");
 
                     }
@@ -434,9 +434,15 @@
                 show_record_on_map(graphics_layer, fittest_record_found, latlong_grid);
                 //show_record_on_map(graphics_layer, master_record[3][0], latlong_grid);
 
+                var total_polygon_points_covered_on_grid = polygon_coverage_on_cartesian_grid.length;
+                var total_polygon_points_covered_by_circles = master_record[3][0][0];
+
+                var polygon_percent_coverage = (total_polygon_points_covered_by_circles / total_polygon_points_covered_on_grid) * 100;
+
+                polygon_percent_coverage = polygon_percent_coverage.toFixed(0);
 
                 var font = Font("30", Font.STYLE_NORMAL, Font.VARIANT_NORMAL, Font.WEIGHT_BOLDER);
-                var textSymbol = new TextSymbol("Fitness Value " + master_record[3][0][0], font, "black");
+                var textSymbol = new TextSymbol("Fitness Value " + master_record[3][0][0] + " ( " + polygon_percent_coverage + "% )", font, "black");
                 var labelPointGraphic = new Graphic(latlong_grid[7][7].offset(-8000, 0), textSymbol);
                 graphics_layer.add(labelPointGraphic);
 
@@ -487,11 +493,20 @@
             }
 
 
+
+            //var fittest_record_found = Evaluate_FitnessValue_Of_Tieing_Toppers(
+            //    master_record[3],
+            //    map,
+            //    polygon,
+            //    polygon_coverage_on_latlong_grid,
+            //    latlong_grid);
+
+
             function Evaluate_FitnessValue_Of_Tieing_Toppers(
                 toppers_generation_table,
                 map,
                 polygon,
-                polygon_coverage,
+                polygon_coverage_on_latlong_grid,
                 latlong_grid) {
 
                 // passed value is master_record[3]
@@ -506,6 +521,7 @@
 
                     if (toppers_generation_table[i][0] == top_fitness_value) {
                         tieing_toppers_records[index] = toppers_generation_table[i];
+                        index++;
                     }
                     else {
                         // because records are sorteed
@@ -534,7 +550,7 @@
                         tieing_topper_record,
                         map,
                         polygon,
-                        polygon_coverage,
+                        polygon_coverage_on_latlong_grid,
                         latlong_grid);
 
 
@@ -1107,21 +1123,21 @@
 
             ////////////////////
 
-
+            
 
             function Get_Circle_Outside_Coverage_Of_Record_Map(
-                record,
+                cartesian_record,
                 map,
                 polygon,
-                polygon_coverage,
+                polygon_coverage_on_latlong_grid,
                 latlong_grid) {
 
 
                 // Zarooooori
-                var center_point_1 = record[0]; //new esri.geometry.Point({ "x": record[0][0], "y": record[0][1], "spatialReference": map.spatialReference });
-                var center_point_2 = record[1]; //new esri.geometry.Point({ "x": record[1][0], "y": record[1][1], "spatialReference": map.spatialReference });
-                var center_point_3 = record[2]; //new esri.geometry.Point({ "x": record[2][0], "y": record[2][1], "spatialReference": map.spatialReference });
-                var center_point_4 = record[3]; //new esri.geometry.Point({ "x": record[3][0], "y": record[3][1], "spatialReference": map.spatialReference });
+                var center_point_1 = Map_Cartesian_Point_To_LatLong_Point(cartesian_record[0], latlong_grid); //new esri.geometry.Point({ "x": record[0][0], "y": record[0][1], "spatialReference": map.spatialReference });
+                var center_point_2 = Map_Cartesian_Point_To_LatLong_Point(cartesian_record[1], latlong_grid); //new esri.geometry.Point({ "x": record[1][0], "y": record[1][1], "spatialReference": map.spatialReference });
+                var center_point_3 = Map_Cartesian_Point_To_LatLong_Point(cartesian_record[2], latlong_grid); //new esri.geometry.Point({ "x": record[2][0], "y": record[2][1], "spatialReference": map.spatialReference });
+                var center_point_4 = Map_Cartesian_Point_To_LatLong_Point(cartesian_record[3], latlong_grid); //new esri.geometry.Point({ "x": record[3][0], "y": record[3][1], "spatialReference": map.spatialReference });
 
                 // Zarooori
                 var circle_polygon_1 = get_circle_polygon(center_point_1);
