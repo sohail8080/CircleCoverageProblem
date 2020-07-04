@@ -449,8 +449,8 @@
 
                 polygon_percent_coverage = polygon_percent_coverage.toFixed(0);
 
-                var font = Font("30", Font.STYLE_NORMAL, Font.VARIANT_NORMAL, Font.WEIGHT_BOLDER);
-                var textSymbol = new TextSymbol("Fitness Value " + master_record[3][0][0] + " ( " + polygon_percent_coverage + "% )", font, "black");
+                var font = Font("25", Font.STYLE_NORMAL, Font.VARIANT_NORMAL, Font.WEIGHT_BOLDER);
+                var textSymbol = new TextSymbol("Fitness Value " + master_record[3][0][0] + " / " + total_polygon_points_covered_on_grid + " ( " + polygon_percent_coverage + "% )", font, "black");
                 var labelPointGraphic = new Graphic(latlong_grid[7][7].offset(-8000, 0), textSymbol);
                 graphics_layer.add(labelPointGraphic);
 
@@ -1297,7 +1297,7 @@
                 var total_cir_cov = total_cir_cov_ins_poly_without_overlapping - total_cir_cov_outs_poly;
 
 
-                console.log("fitness value " + total_cir_cov);
+                //console.log("fitness value " + total_cir_cov);
 
                 return total_cir_cov;
 
