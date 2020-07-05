@@ -233,7 +233,7 @@
                 var grid_buffer_x = 0;
                 var grid_buffer_y = 0;
                 var polygon_selector = parseInt(document.getElementById('selectPolygon').value); // 75 %
-
+                var ideal_circle_coverage_count_on_grid = null;
 
 
                 if (random_generation_record_count < number_of_top_records_goto_to_next_generation) {
@@ -301,9 +301,22 @@
 
                 var result_array = get_polygon_coverage_on_latlong_cartesian_grid(polygon, latlong_grid);
 
+                // lat long points array
                 var polygon_coverage_on_latlong_grid = result_array[0];
+                // cartesian points array
                 var polygon_coverage_on_cartesian_grid = result_array[1];
 
+                var latlong_grid_center = (grid_length - 1) / 2;
+                var latlong_grid_center_point = latlong_grid[latlong_grid_center][latlong_grid_center];
+                var circle_on_grid_center = get_circle_polygon(latlong_grid_center_point, radius_of_circle_in_meters);
+                //var drawings_results = draw_circle(graphics_layer, latlong_grid_center_point, "blue", 1, radius_of_circle_in_meters);
+                //var circle_on_grid_center = drawings_results[0];
+                
+                ideal_circle_coverage_count_on_grid =
+                    get_polygon_coverage_count_on_latlong_grid(circle_on_grid_center, latlong_grid);
+                ideal_circle_coverage_count_on_grid = ideal_circle_coverage_count_on_grid * 4;
+                
+                
                 //console.log("polygon_coverage_on_latlong_grid" + polygon_coverage_on_latlong_grid.length);
                 //console.log("polygon_coverage_on_cartesian_grid" + polygon_coverage_on_cartesian_grid.length);
 
@@ -360,15 +373,25 @@
                     radius_of_circle_in_meters);
 
 
-                var top_records_list = [];
-                top_records_list[0] = all_records_list[0];
 
                 var master_record = [];
 
-                master_record[0] = [];// sorted generation table of previous iteration
-                master_record[1] = [];// topper of previous iteration
-                master_record[2] = all_records_list; // sorted generation table of all iterations
-                master_record[3] = top_records_list; // sorted generation table of TOPPERS all iterations
+                // sorted generation table of previous iteration
+                master_record[0] = all_records_list;
+
+                // one topper generation table record of previous iteration
+                master_record[1] = all_records_list[0];
+
+                // sorted generation table of all iterations, it is not maintined in corss over generations
+                // but here we are sending it for start. rethink this
+                master_record[2] = []; 
+
+                // sorted generation table of TOPPERS all iterations
+                // initially it will have only one record
+                // topper record
+                var top_records_list = [];// to give a shape to Generation table
+                top_records_list[0] = all_records_list[0];
+                master_record[3] = top_records_list; 
 
 
                 for (var iteration_count = 0; iteration_count < generation_count; iteration_count++) {
@@ -388,7 +411,7 @@
                         number_of_records_in_each_crossover_generations, //12
                         number_of_crossovers_before_mutations, //13
                         required_coverage, //14
-                        radius_of_circle_in_meters); 
+                        radius_of_circle_in_meters);
 
                     if ((iteration_count + 1) % number_of_crossovers_before_mutations == 0) {
 
@@ -425,7 +448,8 @@
                     polygon,
                     polygon_coverage_on_latlong_grid,
                     latlong_grid,
-                    radius_of_circle_in_meters);
+                    radius_of_circle_in_meters,
+                    ideal_circle_coverage_count_on_grid);
 
                 var endTime = performance.now();
 
@@ -516,7 +540,8 @@
                 polygon,
                 polygon_coverage_on_latlong_grid,
                 latlong_grid,
-                radius_of_circle_in_meters) {
+                radius_of_circle_in_meters,
+                ideal_circle_coverage_count_on_grid) {
 
                 // passed value is master_record[3]
 
@@ -550,20 +575,25 @@
 
                 for (var i = 0; i < tieing_toppers_records.length; i++) {
 
-                    var tieing_topper_fitness_value = tieing_toppers_records[i][0];
+                    //var tieing_topper_fitness_value = tieing_toppers_records[i][0];
+                    var tieing_topper_fitness_value_with_overlapping = tieing_toppers_records[i][2];
 
                     var tieing_topper_record = tieing_toppers_records[i][1];
 
-                    //
-                    var tieing_topper_outside_circle_coverage = Get_Circle_Outside_Coverage_Of_Record_Map(
-                        tieing_topper_record,
-                        map,
-                        polygon,
-                        polygon_coverage_on_latlong_grid,
-                        latlong_grid,
-                        radius_of_circle_in_meters);
+                    // Old solution agreed with adnan
+                    //var tieing_topper_outside_circle_coverage = Get_Circle_Outside_Coverage_Of_Record_Map(
+                    //    tieing_topper_record,
+                    //    map,
+                    //    polygon,
+                    //    polygon_coverage_on_latlong_grid,
+                    //    latlong_grid,
+                    //    radius_of_circle_in_meters);
 
+                    // Asif sb solution
+                    var tieing_topper_outside_circle_coverage =
+                        ideal_circle_coverage_count_on_grid - tieing_topper_fitness_value_with_overlapping;
 
+                    
                     if (tieing_topper_outside_circle_coverage < lowest_outside_circle_coverage) {
                         lowest_outside_circle_coverage = tieing_topper_outside_circle_coverage;
                         lowest_outside_circle_coverage_index = i;
@@ -588,7 +618,7 @@
                 cartesian_generation,
                 map,
                 polygon,
-                polygon_coverage,
+                polygon_coverage, //polygon_coverage_on_latlong_grid
                 latlong_grid,
                 radius_of_circle_in_meters) {
 
@@ -598,39 +628,43 @@
                 var maxfitnessvaluerecord = null;
                 var record;
                 var FitnessValue;
+                var FitnessValue_with_Overlapping;
 
                 var latlong_generation = Map_Cartesian_Generation_To_LatLong_Generation(cartesian_generation, latlong_grid);
 
                 for (var i = 0; i < latlong_generation.length; i++) {
 
+                    // lat long record
                     record = latlong_generation[i];
 
                     //console.log("Evaluating Record " + (i + 1));
                     //console.log("Record Values ");
                     //print_point_array_to_console(record);
 
-                    FitnessValue = Get_FitnessValue_Of_Record_Map(
-                        record,
+                    var coverage_results_with_n_without = Get_FitnessValue_Of_Record_Map(
+                        record, // lat long record
                         map,
                         polygon,
-                        polygon_coverage,
+                        polygon_coverage, //polygon_coverage_on_latlong_grid
                         latlong_grid,
                         radius_of_circle_in_meters);
+
+                    FitnessValue = coverage_results_with_n_without[0];
+                    FitnessValue_with_Overlapping = coverage_results_with_n_without[1];
 
                     //console.log("Record " + (i + 1) + " Fitness Value " + FitnessValue);
 
                     if (FitnessValue > maxfitnessvalue) {
 
                         maxfitnessvalue = FitnessValue;
-                        maxfitnessvalueindex = i;
-                        //maxfitnessvaluerecord = record;
+                        maxfitnessvalueindex = i;                       
                         maxfitnessvaluerecord = cartesian_generation[i];
                     }
 
                     var Record_Result = [];
-                    Record_Result[0] = FitnessValue;
-                    //Record_Result[1] = record;
-                    Record_Result[1] = cartesian_generation[i];
+                    Record_Result[0] = FitnessValue;// fitness value
+                    Record_Result[1] = cartesian_generation[i];// topper
+                    Record_Result[2] = FitnessValue_with_Overlapping;
 
                     Generation_Result_Table[i] = Record_Result;
 
@@ -873,6 +907,7 @@
                 var maxfitnessvaluerecord = null;
                 var record;
                 var FitnessValue;
+                var FitnessValue_with_Overlapping;
 
                 // Binary Cross Over takes any number of values and return any number of values
                 var topper_of_previous_generation = [];
@@ -903,7 +938,8 @@
 
 
 
-                // Binary Cross Over takes 4 values and return 8 values
+                // Binary Cross Over takes any no of records and return any no of records
+                // Returns a Cartesian Generation
                 var generation = Crossover_Generation_On_Map_Configurable(
                     topper_of_previous_generation, //1
                     polygon_coverage_on_cartesian_grid, //2
@@ -911,6 +947,7 @@
                     number_of_records_in_each_crossover_generations //4
                 );
 
+                // Convert Cartesian Generation to Lat Long Generation
                 var latlong_generation = Map_Cartesian_Generation_To_LatLong_Generation(generation, latlong_grid);
 
 
@@ -926,19 +963,22 @@
 
                 for (var i = 0; i < latlong_generation.length; i++) {
 
+                    // lat long record
                     var record = latlong_generation[i];
 
                     //console.log("Evaluating Record " + i);
                     //console.log("Record Values " + record);
 
-                    var FitnessValue = Get_FitnessValue_Of_Record_Map(
-                        record,
+                    var coverage_results_with_n_without = Get_FitnessValue_Of_Record_Map(
+                        record, // lat long record
                         map,
                         polygon,
                         polygon_coverage_on_latlong_grid,
                         latlong_grid,
-                        radius_of_circle_in_meters
-                    );
+                        radius_of_circle_in_meters);
+
+                    FitnessValue = coverage_results_with_n_without[0];
+                    FitnessValue_with_Overlapping = coverage_results_with_n_without[1];
 
                     //console.log("Record " + (i + 1) + " Fitness Value " + FitnessValue);
 
@@ -948,9 +988,10 @@
                         maxfitnessvalueindex = i;
                         maxfitnessvaluerecord = generation[i];
 
-                        // Saving topper of generation
+                        // Saving topper cartesian records of generation
                         Top_Record_Result[0][0] = FitnessValue;
                         Top_Record_Result[0][1] = generation[i];
+                        Top_Record_Result[0][2] = FitnessValue_with_Overlapping;
 
                     }
 
@@ -958,7 +999,9 @@
                     // Saving generation result
                     var Record_Result = [];
                     Record_Result[0] = FitnessValue;
-                    Record_Result[1] = generation[i];
+                    Record_Result[1] = generation[i];// save cartesian record
+                    Record_Result[2] = FitnessValue_with_Overlapping;
+
                     Generation_Result_Table[i] = Record_Result;
 
                 }
@@ -1039,10 +1082,10 @@
 
 
             function Get_FitnessValue_Of_Record_Map(
-                record,
+                record, // lat long record
                 map,
                 polygon,
-                polygon_coverage,
+                polygon_coverage, //polygon_coverage_on_latlong_grid
                 latlong_grid,
                 radius_of_circle_in_meters) {
 
@@ -1057,6 +1100,7 @@
                 var circle_polygon_3 = get_circle_polygon(center_point_3, radius_of_circle_in_meters);
                 var circle_polygon_4 = get_circle_polygon(center_point_4, radius_of_circle_in_meters);
 
+                // circle coverge points count inside polygon
                 var cir_cov_ins_poly_1 = get_circle_coverage_inside_polygon(circle_polygon_1, polygon_coverage);
                 var cir_cov_ins_poly_2 = get_circle_coverage_inside_polygon(circle_polygon_2, polygon_coverage);
                 var cir_cov_ins_poly_3 = get_circle_coverage_inside_polygon(circle_polygon_3, polygon_coverage);
@@ -1071,7 +1115,7 @@
                 //console.log("total circle coverage inside polygon with overlapping " + total_cir_cov_ins_poly_with_overlapping);
 
 
-
+                 // circle coverge points array inside polygon
                 var cir_cov_pts_ins_poly_1 = get_circle_coverage_points_inside_polygon(circle_polygon_1, polygon_coverage);
                 var cir_cov_pts_ins_poly_2 = get_circle_coverage_points_inside_polygon(circle_polygon_2, polygon_coverage);
                 var cir_cov_pts_ins_poly_3 = get_circle_coverage_points_inside_polygon(circle_polygon_3, polygon_coverage);
@@ -1079,7 +1123,8 @@
 
 
 
-
+                 // circle1 & circlec2 overlapping INSIDE polygon.
+                // this overlapping does not involve overlapping outside polygon
                 var overlapping12 = find_overlapping_between_circles(cir_cov_pts_ins_poly_1, cir_cov_pts_ins_poly_2);
                 var overlapping13 = find_overlapping_between_circles(cir_cov_pts_ins_poly_1, cir_cov_pts_ins_poly_3);
                 var overlapping14 = find_overlapping_between_circles(cir_cov_pts_ins_poly_1, cir_cov_pts_ins_poly_4);
@@ -1097,10 +1142,19 @@
                 //console.log("circle 3 & 4 overlappings " + overlapping34);
                 //console.log("total overlappings " + total_overlapping_amongall_circles);
 
-                // fitness value
+                // fitness value = inside covg count - inside overlapping
                 var total_cir_cov_ins_poly_without_overlapping = total_cir_cov_ins_poly_with_overlapping - total_overlapping_amongall_circles;
 
-                return total_cir_cov_ins_poly_without_overlapping;
+
+                var coverage_results_with_n_without = [];
+                coverage_results_with_n_without[0] = total_cir_cov_ins_poly_without_overlapping;
+                coverage_results_with_n_without[1] = total_cir_cov_ins_poly_with_overlapping;
+
+                return coverage_results_with_n_without;
+
+                //return total_cir_cov_ins_poly_without_overlapping;
+
+
 
                 var cir1_cov_on_grid = get_polygon_coverage_on_latlong_grid(circle_polygon_1, latlong_grid);
                 var cir2_cov_on_grid = get_polygon_coverage_on_latlong_grid(circle_polygon_2, latlong_grid);
@@ -1203,7 +1257,7 @@
                 record,
                 map,
                 polygon,
-                polygon_coverage,
+                polygon_coverage, //polygon_coverage_on_latlong_grid
                 latlong_grid,
                 radius_of_circle_in_meters) {
 
@@ -1640,6 +1694,34 @@
                 return polygon_coverage;
 
             }
+
+
+            function get_polygon_coverage_count_on_latlong_grid(polygon, latlong_grid) {
+
+                //var polygon_coverage = [];
+                //var array_index = 0;
+                var point = null;
+
+                var polygon_coverage_count_on_latlong_grid = 0;
+
+                for (var i = 0; i < latlong_grid.length; i++) {
+
+                    for (var j = 0; j < latlong_grid[i].length; j++) {
+
+                        point = latlong_grid[i][j];//new esri.geometry.Point({ "x": latlong_grid[i][j][0], "y": latlong_grid[i][j][1], "spatialReference": map.spatialReference });
+
+                        if (polygon.contains(point)) {
+
+                            polygon_coverage_count_on_latlong_grid++;
+                        }
+                    }
+                }
+
+                return polygon_coverage_count_on_latlong_grid;
+
+            }
+
+
 
 
             function get_polygon_coverage_on_latlong_cartesian_grid(polygon, latlong_grid) {
