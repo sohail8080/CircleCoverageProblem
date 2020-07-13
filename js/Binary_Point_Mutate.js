@@ -2,7 +2,8 @@
     iteration_count,
     cartesian_generation,
     polygon_coverage_on_cartesian_grid,
-    grid_length) {
+    grid_length,
+    number_of_circles) {
 
    
     var mutated_cartesian_generation = [];
@@ -21,7 +22,8 @@
         mutated_cartesian_generation[i][1] = Mutate_Cartesian_Record(
             cartesian_generation[i][1],
             polygon_coverage_on_cartesian_grid,
-            grid_length);
+            grid_length,
+            number_of_circles);
     }
 
     
@@ -37,7 +39,11 @@ function Generate_Random_Number(min_bound, max_bound) {
 }
 
 
-function Mutate_Cartesian_Record(cartesian_record, polygon_coverage_on_cartesian_grid, grid_length) {
+function Mutate_Cartesian_Record(
+    cartesian_record,
+    polygon_coverage_on_cartesian_grid,
+    grid_length,
+    number_of_circles) {
 
     var mutated_cartesian_record = [];
 
@@ -48,31 +54,49 @@ function Mutate_Cartesian_Record(cartesian_record, polygon_coverage_on_cartesian
     //alert("cartesian_record[3]" + cartesian_record[3]);
 
 
-    mutated_cartesian_record[0] = Mutate_Cartesian_Point(
-        Generate_Random_Number(1, 3),
-        cartesian_record[0],
-        polygon_coverage_on_cartesian_grid,
-        grid_length);
 
-    mutated_cartesian_record[1] = Mutate_Cartesian_Point(
-        Generate_Random_Number(1, 3),
-        cartesian_record[1],
-        polygon_coverage_on_cartesian_grid,
-        grid_length);
+    for (var i = 0; i < number_of_circles; i++) {
 
+        mutated_cartesian_record[i] = Mutate_Cartesian_Point(
+            Generate_Random_Number(1, 3),
+            cartesian_record[i],
+            polygon_coverage_on_cartesian_grid,
+            grid_length);
 
-    mutated_cartesian_record[2] = Mutate_Cartesian_Point(
-        Generate_Random_Number(1, 3),
-        cartesian_record[2],
-        polygon_coverage_on_cartesian_grid,
-        grid_length);
+    }
 
 
-    mutated_cartesian_record[3] = Mutate_Cartesian_Point(
-        Generate_Random_Number(1, 3),
-        cartesian_record[3],
-        polygon_coverage_on_cartesian_grid,
-        grid_length);
+    //mutated_cartesian_record[0] = Mutate_Cartesian_Point(
+    //    Generate_Random_Number(1, 3),
+    //    cartesian_record[0],
+    //    polygon_coverage_on_cartesian_grid,
+    //    grid_length);
+
+    //mutated_cartesian_record[1] = Mutate_Cartesian_Point(
+    //    Generate_Random_Number(1, 3),
+    //    cartesian_record[1],
+    //    polygon_coverage_on_cartesian_grid,
+    //    grid_length);
+
+
+    //mutated_cartesian_record[2] = Mutate_Cartesian_Point(
+    //    Generate_Random_Number(1, 3),
+    //    cartesian_record[2],
+    //    polygon_coverage_on_cartesian_grid,
+    //    grid_length);
+
+
+    //mutated_cartesian_record[3] = Mutate_Cartesian_Point(
+    //    Generate_Random_Number(1, 3),
+    //    cartesian_record[3],
+    //    polygon_coverage_on_cartesian_grid,
+    //    grid_length);
+
+
+
+
+
+
 
 
     //mutated_cartesian_record[0] = Mutate_Cartesian_Point_XYZ_Coordinate(        

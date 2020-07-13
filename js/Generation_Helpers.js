@@ -175,7 +175,7 @@ function RecordDuplicated(Generation_Result_Table, Record) {
 
         flag = true;
 
-        for (var j = 0; j < 4; j++) {
+        for (var j = 0; j < Record.length; j++) {
 
             //try {
             if ((Generation_Result_Table[i][1][j][0] != Record[j][0]) ||

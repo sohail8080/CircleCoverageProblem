@@ -118,10 +118,18 @@ function Crossover_Two_Decimal_Records_Map(r1, r2, polygon_coverage_on_cartesian
 
     var new_record = [];
 
-    new_record[0] = Crossover_Two_Decimal_Points_Map(r1[0], r2[0], polygon_coverage_on_cartesian_grid, grid_length);
-    new_record[1] = Crossover_Two_Decimal_Points_Map(r1[1], r2[1], polygon_coverage_on_cartesian_grid, grid_length);
-    new_record[2] = Crossover_Two_Decimal_Points_Map(r1[2], r2[2], polygon_coverage_on_cartesian_grid, grid_length);
-    new_record[3] = Crossover_Two_Decimal_Points_Map(r1[3], r2[3], polygon_coverage_on_cartesian_grid, grid_length);
+
+    for (var i = 0; i < r1.length; i++) {
+
+        new_record[i] = Crossover_Two_Decimal_Points_Map(r1[i], r2[i], polygon_coverage_on_cartesian_grid, grid_length);
+
+    }
+
+
+    //new_record[0] = Crossover_Two_Decimal_Points_Map(r1[0], r2[0], polygon_coverage_on_cartesian_grid, grid_length);
+    //new_record[1] = Crossover_Two_Decimal_Points_Map(r1[1], r2[1], polygon_coverage_on_cartesian_grid, grid_length);
+    //new_record[2] = Crossover_Two_Decimal_Points_Map(r1[2], r2[2], polygon_coverage_on_cartesian_grid, grid_length);
+    //new_record[3] = Crossover_Two_Decimal_Points_Map(r1[3], r2[3], polygon_coverage_on_cartesian_grid, grid_length);
 
     return new_record;
 }

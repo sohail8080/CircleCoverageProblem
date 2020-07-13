@@ -653,13 +653,19 @@ function Get_Min_Max_Flag(i, j, grid) {
 }
 
 
-function Map_Cartesian_Generation_To_LatLong_Generation(cartesian_generation, latlong_grid) {
+function Map_Cartesian_Generation_To_LatLong_Generation(
+    cartesian_generation,
+    latlong_grid,
+    number_of_circles) {
 
     var latlong_generation = [];
 
     for (var i = 0; i < cartesian_generation.length; i++) {
 
-        latlong_generation[i] = Map_Cartesian_Record_To_LatLong_Record(cartesian_generation[i], latlong_grid);
+        latlong_generation[i] = Map_Cartesian_Record_To_LatLong_Record(
+            cartesian_generation[i],
+            latlong_grid,
+            number_of_circles);
 
     }
 
@@ -678,14 +684,24 @@ function Map_Cartesian_Generation_To_LatLong_Generation(cartesian_generation, la
 }
 
 
-function Map_Cartesian_Record_To_LatLong_Record(cartesian_record, latlong_grid) {
+function Map_Cartesian_Record_To_LatLong_Record(
+    cartesian_record,
+    latlong_grid,
+    number_of_circles) {
 
     var latlong_record = [];
 
-    latlong_record[0] = Map_Cartesian_Point_To_LatLong_Point(cartesian_record[0], latlong_grid);
-    latlong_record[1] = Map_Cartesian_Point_To_LatLong_Point(cartesian_record[1], latlong_grid);
-    latlong_record[2] = Map_Cartesian_Point_To_LatLong_Point(cartesian_record[2], latlong_grid);
-    latlong_record[3] = Map_Cartesian_Point_To_LatLong_Point(cartesian_record[3], latlong_grid);
+    for (var i = 0; i < number_of_circles; i++) {
+
+        latlong_record[i] = Map_Cartesian_Point_To_LatLong_Point(cartesian_record[i], latlong_grid);
+
+    }
+
+
+    //latlong_record[0] = Map_Cartesian_Point_To_LatLong_Point(cartesian_record[0], latlong_grid);
+    //latlong_record[1] = Map_Cartesian_Point_To_LatLong_Point(cartesian_record[1], latlong_grid);
+    //latlong_record[2] = Map_Cartesian_Point_To_LatLong_Point(cartesian_record[2], latlong_grid);
+    //latlong_record[3] = Map_Cartesian_Point_To_LatLong_Point(cartesian_record[3], latlong_grid);
 
     return latlong_record;
 

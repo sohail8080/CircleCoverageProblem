@@ -130,13 +130,28 @@ function GetRandomRecord_Map(grid_length, polygon_coverage_on_cartesian_grid, gr
 }
 
 
-function GetRandomRecord_Map_Polygon(grid_length, polygon_coverage_on_cartesian_grid, grid_buffer_x, grid_buffer_y) {
+function GetRandomRecord_Map_Polygon(grid_length,
+    polygon_coverage_on_cartesian_grid,
+    grid_buffer_x,
+    grid_buffer_y,
+    number_of_circles) {
 
-    var record = new Array(4);
-    record[0] = GetRandomPoint_Map_Polygon(grid_length, polygon_coverage_on_cartesian_grid, grid_buffer_x, grid_buffer_y);
-    record[1] = GetRandomPoint_Map_Polygon(grid_length, polygon_coverage_on_cartesian_grid, grid_buffer_x, grid_buffer_y);
-    record[2] = GetRandomPoint_Map_Polygon(grid_length, polygon_coverage_on_cartesian_grid, grid_buffer_x, grid_buffer_y);
-    record[3] = GetRandomPoint_Map_Polygon(grid_length, polygon_coverage_on_cartesian_grid, grid_buffer_x, grid_buffer_y);
+    var record = new Array(number_of_circles);
+
+    for (var i = 0; i < number_of_circles; i++) {
+
+        record[i] = GetRandomPoint_Map_Polygon(
+            grid_length,
+            polygon_coverage_on_cartesian_grid,
+            grid_buffer_x,
+            grid_buffer_y);
+
+    }
+
+    //record[0] = GetRandomPoint_Map_Polygon(grid_length, polygon_coverage_on_cartesian_grid, grid_buffer_x, grid_buffer_y);
+    //record[1] = GetRandomPoint_Map_Polygon(grid_length, polygon_coverage_on_cartesian_grid, grid_buffer_x, grid_buffer_y);
+    //record[2] = GetRandomPoint_Map_Polygon(grid_length, polygon_coverage_on_cartesian_grid, grid_buffer_x, grid_buffer_y);
+    //record[3] = GetRandomPoint_Map_Polygon(grid_length, polygon_coverage_on_cartesian_grid, grid_buffer_x, grid_buffer_y);
 
     return record;
 
@@ -225,13 +240,24 @@ function Generate_Random_Number(min_bound, max_bound) {
 
 
 
-function Get_Initial_Cartesian_Generation_By_Random_Function_Map_Polygon(grid_length, polygon_coverage_on_cartesian_grid, random_generation_record_count, grid_buffer_x, grid_buffer_y) {
+function Get_Initial_Cartesian_Generation_By_Random_Function_Map_Polygon(
+    grid_length,
+    polygon_coverage_on_cartesian_grid,
+    random_generation_record_count,
+    grid_buffer_x,
+    grid_buffer_y,
+    number_of_circles) {
 
     var generation = new Array(random_generation_record_count);
 
     for (var i = 0; i < random_generation_record_count; i++) {
 
-        generation[i] = GetRandomRecord_Map_Polygon(grid_length, polygon_coverage_on_cartesian_grid, grid_buffer_x, grid_buffer_y);
+        generation[i] = GetRandomRecord_Map_Polygon(
+            grid_length,
+            polygon_coverage_on_cartesian_grid,
+            grid_buffer_x,
+            grid_buffer_y,
+            number_of_circles);
 
     }
 
