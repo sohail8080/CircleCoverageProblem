@@ -16,6 +16,8 @@ function Sort_Generation_Result_Table(Generation_Result_Table) {
     //    arrindex++;
     //}
 
+
+    // at location zero is the fitness value on which we sort the list
     for (var i = 0; i < Generation_Result_Table.length; i++) {
         FitnessValue_List[i] = parseInt(Generation_Result_Table[i][0]);
     }

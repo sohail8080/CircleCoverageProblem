@@ -440,17 +440,16 @@
                             Print_Generation(mutated_cartesian_generation);
                             console.log("===============");
 
-
                         }
                         //console.error("GENERATION MUTATION PERFORMED SUCCESSFULLY.");
-
                     }
                 }
 
 
 
 
-
+                //  input: sorted generation table of TOPPERS of all iterations
+                //  find the best from the list.
                 var fittest_record_found = Evaluate_FitnessValue_Of_Tieing_Toppers(
                     master_record[3],
                     map,
@@ -459,6 +458,9 @@
                     latlong_grid,
                     radius_of_circle_in_meters,
                     ideal_circle_coverage_count_on_grid);
+
+
+                var fittest_record_found = master_record[3][0];
 
                 var endTime = performance.now();
 
@@ -587,6 +589,7 @@
                 var tieing_toppers_records = [];
                 var index = 0;
 
+                // get the list of tieing toppers records with same fitness value
                 for (var i = 0; i < toppers_generation_table.length; i++) {
 
                     if (toppers_generation_table[i][0] == top_fitness_value) {
@@ -600,6 +603,7 @@
 
                 }
 
+                // if only one record, no tieing fitness value records, then retrun that record
                 if (tieing_toppers_records.length == 1) {
                     return toppers_generation_table[0];
                 }
@@ -609,29 +613,33 @@
                 var lowest_outside_circle_coverage = 9999999;
                 var lowest_outside_circle_coverage_index = -1;
 
+                // loop through tieing toppers records and find records with 
+                // min outside coverage
                 for (var i = 0; i < tieing_toppers_records.length; i++) {
 
                     //var tieing_topper_fitness_value = tieing_toppers_records[i][0];
 
-                    // overlapping among circles within polygon
-                    // it is not complete overlapping among all circles
-                    // only overlapping within polygon
+                    // Find overlapping among circles within polygon
+                    // it is not complete overlapping among circles
+                    // it is only overlapping within polygon, not outside polygon
+                    // Inside coverage with overlapping
                     var tieing_topper_fitness_value_with_overlapping = tieing_toppers_records[i][2];
 
+                    // get the record having multiple circels centerpoints
                     var tieing_topper_record = tieing_toppers_records[i][1];
 
                     // Old solution agreed with adnan
-                    //var tieing_topper_outside_circle_coverage = Get_Circle_Outside_Coverage_Of_Record_Map(
-                    //    tieing_topper_record,
-                    //    map,
-                    //    polygon,
-                    //    polygon_coverage_on_latlong_grid,
-                    //    latlong_grid,
-                    //    radius_of_circle_in_meters);
+                    var tieing_topper_outside_circle_coverage = Get_Circle_Outside_Coverage_Of_Record_Map(
+                        tieing_topper_record,
+                        map,
+                        polygon,
+                        polygon_coverage_on_latlong_grid,
+                        latlong_grid,
+                        radius_of_circle_in_meters);
 
                     // Asif sb solution
-                    var tieing_topper_outside_circle_coverage =
-                        ideal_circle_coverage_count_on_grid - tieing_topper_fitness_value_with_overlapping;
+                    //var tieing_topper_outside_circle_coverage =
+                       // ideal_circle_coverage_count_on_grid - tieing_topper_fitness_value_with_overlapping;
 
                     // Step1: Select Records with least overlapping inside polygon
                     // Step2: Now Select the Record having maximum overlapping inside the polygon.
@@ -695,7 +703,7 @@
                         radius_of_circle_in_meters,
                         number_of_circles);
 
-                    FitnessValue = coverage_results_with_n_without[0];
+                    FitnessValue = coverage_results_with_n_without[0];// fitness value
                     FitnessValue_with_Overlapping = coverage_results_with_n_without[1];
 
                     //console.log("Record " + (i + 1) + " Fitness Value " + FitnessValue);
@@ -707,10 +715,14 @@
                         maxfitnessvaluerecord = cartesian_generation[i];
                     }
 
+
                     var Record_Result = [];
-                    Record_Result[0] = FitnessValue;// fitness value
-                    Record_Result[1] = cartesian_generation[i];// topper
-                    Record_Result[2] = FitnessValue_with_Overlapping;
+                    Record_Result[0] = coverage_results_with_n_without[0]; // FV
+                    Record_Result[1] = cartesian_generation[i]; // save cartesian record
+                    Record_Result[2] = coverage_results_with_n_without[1]; // FV without overlapping
+                    Record_Result[3] = coverage_results_with_n_without[2]; // FV with overlapping
+                    Record_Result[4] = coverage_results_with_n_without[3]; // total overlapping
+                    Record_Result[5] = coverage_results_with_n_without[4]; // circle outside coverage
 
                     Generation_Result_Table[i] = Record_Result;
 
@@ -994,6 +1006,7 @@
                     number_of_records_in_each_crossover_generations //4
                 );
 
+
                 // Convert Cartesian Generation to Lat Long Generation
                 var latlong_generation = Map_Cartesian_Generation_To_LatLong_Generation(
                     generation,
@@ -1028,8 +1041,8 @@
                         radius_of_circle_in_meters,
                         number_of_circles);
 
-                    FitnessValue = coverage_results_with_n_without[0];
-                    FitnessValue_with_Overlapping = coverage_results_with_n_without[1];
+                    FitnessValue = coverage_results_with_n_without[0];// FV
+                    FitnessValue_with_Overlapping = coverage_results_with_n_without[1]; //without overlapping
 
                     //console.log("Record " + (i + 1) + " Fitness Value " + FitnessValue);
 
@@ -1040,18 +1053,25 @@
                         maxfitnessvaluerecord = generation[i];
 
                         // Saving topper cartesian records of generation
-                        Top_Record_Result[0][0] = FitnessValue;
-                        Top_Record_Result[0][1] = generation[i];
-                        Top_Record_Result[0][2] = FitnessValue_with_Overlapping;
+                        Top_Record_Result[0][0] = coverage_results_with_n_without[0]; // FV
+                        Top_Record_Result[0][1] = generation[i]; // Cartesoam Recprd
+                        Top_Record_Result[0][2] = coverage_results_with_n_without[1]; // FV without overlapping
+                        Top_Record_Result[0][3] = coverage_results_with_n_without[2]; // FV with overlapping
+                        Top_Record_Result[0][4] = coverage_results_with_n_without[3]; // total overlapping
+                        Top_Record_Result[0][5] = coverage_results_with_n_without[4]; // circle outside coverage
 
                     }
 
 
                     // Saving generation result
                     var Record_Result = [];
-                    Record_Result[0] = FitnessValue;
+                    Record_Result[0] = coverage_results_with_n_without[0]; // FV
                     Record_Result[1] = generation[i];// save cartesian record
-                    Record_Result[2] = FitnessValue_with_Overlapping;
+                    Record_Result[2] = coverage_results_with_n_without[1]; // FV without overlapping
+                    Record_Result[3] = coverage_results_with_n_without[2]; // FV with overlapping
+                    Record_Result[4] = coverage_results_with_n_without[3]; // total overlapping
+                    Record_Result[5] = coverage_results_with_n_without[4]; // circle outside coverage
+                    
 
                     Generation_Result_Table[i] = Record_Result;
 
@@ -1089,8 +1109,6 @@
                 //console.log("Iteration [" + [iteration_count + 1] + "] WITHOUT SORTINGuuuuuuuuuuuuuuuuuuuuuuu");
                 //console.log("===============");
                 //Print_Generation_Result_Table(Master_Result_Table);
-
-
                
                 // No need to maintain this master list
                 // following sort will eliminate duplicate records present in the table
@@ -1100,23 +1118,18 @@
                 //console.log("===============");
                 //Print_Generation_Result_Table(Sorted_Master_Result_Table);
 
-
-
                 //console.error("Master_Result_Table" + Master_Result_Table.length);
                 //console.error("Sorted_Master_Result_Table" + Sorted_Master_Result_Table.length);
-
 
                 var Toppers_Result_Table = Merge_Generation_Result_Tables(top_records_list, Top_Record_Result);
                 // following sort will eliminate duplicate records present in the table
                 // duplication means same Fitness Value & Points, all such points will be removed
                 var Sorted_Toppers_Result_Table = Sort_Generation_Result_Table(Toppers_Result_Table);
 
-
                 // Needed only for debugging @@@@@@@@@@@@@@@@@@@@@@@@@@
                 console.log("Iteration [" + [iteration_count + 1] + "] Topper Fitness Value Results Table Up-To-Now");
                 console.log("===============");
                 Print_Generation_Result_Table(Sorted_Toppers_Result_Table);
-
 
                 var master_record = [];
 
@@ -1130,6 +1143,7 @@
                 return master_record;
                 //master_record[3][0][1] // this record to show on screen
                 //return sortedr2[0][1];
+
             }
 
 
@@ -1295,7 +1309,16 @@
 
                 var coverage_results_with_n_without = [];
 
-                var fv_formula = total_cir_cov_ins_poly_with_overlapping + (2 * total_cir_cov_ins_poly_without_overlapping) - (total_cir_cov_ins_poly_with_overlapping + total_cir_cov_outs_poly);
+                // inside coverage without overlapping
+                //var fv_formula = total_cir_cov_ins_poly_without_overlapping;
+
+                // inside coverage without overlapping and without outsdie covg
+                //var fv_formula = total_cir_cov_ins_poly_without_overlapping - total_cir_cov_outs_poly;
+
+                var fv_formula = (total_cir_cov_ins_poly_with_overlapping + (2 * total_cir_cov_ins_poly_without_overlapping)) - (total_cir_cov_ins_poly_with_overlapping + total_cir_cov_outs_poly);
+                //var fv_formula = 2 * (total_cir_cov_ins_poly_with_overlapping + total_cir_cov_ins_poly_without_overlapping) - (total_cir_cov_ins_poly_with_overlapping + total_cir_cov_outs_poly);
+                //var fv_formula = ((2 * total_cir_cov_ins_poly_with_overlapping) + total_cir_cov_ins_poly_without_overlapping) - (total_cir_cov_ins_poly_with_overlapping + total_cir_cov_outs_poly);
+
 
                 coverage_results_with_n_without[0] = fv_formula; // fitness value
                 coverage_results_with_n_without[1] = total_cir_cov_ins_poly_without_overlapping; // without overlapping
@@ -2749,17 +2772,6 @@
 
 
             </table>
-
-
-
-
-
-
-
-
-
-
-
 
 
 
