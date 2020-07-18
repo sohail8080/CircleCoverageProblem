@@ -1,0 +1,126 @@
+<html>
+<head>
+<script src="simplexsolver/glpk.min.js"></script>
+</head>
+<body>
+    <textarea id="source" cols="50" rows="10">
+
+\* Objective function *\
+Maximize
+obj: + 300 circle1_count + 250 circle2_count + 200 circle3_count + 150 circle4_count
+
+\* Constraints *\
+Subject To
+cap: + 300 circle1_count + 250 circle2_count + 200 circle3_count + 150 circle4_count <= 1800
+
+\* Variable bounds *\
+Bounds
+0 <= circle1_count <= 50
+0 <= circle2_count <= 5
+0 <= circle3_count <= 5
+0 <= circle4_count <= 5
+
+\* Integer definitions *\
+General
+circle1_count
+circle2_count
+circle3_count
+circle4_count
+
+End
+
+    </textarea><br>
+
+    <!--optmize model button-->
+    <input type="submit" onclick="run()" />
+
+    <!--log will appear here-->
+    <pre id="log"/>
+
+    <script>
+        var start;
+
+        //get log node
+        var logNode = document.getElementById("log");
+
+
+        //do log the valued passed to the function
+        var log = glp_print_func = function(value){
+            var now = new Date();
+	        var d = (now.getTime() - start.getTime()) / 1000;
+	        logNode.appendChild(document.createTextNode(value + "\n"));
+            if (d > 60) throw new Error("timeout");
+	        console.log(value);
+        };
+
+
+        // run the solver
+        function run() {
+
+            try {
+
+            start = new Date(); 
+            logNode.innerText = "";
+
+            // create lp object 
+            var lp = glp_create_prob();
+
+            // read the model from text area, while reading also pass lp
+            // lp is loaded with the model text
+            glp_read_lp_from_string(lp, null, document.getElementById("source").value);
+
+            // do some processing on lp solver loaded with model
+            glp_scale_prob(lp, GLP_SF_AUTO);
+
+            //GLPK Simplex Optimizer
+            var smcp = new SMCP({ presolve: GLP_ON });
+
+            // do some processing on lp solver loaded with model and smcp
+            glp_simplex(lp, smcp);
+
+             //GLPK Integer Optimizer
+            var iocp = new IOCP({ presolve: GLP_ON });
+
+             // do some processing on lp solver loaded with model and iocp
+            //GLPK Integer Optimizer
+            glp_intopt(lp, iocp);
+
+            // glp_intopt(lp);
+
+
+            var result = {}, objective;
+
+            // objective function value 
+            var glp_mip_obj_value = glp_mip_obj_val(lp);
+            log("obj: " + glp_mip_obj_value);
+
+            // number of variables in the model
+            var glp_get_num_of_columns = glp_get_num_cols(lp);
+
+          
+
+            // print variable names and variable values
+            for (var i = 1; i <= glp_get_num_of_columns; i++){
+                log(glp_get_col_name(lp, i) + " = " + glp_mip_col_val(lp, i));
+                result[glp_get_col_name(lp, i)] = glp_mip_col_val(lp, i);
+            }
+
+
+            lp = null;
+
+            return result;
+
+            } catch (err) {
+               
+            } finally {
+                
+            }  
+
+
+        }
+    </script>
+
+
+</body>
+</html>
+

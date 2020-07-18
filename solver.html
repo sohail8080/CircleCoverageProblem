@@ -1,0 +1,123 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta name="viewport" content="width=device-width,user-scalable=no">
+    <meta name="viewport" content="initial-scale=1, maximum-scale=1,user-scalable=no">
+    <title>Maps Toolbar</title>
+
+    <link href="css/nihilo.css" rel="stylesheet" />
+    <link href="css/esri.css" rel="stylesheet" />
+
+    <!--<link rel="stylesheet" href="https://js.arcgis.com/3.32/dijit/themes/nihilo/nihilo.css">
+    <link rel="stylesheet" href="https://js.arcgis.com/3.32/esri/css/esri.css">-->
+    <!--<link href="css/bootstrap.css" rel="stylesheet" />-->
+    <style>
+
+
+        html, body, #mainWindow {
+            font-family: sans-serif;
+            height: 100%;
+            width: 100%;
+        }
+
+
+        html, body {
+            margin: 0;
+            padding: 0;
+        }
+
+        #header {
+            height: 80px;
+            overflow: auto;
+            padding: 0.5em;
+        }
+    </style>
+    <script src="https://js.arcgis.com/3.32/"></script>
+    <script src="js/Binary_Cross_Over.js"></script>
+    <script src="js/Grid_Analysis.js"></script>
+    <script src="js/Grid_Drawing.js"></script>
+    <script src="js/Random_Seed.js"></script>
+    <script src="js/Shape_Seed.js"></script>
+    <script src="js/Generation_Helpers.js"></script>
+    <script src="js/Fitness_Value_Calculations.js"></script>
+    <script src="js/Mid_Point_Cross_Over.js"></script>
+    <script src="js/Binary_Point_Mutate.js"></script>
+    <script src="js/Decimal_Point_Mutate.js"></script>
+    <script src="js/Mid_Point_Mutate.js"></script>
+
+
+    <script>
+        var map, toolbar, symbol, geomTask;
+
+        require([
+            "esri/map",
+            "esri/toolbars/draw",
+            "esri/graphic",
+            "esri/symbols/SimpleMarkerSymbol",
+            "esri/symbols/SimpleLineSymbol",
+            "esri/symbols/SimpleFillSymbol",
+            "dojo/parser", "dijit/registry",
+            "esri/geometry/Extent",
+            "esri/geometry/Polygon",
+            "esri/layers/GraphicsLayer",
+            "esri/geometry/Circle",
+            "esri/symbols/Font",
+            "esri/symbols/TextSymbol",
+            "./jsLPSolver/solver.js",
+            "dijit/layout/BorderContainer", "dijit/layout/ContentPane",
+            "dijit/form/Button", "dijit/WidgetSet", "dojo/domReady!"
+        ], function (Map, Draw, Graphic, SimpleMarkerSymbol, SimpleLineSymbol, SimpleFillSymbol, parser, registry, Extent, Polygon, GraphicsLayer, Circle, Font, TextSymbol, LPSolver) {
+
+
+            var model = {
+
+                "optimize": {
+                    "coverage": { "max": 1200 },
+                },
+
+                "opType": "max",
+
+                "constraints": {                   
+                    "circlecount": { "max": 20 },
+                    "circlecount": { "min": 0 }
+                },
+
+                "variables": {
+
+                    "circle1": {
+                        "coverage": 300,
+                        "circlecount": 1
+                    },
+                    "circle2": {
+                        "coverage": 250,
+                        "circlecount": 1
+                    },
+                    "circle3": {
+                        "coverage": 200,
+                        "circlecount": 1
+                    },
+                    "circle4": {
+                        "coverage": 150,
+                        "circlecount": 1
+                    }
+                },
+            };
+
+            var results = LPSolver.Solve(model);
+            console.log(results);
+
+
+
+        });
+    </script>
+</head>
+
+<body class="nihilo">
+
+   
+
+</body>
+
+
+</html>
