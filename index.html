@@ -45,6 +45,7 @@
     <script src="js/Binary_Point_Mutate.js"></script>
     <script src="js/Decimal_Point_Mutate.js"></script>
     <script src="js/Mid_Point_Mutate.js"></script>
+    <script src="simplexsolver/glpk.min.js"></script>
 
     <script>
         var map, toolbar, symbol, geomTask;
@@ -63,11 +64,21 @@
             "esri/geometry/Circle",
             "esri/symbols/Font",
             "esri/symbols/TextSymbol",
+            "esri/geometry/geodesicUtils",
+            "esri/tasks/GeometryService",
+            "esri/tasks/AreasAndLengthsParameters",
             "dijit/layout/BorderContainer", "dijit/layout/ContentPane",
             "dijit/form/Button", "dijit/WidgetSet", "dojo/domReady!"
-        ], function (Map, Draw, Graphic, SimpleMarkerSymbol, SimpleLineSymbol, SimpleFillSymbol, parser, registry, Extent, Polygon, GraphicsLayer, Circle, Font, TextSymbol) {
+        ], function (Map, Draw, Graphic, SimpleMarkerSymbol, SimpleLineSymbol, SimpleFillSymbol, parser, registry, Extent, Polygon, GraphicsLayer, Circle, Font, TextSymbol, geodesicUtils, GeometryService, AreasAndLengthsParameters) {
 
             parser.parse();
+
+            //var geometryService = new GeometryService("https://sampleserver6.arcgisonline.com/arcgis/rest/services/Utilities/Geometry/GeometryServer");
+            //var geometryService = new esri.tasks.GeometryService("https://utility.arcgisonline.com/ArcGIS/rest/services/Geometry/GeometryServer");
+            var geometryService = new GeometryService("https://utility.arcgisonline.com/ArcGIS/rest/services/Geometry/GeometryServer");
+            //geometryService.on("areas-and-lengths-complete", outputAreaAndLength);
+
+
 
 
             // Dehli
@@ -88,9 +99,10 @@
                 "spatialReference": { "wkid": 102100 }
             });
 
-
+            // basemap: "topo",
+            // basemap: "streets",
             var map = new Map("map", {
-                basemap: "streets",
+                basemap: "topo",
                 extent: initialExtent,
                 zoom: 13
             });
@@ -218,8 +230,8 @@
                 //var polygon_selector = 1;
 
 
-                var number_of_circles = parseInt(document.getElementById('txtCircles').value);
-                var radius_of_circle_in_meters = parseInt(document.getElementById('txtRadius').value); // in km
+                var number_of_circles;// = parseInt(document.getElementById('txtCircles').value);
+                var radius_of_circle_in_meters;// = parseInt(document.getElementById('txtRadius').value); // in km
                 var grid_length = parseInt(document.getElementById('txtGridLength').value);
                 var random_generation_record_count = parseInt(document.getElementById('txtRandomSet').value);
                 var number_of_records_in_each_crossover_generations = parseInt(document.getElementById('txtCrossOverSet').value);
@@ -260,6 +272,33 @@
                 }
 
 
+                var selected_radii_area = [];
+                var selected_radii_index = 0;
+                var chkbox_radii = document.getElementsByName("chkbox_radii[]");
+
+
+                for (var i = 0; i < chkbox_radii.length; i++) {
+                    if (chkbox_radii[i].checked == true) {
+
+                        var radii_area_element = [];
+                      
+                        radii_area_element[0] = chkbox_radii[i].value;
+                        radii_area_element[1] = parseInt((3.142857142857143 * chkbox_radii[i].value * chkbox_radii[i].value).toFixed(0));
+
+                        selected_radii_area[selected_radii_index] = radii_area_element;
+                        selected_radii_index++;
+
+                    }
+                } 
+
+
+                if (selected_radii_area.length <= 0) {
+                    alert("Please select some radii.");
+                    return;
+                }
+
+
+
                 console.clear();
                 graphics_layer.clear();
 
@@ -286,8 +325,65 @@
                     polygon_extent = hand_drawn_polygon_by_user.getExtent();
                 }
 
+                var polygon_area = 0;
+
+                //UNIT_METER UNIT_KILOMETER UNIT_SQUARE_METERS UNIT_SQUARE_KILOMETERS UNIT_SQUARE_MILES
+                //setup the parameters for the areas and lengths operation
+                var areasAndLengthParams = new AreasAndLengthsParameters();
+                areasAndLengthParams.lengthUnit = GeometryService.UNIT_METER;
+                areasAndLengthParams.areaUnit = GeometryService.UNIT_SQUARE_METERS;
+                areasAndLengthParams.calculationType = "geodesic"; //planar, geodesic, preserveShape
 
 
+                geometryService.simplify([polygon], function (simplifiedGeometries) {
+                    // Polygon geometries for which to compute areas and lengths
+                    areasAndLengthParams.polygons = simplifiedGeometries;
+                    geometryService.areasAndLengths(areasAndLengthParams, function (measurements) {
+                        // do something with the results here
+                        polygon_area = measurements.areas[0].toFixed(3);
+                        console.log("result" + measurements);
+                        console.log("area " + measurements.areas[0].toFixed(3) + " m2");
+                        console.log("length " + measurements.lengths[0].toFixed(3) + " m");
+                    });
+                });
+
+                //METERS MILES SQUARE_KILOMETERS SQUARE_METERS SQUARE_MILES
+                //var polygon_areas = geodesicUtils.geodesicAreas([polygon], esri.Units.SQUARE_KILOMETERS);
+                //var polygon_area = Math.round(polygon_areas[0]);
+                //alert("Polygon Area: " + polygon_area + " km²"); // Area: 1150498 km²
+
+
+                var coverage_model_string = "";
+                coverage_model_string = coverage_model_string + "Maximize \n  obj: ";
+
+                for (var i = 0; i < selected_radii_area.length; i++) {
+                    coverage_model_string = coverage_model_string + " + " + selected_radii_area[i][1] + " circle_" + selected_radii_area[i][0];
+                }
+
+                coverage_model_string = coverage_model_string + "\n Subject To \n";
+
+
+                for (var i = 0; i < selected_radii_area.length; i++) {
+                    coverage_model_string = coverage_model_string + " + " + selected_radii_area[i][1] + " circle_" + selected_radii_area[i][0];
+                }
+
+                coverage_model_string = coverage_model_string + " <= " + polygon_area + "\n Bounds \n";
+
+                for (var i = 0; i < selected_radii_area.length; i++) {
+                    coverage_model_string = coverage_model_string + " 0 <= " + " circle_" + selected_radii_area[i][0] + " <= 50 \n";
+                }
+
+                coverage_model_string = coverage_model_string + " General \n";
+
+
+                for (var i = 0; i < selected_radii_area.length; i++) {
+                    coverage_model_string = coverage_model_string + "circle_" + selected_radii_area[i][0] + " \n";
+                }
+
+                coverage_model_string = coverage_model_string + " End \n"; 
+
+                alert(coverage_model_string);
+                console.log(coverage_model_string);
 
                 //var lat_long_grid = Generate_Lat_Long_Grid(polygon_extent, grid_length);
                 var latlong_grid = Generate_Lat_Long_Points_Grid(polygon_extent, grid_length, map);
@@ -317,6 +413,13 @@
                 var circle_on_grid_center = get_circle_polygon(latlong_grid_center_point, radius_of_circle_in_meters);
                 //var drawings_results = draw_circle(graphics_layer, latlong_grid_center_point, "blue", 1, radius_of_circle_in_meters);
                 //var circle_on_grid_center = drawings_results[0];
+
+
+                // polygon_areas = geodesicUtils.geodesicAreas([circle_on_grid_center], esri.Units.SQUARE_METERS);
+                // polygon_area = Math.round(polygon_areas[0]);
+                // alert("Circle Area: " + polygon_area + " km²"); // Area: 1150498 km²
+
+
 
                 ideal_circle_coverage_count_on_grid =
                     get_polygon_coverage_count_on_latlong_grid(circle_on_grid_center, latlong_grid);
@@ -2512,6 +2615,33 @@
                 drawings_results[0] = circle_polygon;
                 drawings_results[1] = circle_graphic;
 
+                //METERS MILES SQUARE_KILOMETERS SQUARE_METERS SQUARE_MILES
+                //var polygon_areas = geodesicUtils.geodesicAreas([circle_polygon], esri.Units.SQUARE_METERS);
+                //var polygon_area = Math.round(polygon_areas[0]);
+                //alert("Circle Area: " + polygon_area + " km²"); // Area: 1150498 km²
+
+
+                //UNIT_METER UNIT_KILOMETER UNIT_SQUARE_METERS UNIT_SQUARE_KILOMETERS UNIT_SQUARE_MILES
+                //setup the parameters for the areas and lengths operation
+                //var areasAndLengthParams = new AreasAndLengthsParameters();
+                //areasAndLengthParams.lengthUnit = GeometryService.UNIT_KILOMETER;
+                //areasAndLengthParams.areaUnit = GeometryService.UNIT_SQUARE_KILOMETERS;
+                //areasAndLengthParams.calculationType = "geodesic"; //planar, geodesic, preserveShape
+                //geometryService.simplify([circle_polygon], function (simplifiedGeometries) {
+
+                //    // Polygon geometries for which to compute areas and lengths
+                //    areasAndLengthParams.polygons = simplifiedGeometries;
+                //    geometryService.areasAndLengths(areasAndLengthParams, function (measurements) {
+                //        // do something with the results here
+                //        //var result = measurements.result;
+                //        console.log("result" + measurements);
+                //        console.log("area " + measurements.areas[0].toFixed(3) + " km2");
+                //        console.log("length " + measurements.lengths[0].toFixed(3) + " km");
+                //    });
+
+                //});
+
+
                 return drawings_results;
             }
 
@@ -2693,19 +2823,35 @@
             <table>
 
                 <tr>
-                    <td> <label>Circles</label> </td>
-                    <td> <input type="text" id="txtCircles" value="4" style="width:50px;"> </td>
+                    <td colspan="4">
+                        <label><b>Radii</b></label>
+
+                        <label><input checked type="checkbox" name="chkbox_radii[]" value="500" /> 0.5</label>
+                        <label><input checked type="checkbox" name="chkbox_radii[]" value="1000" /> 1</label>
+                        <label><input checked type="checkbox" name="chkbox_radii[]" value="1500" /> 1.5</label>
+                        <label><input checked type="checkbox" name="chkbox_radii[]" value="2000" /> 2</label>
+                        <label><input checked type="checkbox" name="chkbox_radii[]" value="2500" /> 2.5</label>
+                        <label><input checked type="checkbox" name="chkbox_radii[]" value="3000" /> 3</label>
+                        <label><input checked type="checkbox" name="chkbox_radii[]" value="500" /> 3.5</label>
+                        <label><input checked type="checkbox" name="chkbox_radii[]" value="1000" /> 4.0</label>
+                        <label><input checked type="checkbox" name="chkbox_radii[]" value="1500" /> 4.5</label>
+                        <label><input checked type="checkbox" name="chkbox_radii[]" value="2000" /> 5</label>
+                        <!--<label><input type="checkbox" name="sports[]" value="2500" /> 5.5</label>
+                        <label><input type="checkbox" name="sports[]" value="3000" /> 6</label>-->
+
+                    </td>
+                    <!--<td> <input type="text" id="txtCircles" value="4" style="width:50px;"> </td>
 
                     <td> <label>Radius (m)</label></td>
-                    <td> <input type="text" id="txtRadius" value="1500" style="width:50px;"></td>
+                    <td> <input type="text" id="txtRadius" value="1500" style="width:50px;"></td>-->
 
-                    <td> <label>Grid Density</label></td>
+                    <td> <label><b>Grid Density</b></label></td>
                     <td> <input type="text" id="txtGridLength" value="15" style="width:50px;"></td>
 
-                    <td> <label>Random Sets</label> </td>
+                    <td> <label><b>Random Sets</b></label> </td>
                     <td>  <input type="text" id="txtRandomSet" value="30" style="width:50px;"></td>
 
-                    <td>  <label>Cross Over Sets</label> </td>
+                    <td>  <label><b>Cross Over Sets</b></label> </td>
                     <td>  <input type="text" id="txtCrossOverSet" value="30" style="width:50px;"> </td>
 
 
@@ -2716,18 +2862,18 @@
 
 
                 <tr>
-                    <td> <label>Prev. Gen Sets</label> </td>
+                    <td> <label><b>Prev. Gen Sets</b></label> </td>
                     <td>  <input type="text" id="txtPrevGenerationSets" value="10" style="width:50px;"> </td>
 
-                    <td><label>Generations</label></td>
+                    <td><label><b>Generations</b></label></td>
                     <td> <input type="text" id="txtGenerations" value="20" style="width:50px;"></td>
 
 
 
-                    <td>   <label>Mutate After Gen.</label> </td>
+                    <td>  <label><b>Mutate After Gen.</b></label> </td>
                     <td>  <input type="text" id="txtMutateAfter" value="4" style="width:50px;"></td>
 
-                    <td> <label>Req. Coverage (%) </label></td>
+                    <td> <label><b>Req. Coverage (%) </b></label></td>
                     <td>  <input type="text" id="txtReqCoverage" value="75" disabled style="width:50px;"></td>
 
                     <td>  </td>
@@ -2736,7 +2882,7 @@
 
 
                 <tr>
-                    <td> <label>Polygon</label> </td>
+                    <td> <label><b>Polygon</b></label> </td>
                     <td>
                         <select name="cars" id="selectPolygon">
                             <option value="1">One</option>
