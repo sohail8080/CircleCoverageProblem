@@ -219,7 +219,7 @@
 
                 try {
 
-                    // create lp object 
+                    // create lp object
                     var lp = glp_create_prob();
 
                     // read the model from text area, while reading also pass lp
@@ -247,7 +247,7 @@
 
                     var result = [], objective;
 
-                    // objective function value 
+                    // objective function value
                     var glp_mip_obj_value = glp_mip_obj_val(lp);
                     console.log("Circle Coverage: " + glp_mip_obj_value);
 
@@ -260,7 +260,7 @@
                     for (var i = 1; i <= glp_get_num_of_columns; i++) {
                         console.log(glp_get_col_name(lp, i) + " = " + glp_mip_col_val(lp, i));
                         //result[glp_get_col_name(lp, i)] = glp_mip_col_val(lp, i);
-                        result[i-1] = glp_mip_col_val(lp, i);
+                        result[i - 1] = glp_mip_col_val(lp, i);
                     }
 
 
@@ -284,6 +284,7 @@
             async function execut_algo(hand_drawn_polygon_by_user) {
 
                 var polygon_selector = parseInt(document.getElementById('selectPolygon').value); // 75 %
+                var polygon_area_margin = parseInt(document.getElementById('txtAreaMargin').value); // 50 %
 
                 var polygon_drawings_results;
                 var polygon;
@@ -321,13 +322,13 @@
                     // Polygon geometries for which to compute areas and lengths
                     areasAndLengthParams.polygons = simplifiedGeometries;
                     geometryService.areasAndLengths(areasAndLengthParams, function (measurements) {
-                        // do something with the results here   
-                        
-                        var initia_polygon_area = measurements.areas[0].toFixed(0);
-                        var percent_increase = (initia_polygon_area * 0.4).toFixed(0);
+                        // do something with the results here
 
-                        polygon_area = parseInt(initia_polygon_area) + parseInt(percent_increase);
+                        var initia_polygon_area = parseInt(measurements.areas[0].toFixed(0));
 
+                        //var percent_increase = (initia_polygon_area * (polygon_area_margin / 100)).toFixed(0);
+                        //polygon_area = parseInt(initia_polygon_area) + parseInt(percent_increase);
+                        polygon_area = initia_polygon_area;
 
                         console.log("result" + measurements);
                         console.log("area " + measurements.areas[0].toFixed(3) + " m2");
@@ -336,26 +337,156 @@
                     });
                 });
 
-               
+
 
             }
 
 
+
+            function Find_Circles_Required_To_Cover_Polygon(
+                circle_areas_list,
+                polygon_area,
+                polygon_area_margin_in_perc) {
+
+
+                var polygon_area_margin = (polygon_area_margin_in_perc / 100) * polygon_area;
+                polygon_area_margin = polygon_area_margin.toFixed(0);
+
+
+                var min_polygon_area = parseInt(polygon_area) - parseInt(polygon_area_margin);
+                var max_polygon_area = parseInt(polygon_area) + parseInt(polygon_area_margin);
+
+                var circle_areas_for_polygon_index = 0;
+                var circle_areas_list_index = 0;// set to biggest circle
+                var circle_areas_for_polygon = [];
+                var circle_areas_count_for_polygon = [];
+                var smallest_circle_area = circle_areas_list[circle_areas_list.length - 1];
+
+                for (var i = 0; i < circle_areas_list.length; i++) {
+                    circle_areas_count_for_polygon[i] = 0;
+                }
+
+
+                var remaining_polygon_area = max_polygon_area;
+
+                while (remaining_polygon_area > smallest_circle_area) {
+
+                    // Circle perfectly covers the area then use that circle for coverage
+                    // if one big circle covers 90% of polygon and leaves 10% un covered then it is ok
+                    // if one big circle covers 110% of polygon and provides 10% extra coverage then it is ok
+                    // algo will start with biggest circle first as circle_areas_list_index = 0
+
+                    if (circle_areas_list[circle_areas_list_index] >= min_polygon_area && circle_areas_list[circle_areas_list_index] <= max_polygon_area) {
+                        circle_areas_for_polygon[circle_areas_for_polygon_index] = circle_areas_list[circle_areas_list_index];
+                        circle_areas_count_for_polygon[circle_areas_list_index] = circle_areas_count_for_polygon[circle_areas_list_index] + 1;
+                        remaining_polygon_area = remaining_polygon_area - circle_areas_list[circle_areas_list_index];
+                        circle_areas_for_polygon_index++;
+
+                        polygon_area_margin = (polygon_area_margin_in_perc / 100) * remaining_polygon_area;
+                        polygon_area_margin = polygon_area_margin.toFixed(0);
+                        min_polygon_area = parseInt(remaining_polygon_area) - parseInt(polygon_area_margin);
+                        max_polygon_area = parseInt(remaining_polygon_area) + parseInt(polygon_area_margin);
+
+                        continue;// check remaining polygon area
+                    }
+
+
+
+                    //when polygon is huge and biggest available circle is very small in comparision
+                    // add it as we are left with no bigger circle option. USE IT
+                    if (circle_areas_list[circle_areas_list_index] < min_polygon_area && circle_areas_list_index == 0) {
+                        circle_areas_for_polygon[circle_areas_for_polygon_index] = circle_areas_list[circle_areas_list_index];
+                        circle_areas_count_for_polygon[circle_areas_list_index] = circle_areas_count_for_polygon[circle_areas_list_index] + 1;
+                        remaining_polygon_area = remaining_polygon_area - circle_areas_list[circle_areas_list_index];
+                        circle_areas_for_polygon_index++;
+
+                        polygon_area_margin = (polygon_area_margin_in_perc / 100) * remaining_polygon_area;
+                        polygon_area_margin = polygon_area_margin.toFixed(0);
+                        min_polygon_area = parseInt(remaining_polygon_area) - parseInt(polygon_area_margin);
+                        max_polygon_area = parseInt(remaining_polygon_area) + parseInt(polygon_area_margin);
+
+                        continue;// check remaining polygon area
+                    }
+
+
+
+                    //when polygon is very tiny and smallest available circle is very big in comparision
+                    // add it as we are left with no smaller circle option.
+                    if (circle_areas_list[circle_areas_list_index] > min_polygon_area && circle_areas_list_index == circle_areas_list.length - 1) {
+                        circle_areas_for_polygon[circle_areas_for_polygon_index] = circle_areas_list[circle_areas_list_index];
+                        circle_areas_count_for_polygon[circle_areas_list_index] = circle_areas_count_for_polygon[circle_areas_list_index] + 1;
+                        remaining_polygon_area = remaining_polygon_area - circle_areas_list[circle_areas_list_index];
+                        circle_areas_for_polygon_index++;
+
+                        polygon_area_margin = (polygon_area_margin_in_perc / 100) * remaining_polygon_area;
+                        polygon_area_margin = polygon_area_margin.toFixed(0);
+                        min_polygon_area = parseInt(remaining_polygon_area) - parseInt(polygon_area_margin);
+                        max_polygon_area = parseInt(remaining_polygon_area) + parseInt(polygon_area_margin);
+
+                        continue;// check remaining polygon area
+                    }
+
+
+                    // NEW
+                    //when polygon is very tiny and smallest available circle is very big in comparision
+                    // add it as we are left with no smaller circle option.
+                    if (circle_areas_list[circle_areas_list_index] < min_polygon_area && circle_areas_list_index == circle_areas_list.length - 1) {
+                        circle_areas_for_polygon[circle_areas_for_polygon_index] = circle_areas_list[circle_areas_list_index];
+                        circle_areas_count_for_polygon[circle_areas_list_index] = circle_areas_count_for_polygon[circle_areas_list_index] + 1;
+                        remaining_polygon_area = remaining_polygon_area - circle_areas_list[circle_areas_list_index];
+                        circle_areas_for_polygon_index++;
+
+                        polygon_area_margin = (polygon_area_margin_in_perc / 100) * remaining_polygon_area;
+                        polygon_area_margin = polygon_area_margin.toFixed(0);
+                        min_polygon_area = parseInt(remaining_polygon_area) - parseInt(polygon_area_margin);
+                        max_polygon_area = parseInt(remaining_polygon_area) + parseInt(polygon_area_margin);
+
+                        continue;// check remaining polygon area
+                    }
+
+
+
+                    // means circle is small, and polygon is big, and we have bigger circle options, we will try bigger circle
+                    // means circle covers 89% of polygon and leaves 11% un covered, not OK
+                    // we will try bigger circles in ascending order
+                    if (circle_areas_list[circle_areas_list_index] < min_polygon_area) {
+
+                        circle_areas_for_polygon[circle_areas_for_polygon_index] = circle_areas_list[circle_areas_list_index];
+                        circle_areas_count_for_polygon[circle_areas_list_index] = circle_areas_count_for_polygon[circle_areas_list_index] + 1;
+                        remaining_polygon_area = remaining_polygon_area - circle_areas_list[circle_areas_list_index];
+                        circle_areas_for_polygon_index++;
+
+                        polygon_area_margin = (polygon_area_margin_in_perc / 100) * remaining_polygon_area;
+                        polygon_area_margin = polygon_area_margin.toFixed(0);
+                        min_polygon_area = parseInt(remaining_polygon_area) - parseInt(polygon_area_margin);
+                        max_polygon_area = parseInt(remaining_polygon_area) + parseInt(polygon_area_margin);
+
+                        continue;
+
+                        //circle_areas_list_index--;
+                        //continue;
+                    }
+
+
+                    // means circle is big, and polygon is small, and we have smaller circle options, we will try smaller circle
+                    // means circle covers 111+% of polygon and provides 11+% extra coverage not required
+                    // we will try smaller circles in decending order
+                    if (circle_areas_list[circle_areas_list_index] > max_polygon_area) {
+                        circle_areas_list_index++;
+                        continue;
+                    }
+
+                }// while
+
+                return circle_areas_count_for_polygon;
+                //return circle_areas_for_polygon;
+
+
+            }
+
+
+
             function execut_algo2(polygon, polygon_extent, polygon_area) {
-
-
-                //var number_of_circles = 4;
-                //var radius_of_circles = 4; // in km
-                //var grid_length = 15;
-                //var random_generation_record_count = 30;
-                //var number_of_records_in_each_crossover_generations = 30;
-                //var number_of_top_records_goto_to_next_generation = 10;
-                //var generation_count = 20;
-                //var number_of_crossovers_before_mutations = 4;
-                //var required_coverage = 75; // 75 %
-                //var grid_buffer_x = 0;
-                //var grid_buffer_y = 0;
-                //var polygon_selector = 1;
 
 
                 var number_of_circles;// = parseInt(document.getElementById('txtCircles').value);
@@ -366,7 +497,7 @@
                 var number_of_top_records_goto_to_next_generation = parseInt(document.getElementById('txtPrevGenerationSets').value);
                 var generation_count = parseInt(document.getElementById('txtGenerations').value);
                 var number_of_crossovers_before_mutations = parseInt(document.getElementById('txtMutateAfter').value);
-                var required_coverage = parseInt(document.getElementById('txtReqCoverage').value); // 75 %
+                var polygon_area_margin = parseInt(document.getElementById('txtAreaMargin').value); // 50 %
                 var grid_buffer_x = 0;
                 var grid_buffer_y = 0;
                 var polygon_selector = parseInt(document.getElementById('selectPolygon').value); // 75 %
@@ -401,6 +532,7 @@
 
 
                 var selected_radii_area = [];
+                var selected_circle_areas_list = [];
                 var selected_radii_index = 0;
                 var chkbox_radii = document.getElementsByName("chkbox_radii[]");
 
@@ -409,15 +541,17 @@
                     if (chkbox_radii[i].checked == true) {
 
                         var radii_area_element = [];
-                      
-                        radii_area_element[0] = chkbox_radii[i].value;
+
+                        radii_area_element[0] = parseInt(chkbox_radii[i].value);
                         radii_area_element[1] = parseInt((3.142857142857143 * chkbox_radii[i].value * chkbox_radii[i].value).toFixed(0));
+
+                        selected_circle_areas_list[selected_radii_index] = parseInt((3.142857142857143 * chkbox_radii[i].value * chkbox_radii[i].value).toFixed(0));
 
                         selected_radii_area[selected_radii_index] = radii_area_element;
                         selected_radii_index++;
 
                     }
-                } 
+                }
 
 
                 if (selected_radii_area.length <= 0) {
@@ -428,109 +562,89 @@
                 console.clear();
                 graphics_layer.clear();
 
-                //Generate_NOT_Numbers();
-
-
-                //var polygon_drawings_results;
-                //var polygon;
-                //var polygon_graphic;
-                //var polygon_extent;
-
-
-                //if (hand_drawn_polygon_by_user == null) {
-
-                //    polygon_drawings_results = get_polygon(polygon_selector);
-                //    polygon = polygon_drawings_results[0];
-                //    polygon_graphic = polygon_drawings_results[1];
-                //    polygon_extent = polygon.getExtent();
-
-                //}
-
-
-                //if (hand_drawn_polygon_by_user != null) {
-                //    polygon = hand_drawn_polygon_by_user;
-                //    polygon_extent = hand_drawn_polygon_by_user.getExtent();
-                //}
-
-
-                //var polygon_area = 0;
-                //dummyfunction(polygon).then(response => { polygon_area = response});
-
-                ////UNIT_METER UNIT_KILOMETER UNIT_SQUARE_METERS UNIT_SQUARE_KILOMETERS UNIT_SQUARE_MILES
-                ////setup the parameters for the areas and lengths operation
-                //var areasAndLengthParams = new AreasAndLengthsParameters();
-                //areasAndLengthParams.lengthUnit = GeometryService.UNIT_METER;
-                //areasAndLengthParams.areaUnit = GeometryService.UNIT_SQUARE_METERS;
-                //areasAndLengthParams.calculationType = "geodesic"; //planar, geodesic, preserveShape
-
-
-                //geometryService.simplify([polygon], function (simplifiedGeometries) {
-                //    // Polygon geometries for which to compute areas and lengths
-                //    areasAndLengthParams.polygons = simplifiedGeometries;
-                //    geometryService.areasAndLengths(areasAndLengthParams, function (measurements) {
-                //        // do something with the results here
-                //        polygon_area = measurements.areas[0].toFixed(3);
-                //        console.log("result" + measurements);
-                //        console.log("area " + measurements.areas[0].toFixed(3) + " m2");
-                //        console.log("length " + measurements.lengths[0].toFixed(3) + " m");
-                //    });
-                //});
-
-
-                //METERS MILES SQUARE_KILOMETERS SQUARE_METERS SQUARE_MILES
-                //var polygon_areas = geodesicUtils.geodesicAreas([polygon], esri.Units.SQUARE_KILOMETERS);
-                //var polygon_area = Math.round(polygon_areas[0]);
-                //alert("Polygon Area: " + polygon_area + " km²"); // Area: 1150498 km²
-
-
-                var coverage_model_string = "";
-                coverage_model_string = coverage_model_string + "Maximize \nobj: ";
-
-                for (var i = 0; i < selected_radii_area.length; i++) {
-                    coverage_model_string = coverage_model_string + " + " + selected_radii_area[i][1] + " circle_" + selected_radii_area[i][0];
-                }
-
-                coverage_model_string = coverage_model_string + "\n\nSubject To \ncap: ";
-
-
-                for (var i = 0; i < selected_radii_area.length; i++) {
-                    coverage_model_string = coverage_model_string + " + " + selected_radii_area[i][1] + " circle_" + selected_radii_area[i][0];
-                }
-
-                coverage_model_string = coverage_model_string + " <= " + polygon_area + "\n\nBounds\n";
-
-                for (var i = 0; i < selected_radii_area.length; i++) {
-                    coverage_model_string = coverage_model_string + " 0 <= " + " circle_" + selected_radii_area[i][0] + " <= " + (selected_radii_area[i][0]/100) +"\n";
-                }
-
-                coverage_model_string = coverage_model_string + "\nGeneral\n";
-
-
-                for (var i = 0; i < selected_radii_area.length; i++) {
-                    coverage_model_string = coverage_model_string + "circle_" + selected_radii_area[i][0] + "\n";
-                }
-
-                coverage_model_string = coverage_model_string + "End\n"; 
-
-                //alert(coverage_model_string);
-                console.log(coverage_model_string);
-
                 var circle_radii_array = [];
                 var circle_radii_array_index = 0;
 
 
-                var model_solver_results = Execute_Model_Solver(coverage_model_string);
+                var circle_areaii_array = Find_Circles_Required_To_Cover_Polygon(selected_circle_areas_list,
+                    polygon_area,
+                    polygon_area_margin);
 
 
-                for (var i = 0; i < model_solver_results.length; i++) {
+                for (var i = 0; i < circle_areaii_array.length; i++) {
 
-                    for (var j = 0; j < model_solver_results[i]; j++) {
+                    for (var j = 0; j < circle_areaii_array[i]; j++) {
 
                         circle_radii_array[circle_radii_array_index] = selected_radii_area[i][0];
                         circle_radii_array_index++;
                     }
 
                 }
+
+
+                //////////////////////////////////////////////////////////////////////
+
+                
+
+                //var polygon_area_margin = (polygon_area_margin_in_perc / 100) * polygon_area;
+                //polygon_area_margin = polygon_area_margin.toFixed(0);
+
+
+                //var min_polygon_area = polygon_area - parseInt(polygon_area_margin);
+                //var max_polygon_area = polygon_area + parseInt(polygon_area_margin);
+
+                //var percent_increase = (initia_polygon_area * (polygon_area_margin / 100)).toFixed(0);
+                //polygon_area = parseInt(initia_polygon_area) + parseInt(percent_increase);
+
+                var increased_polygon_area = polygon_area + parseInt(((polygon_area_margin / 100) * polygon_area).toFixed(0));
+
+                //var coverage_model_string = "";
+                //coverage_model_string = coverage_model_string + "Maximize \nobj: ";
+
+                //for (var i = 0; i < selected_radii_area.length; i++) {
+                //    coverage_model_string = coverage_model_string + " + " + selected_radii_area[i][1] + " circle_" + selected_radii_area[i][0];
+                //}
+
+                //coverage_model_string = coverage_model_string + "\n\nSubject To \ncap: ";
+
+
+                //for (var i = 0; i < selected_radii_area.length; i++) {
+                //    coverage_model_string = coverage_model_string + " + " + selected_radii_area[i][1] + " circle_" + selected_radii_area[i][0];
+                //}
+
+                //coverage_model_string = coverage_model_string + " <= " + increased_polygon_area + "\n\nBounds\n";
+
+                //for (var i = 0; i < selected_radii_area.length; i++) {
+                //    coverage_model_string = coverage_model_string + " 0 <= " + " circle_" + selected_radii_area[i][0] + " <= " + (selected_radii_area[i][0] / 100) + "\n";
+                //}
+
+                //coverage_model_string = coverage_model_string + "\nGeneral\n";
+
+
+                //for (var i = 0; i < selected_radii_area.length; i++) {
+                //    coverage_model_string = coverage_model_string + "circle_" + selected_radii_area[i][0] + "\n";
+                //}
+
+                //coverage_model_string = coverage_model_string + "End\n";
+
+                ////alert(coverage_model_string);
+                //console.log(coverage_model_string);
+
+
+                //var model_solver_results = Execute_Model_Solver(coverage_model_string);
+                //for (var i = 0; i < model_solver_results.length; i++) {
+
+                //    for (var j = 0; j < model_solver_results[i]; j++) {
+
+                //        circle_radii_array[circle_radii_array_index] = selected_radii_area[i][0];
+                //        circle_radii_array_index++;
+                //    }
+
+                //}
+
+
+                /////////////////////////////////////////////////////////////////////////
+
 
                 number_of_circles = circle_radii_array.length;
 
@@ -580,7 +694,7 @@
 
 
 
-                
+
                 //var drawings_results = draw_circle(graphics_layer, latlong_grid_center_point, "blue", 1, radius_of_circle_in_meters);
                 //var circle_on_grid_center = drawings_results[0];
 
@@ -689,7 +803,7 @@
                         number_of_top_records_goto_to_next_generation, //11
                         number_of_records_in_each_crossover_generations, //12
                         number_of_crossovers_before_mutations, //13
-                        required_coverage, //14
+                        0, //14
                         circle_radii_array,
                         number_of_circles);
 
@@ -3040,7 +3154,7 @@
                         <label><input checked type="checkbox" name="chkbox_radii[]" value="500" /> 0.5</label>
 
                         <!--<label><input type="checkbox" name="sports[]" value="2500" /> 5.5</label>
-    <label><input type="checkbox" name="sports[]" value="3000" /> 6</label>-->
+                        <label><input type="checkbox" name="sports[]" value="3000" /> 6</label>-->
 
                     </td>
                     <!--<td> <input type="text" id="txtCircles" value="4" style="width:50px;"> </td>
@@ -3076,8 +3190,8 @@
                     <td>  <label><b>Mutate After Gen.</b></label> </td>
                     <td>  <input type="text" id="txtMutateAfter" value="4" style="width:50px;"></td>
 
-                    <td> <label><b>Req. Coverage (%) </b></label></td>
-                    <td>  <input type="text" id="txtReqCoverage" value="75" disabled style="width:50px;"></td>
+                    <td> <label><b>Area Margin (%) </b></label></td>
+                    <td>  <input type="text" id="txtAreaMargin" value="20" style="width:50px;"></td>
 
                     <td>  </td>
                     <td>  </td>
