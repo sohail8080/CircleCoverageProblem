@@ -346,10 +346,11 @@
             function Find_Circles_Required_To_Cover_Polygon(
                 circle_areas_list,
                 polygon_area,
-                polygon_area_margin_in_perc) {
+                polygon_area_margin_in_perc,
+                polygon_bounds_margin_in_perc) {
 
 
-                var polygon_area_margin = (polygon_area_margin_in_perc / 100) * polygon_area;
+                var polygon_area_margin = (polygon_bounds_margin_in_perc / 100) * polygon_area;
                 polygon_area_margin = polygon_area_margin.toFixed(0);
 
 
@@ -382,7 +383,7 @@
                         remaining_polygon_area = remaining_polygon_area - circle_areas_list[circle_areas_list_index];
                         circle_areas_for_polygon_index++;
 
-                        polygon_area_margin = (polygon_area_margin_in_perc / 100) * remaining_polygon_area;
+                        polygon_area_margin = (polygon_bounds_margin_in_perc / 100) * remaining_polygon_area;
                         polygon_area_margin = polygon_area_margin.toFixed(0);
                         min_polygon_area = parseInt(remaining_polygon_area) - parseInt(polygon_area_margin);
                         max_polygon_area = parseInt(remaining_polygon_area) + parseInt(polygon_area_margin);
@@ -400,7 +401,7 @@
                         remaining_polygon_area = remaining_polygon_area - circle_areas_list[circle_areas_list_index];
                         circle_areas_for_polygon_index++;
 
-                        polygon_area_margin = (polygon_area_margin_in_perc / 100) * remaining_polygon_area;
+                        polygon_area_margin = (polygon_bounds_margin_in_perc / 100) * remaining_polygon_area;
                         polygon_area_margin = polygon_area_margin.toFixed(0);
                         min_polygon_area = parseInt(remaining_polygon_area) - parseInt(polygon_area_margin);
                         max_polygon_area = parseInt(remaining_polygon_area) + parseInt(polygon_area_margin);
@@ -418,7 +419,7 @@
                         remaining_polygon_area = remaining_polygon_area - circle_areas_list[circle_areas_list_index];
                         circle_areas_for_polygon_index++;
 
-                        polygon_area_margin = (polygon_area_margin_in_perc / 100) * remaining_polygon_area;
+                        polygon_area_margin = (polygon_bounds_margin_in_perc / 100) * remaining_polygon_area;
                         polygon_area_margin = polygon_area_margin.toFixed(0);
                         min_polygon_area = parseInt(remaining_polygon_area) - parseInt(polygon_area_margin);
                         max_polygon_area = parseInt(remaining_polygon_area) + parseInt(polygon_area_margin);
@@ -436,7 +437,7 @@
                         remaining_polygon_area = remaining_polygon_area - circle_areas_list[circle_areas_list_index];
                         circle_areas_for_polygon_index++;
 
-                        polygon_area_margin = (polygon_area_margin_in_perc / 100) * remaining_polygon_area;
+                        polygon_area_margin = (polygon_bounds_margin_in_perc / 100) * remaining_polygon_area;
                         polygon_area_margin = polygon_area_margin.toFixed(0);
                         min_polygon_area = parseInt(remaining_polygon_area) - parseInt(polygon_area_margin);
                         max_polygon_area = parseInt(remaining_polygon_area) + parseInt(polygon_area_margin);
@@ -456,7 +457,7 @@
                         remaining_polygon_area = remaining_polygon_area - circle_areas_list[circle_areas_list_index];
                         circle_areas_for_polygon_index++;
 
-                        polygon_area_margin = (polygon_area_margin_in_perc / 100) * remaining_polygon_area;
+                        polygon_area_margin = (polygon_bounds_margin_in_perc / 100) * remaining_polygon_area;
                         polygon_area_margin = polygon_area_margin.toFixed(0);
                         min_polygon_area = parseInt(remaining_polygon_area) - parseInt(polygon_area_margin);
                         max_polygon_area = parseInt(remaining_polygon_area) + parseInt(polygon_area_margin);
@@ -498,10 +499,14 @@
                 var generation_count = parseInt(document.getElementById('txtGenerations').value);
                 var number_of_crossovers_before_mutations = parseInt(document.getElementById('txtMutateAfter').value);
                 var polygon_area_margin = parseInt(document.getElementById('txtAreaMargin').value); // 50 %
+                var polygon_bounds_margin = parseInt(document.getElementById('txtBoundMargin').value); // 20 %
                 var grid_buffer_x = 0;
                 var grid_buffer_y = 0;
                 var polygon_selector = parseInt(document.getElementById('selectPolygon').value); // 75 %
                 var ideal_circle_coverage_count_on_grid = null;
+                var isUseModelSolver = document.getElementById('ckbModelSolver').checked;
+
+                
 
 
                 if (grid_length % 2 == 0) {
@@ -531,6 +536,17 @@
                 }
 
 
+                if (polygon_area_margin < 1) {
+                    alert("Polygoin area margin in percentage should be greater than 1");
+                    return;
+                }
+
+                if (polygon_bounds_margin < 1) {
+                    alert("Polygoin bounds margin in percentage should be greater than 1");
+                    return;
+                }
+
+              
                 var selected_radii_area = [];
                 var selected_circle_areas_list = [];
                 var selected_radii_index = 0;
@@ -565,86 +581,78 @@
                 var circle_radii_array = [];
                 var circle_radii_array_index = 0;
 
+                if (!isUseModelSolver) {
 
-                var circle_areaii_array = Find_Circles_Required_To_Cover_Polygon(selected_circle_areas_list,
-                    polygon_area,
-                    polygon_area_margin);
+                    var increased_polygon_area = polygon_area + parseInt(((polygon_area_margin / 100) * polygon_area).toFixed(0));
 
+                    var circle_areaii_array = Find_Circles_Required_To_Cover_Polygon(selected_circle_areas_list,
+                        increased_polygon_area,
+                        polygon_area_margin,
+                        polygon_bounds_margin);
 
-                for (var i = 0; i < circle_areaii_array.length; i++) {
+                    for (var i = 0; i < circle_areaii_array.length; i++) {
 
-                    for (var j = 0; j < circle_areaii_array[i]; j++) {
+                        for (var j = 0; j < circle_areaii_array[i]; j++) {
 
-                        circle_radii_array[circle_radii_array_index] = selected_radii_area[i][0];
-                        circle_radii_array_index++;
+                            circle_radii_array[circle_radii_array_index] = selected_radii_area[i][0];
+                            circle_radii_array_index++;
+                        }
+
                     }
-
                 }
 
+                else {
+                    //////////////////////////////////////////////////////////////////////
 
-                //////////////////////////////////////////////////////////////////////
+                    var increased_polygon_area = polygon_area + parseInt(((polygon_area_margin / 100) * polygon_area).toFixed(0));
 
-                
+                    var coverage_model_string = "";
+                    coverage_model_string = coverage_model_string + "Maximize \nobj: ";
 
-                //var polygon_area_margin = (polygon_area_margin_in_perc / 100) * polygon_area;
-                //polygon_area_margin = polygon_area_margin.toFixed(0);
+                    for (var i = 0; i < selected_radii_area.length; i++) {
+                        coverage_model_string = coverage_model_string + " + " + selected_radii_area[i][1] + " circle_" + selected_radii_area[i][0];
+                    }
 
-
-                //var min_polygon_area = polygon_area - parseInt(polygon_area_margin);
-                //var max_polygon_area = polygon_area + parseInt(polygon_area_margin);
-
-                //var percent_increase = (initia_polygon_area * (polygon_area_margin / 100)).toFixed(0);
-                //polygon_area = parseInt(initia_polygon_area) + parseInt(percent_increase);
-
-                var increased_polygon_area = polygon_area + parseInt(((polygon_area_margin / 100) * polygon_area).toFixed(0));
-
-                //var coverage_model_string = "";
-                //coverage_model_string = coverage_model_string + "Maximize \nobj: ";
-
-                //for (var i = 0; i < selected_radii_area.length; i++) {
-                //    coverage_model_string = coverage_model_string + " + " + selected_radii_area[i][1] + " circle_" + selected_radii_area[i][0];
-                //}
-
-                //coverage_model_string = coverage_model_string + "\n\nSubject To \ncap: ";
+                    coverage_model_string = coverage_model_string + "\n\nSubject To \ncap: ";
 
 
-                //for (var i = 0; i < selected_radii_area.length; i++) {
-                //    coverage_model_string = coverage_model_string + " + " + selected_radii_area[i][1] + " circle_" + selected_radii_area[i][0];
-                //}
+                    for (var i = 0; i < selected_radii_area.length; i++) {
+                        coverage_model_string = coverage_model_string + " + " + selected_radii_area[i][1] + " circle_" + selected_radii_area[i][0];
+                    }
 
-                //coverage_model_string = coverage_model_string + " <= " + increased_polygon_area + "\n\nBounds\n";
+                    coverage_model_string = coverage_model_string + " <= " + increased_polygon_area + "\n\nBounds\n";
 
-                //for (var i = 0; i < selected_radii_area.length; i++) {
-                //    coverage_model_string = coverage_model_string + " 0 <= " + " circle_" + selected_radii_area[i][0] + " <= " + (selected_radii_area[i][0] / 100) + "\n";
-                //}
+                    for (var i = 0; i < selected_radii_area.length; i++) {
+                        coverage_model_string = coverage_model_string + " 0 <= " + " circle_" + selected_radii_area[i][0] + " <= " + (selected_radii_area[i][0] / 100) + "\n";
+                    }
 
-                //coverage_model_string = coverage_model_string + "\nGeneral\n";
-
-
-                //for (var i = 0; i < selected_radii_area.length; i++) {
-                //    coverage_model_string = coverage_model_string + "circle_" + selected_radii_area[i][0] + "\n";
-                //}
-
-                //coverage_model_string = coverage_model_string + "End\n";
-
-                ////alert(coverage_model_string);
-                //console.log(coverage_model_string);
+                    coverage_model_string = coverage_model_string + "\nGeneral\n";
 
 
-                //var model_solver_results = Execute_Model_Solver(coverage_model_string);
-                //for (var i = 0; i < model_solver_results.length; i++) {
+                    for (var i = 0; i < selected_radii_area.length; i++) {
+                        coverage_model_string = coverage_model_string + "circle_" + selected_radii_area[i][0] + "\n";
+                    }
 
-                //    for (var j = 0; j < model_solver_results[i]; j++) {
+                    coverage_model_string = coverage_model_string + "End\n";
 
-                //        circle_radii_array[circle_radii_array_index] = selected_radii_area[i][0];
-                //        circle_radii_array_index++;
-                //    }
-
-                //}
+                    //alert(coverage_model_string);
+                    console.log(coverage_model_string);
 
 
-                /////////////////////////////////////////////////////////////////////////
+                    var model_solver_results = Execute_Model_Solver(coverage_model_string);
+                    for (var i = 0; i < model_solver_results.length; i++) {
 
+                        for (var j = 0; j < model_solver_results[i]; j++) {
+
+                            circle_radii_array[circle_radii_array_index] = selected_radii_area[i][0];
+                            circle_radii_array_index++;
+                        }
+
+                    }
+
+
+                    /////////////////////////////////////////////////////////////////////////
+                }
 
                 number_of_circles = circle_radii_array.length;
 
@@ -3171,21 +3179,16 @@
                     <td>  <label><b>Cross Over Sets</b></label> </td>
                     <td>  <input type="text" id="txtCrossOverSet" value="30" style="width:50px;"> </td>
 
-
-
                 </tr>
 
 
-
-
                 <tr>
+
                     <td> <label><b>Prev. Gen Sets</b></label> </td>
                     <td>  <input type="text" id="txtPrevGenerationSets" value="10" style="width:50px;"> </td>
 
                     <td><label><b>Generations</b></label></td>
                     <td> <input type="text" id="txtGenerations" value="200" style="width:50px;"></td>
-
-
 
                     <td>  <label><b>Mutate After Gen.</b></label> </td>
                     <td>  <input type="text" id="txtMutateAfter" value="4" style="width:50px;"></td>
@@ -3193,8 +3196,9 @@
                     <td> <label><b>Area Margin (%) </b></label></td>
                     <td>  <input type="text" id="txtAreaMargin" value="50" style="width:50px;"></td>
 
-                    <td>  </td>
-                    <td>  </td>
+                    <td> <label><b>Bound Margin (%) </b></label></td>
+                    <td>  <input type="text" id="txtBoundMargin" value="5" style="width:50px;"></td>
+
                 </tr>
 
 
@@ -3233,6 +3237,12 @@
                     <td>
                         <button data-dojo-props="id:'btnClearMap'" data-dojo-type="dijit/form/Button">Clear Map</button>
                     </td>
+
+
+                    <td> <label><b>Model Solver </b></label></td>
+                    <td> <input id="ckbModelSolver" type="checkbox" /></td>
+
+
 
                 </tr>
 
