@@ -943,19 +943,19 @@
                 graphics_layer.add(labelPointGraphic2);
 
 
-                var circle_percent_coverage = (fittest_record_found[2] / ideal_circle_coverage_count_on_grid) * 100;
+                var circle_percent_coverage = (fittest_inside_covg_with_overlapping / ideal_circle_coverage_count_on_grid) * 100;
                 circle_percent_coverage = circle_percent_coverage.toFixed(2);
                 var font3 = Font("20", Font.STYLE_NORMAL, Font.VARIANT_NORMAL, Font.WEIGHT_BOLDER);
-                var textSymbol3 = new TextSymbol("Circles Parts Used : " + fittest_record_found[2] + " / " + ideal_circle_coverage_count_on_grid + " ( " + circle_percent_coverage + "% )", font3, "blue");
+                var textSymbol3 = new TextSymbol("Circles Parts Used : " + fittest_inside_covg_with_overlapping + " / " + ideal_circle_coverage_count_on_grid + " ( " + circle_percent_coverage + "% )", font3, "blue");
                 var labelPointGraphic3 = new Graphic(latlong_grid[((grid_length - 1))][grid_length - 1].offset(text_offset_value_x, 3 * text_offset_value_y), textSymbol3);
                 graphics_layer.add(labelPointGraphic3);
 
 
-                // Ideal Coverage - inside coverage without overlapping
-                var circle_percent_outside_coverage = ((ideal_circle_coverage_count_on_grid - fittest_record_found[2]) / ideal_circle_coverage_count_on_grid) * 100;
+                // Ideal Coverage - inside coverage with overlapping
+                var circle_percent_outside_coverage = ((ideal_circle_coverage_count_on_grid - fittest_inside_covg_with_overlapping) / ideal_circle_coverage_count_on_grid) * 100;
                 circle_percent_outside_coverage = circle_percent_outside_coverage.toFixed(2);
                 var font4 = Font("20", Font.STYLE_NORMAL, Font.VARIANT_NORMAL, Font.WEIGHT_BOLDER);
-                var textSymbol4 = new TextSymbol("Circles Parts Not Used : " + (ideal_circle_coverage_count_on_grid - fittest_record_found[2]) + " / " + ideal_circle_coverage_count_on_grid + " ( " + circle_percent_outside_coverage + "% )", font4, "blue");
+                var textSymbol4 = new TextSymbol("Circles Parts Not Used : " + (ideal_circle_coverage_count_on_grid - fittest_inside_covg_with_overlapping) + " / " + ideal_circle_coverage_count_on_grid + " ( " + circle_percent_outside_coverage + "% )", font4, "blue");
                 var labelPointGraphic4 = new Graphic(latlong_grid[((grid_length - 1))][grid_length - 1].offset(text_offset_value_x, 4 * text_offset_value_y), textSymbol4);
                 graphics_layer.add(labelPointGraphic4);
 
@@ -1086,14 +1086,12 @@
                     // it is not complete overlapping among circles
                     // it is only overlapping within polygon, not outside polygon
                     // Inside coverage with overlapping
-                    var tieing_topper_fitness_value_with_overlapping = tieing_toppers_records[i][2];
+                    var tieing_topper_fitness_value_with_overlapping = tieing_toppers_records[i][3];
 
                     // get the record having multiple circels centerpoints
                     var tieing_topper_record = tieing_toppers_records[i][1];
 
                     var tieing_topper_outside_circle_coverage;
-
-
                     if (outside_covg_filter_selector == 1) {
 
                         // Old solution agreed with adnan
@@ -1104,16 +1102,21 @@
                             polygon_coverage_on_latlong_grid,
                             latlong_grid,
                             circle_radii_array);
-
-
                     }
                     else {
                         // Asif sb solution
-                        tieing_topper_outside_circle_coverage =
-                            ideal_circle_coverage_count_on_grid - tieing_topper_fitness_value_with_overlapping;
+                        //tieing_topper_outside_circle_coverage =
+                        //    ideal_circle_coverage_count_on_grid - tieing_topper_fitness_value_with_overlapping;
+
+                        tieing_topper_outside_circle_coverage = tieing_toppers_records[i][5];
 
                     }
 
+                    //alert("tieing_topper_outside_circle_coverage-A" + tieing_topper_outside_circle_coverage);
+
+                    //var tieing_topper_outside_circle_coverage = tieing_toppers_records[i][5];
+
+                    //alert("tieing_topper_outside_circle_coverage-B" + tieing_topper_outside_circle_coverage22);
 
                     // Step1: Select Records with least overlapping inside polygon
                     // Step2: Now Select the Record having maximum overlapping inside the polygon.
@@ -1803,7 +1806,7 @@
                 //******************************************************************************************
 
                 var total_cir_cov_outs_poly = 0;
-                total_cir_cov_outs_poly = ideal_circle_coverage_count_on_grid - total_cir_cov_ins_poly_without_overlapping;
+                total_cir_cov_outs_poly = ideal_circle_coverage_count_on_grid - total_cir_cov_ins_poly_with_overlapping;
 
 
                 var coverage_results_with_n_without = [];
@@ -3390,7 +3393,7 @@
 
 
                     <td> <label><b>Model Solver </b></label></td>
-                    <td> <input id="ckbModelSolver" type="checkbox" /></td>
+                    <td> <input id="ckbModelSolver" checked type="checkbox" /></td>
 
 
 
@@ -3412,8 +3415,8 @@
 
                     <td> <label><b>Outside Covg Filter </b></label></td>
                     <td colspan="2">
-                        <input checked name="rdobtn_outsidecovgfilter[]" type="radio" value="1" />
-                        <input name="rdobtn_outsidecovgfilter[]" type="radio" value="2" />
+                        <input  name="rdobtn_outsidecovgfilter[]" type="radio" value="1" />
+                        <input checked name="rdobtn_outsidecovgfilter[]" type="radio" value="2" />
                     </td>
 
 
