@@ -797,7 +797,8 @@
                     latlong_grid,
                     circle_radii_array,
                     number_of_circles,
-                    fitness_function_selector);
+                    fitness_function_selector,
+                    ideal_circle_coverage_count_on_grid);
 
 
                 var master_record = [];
@@ -839,7 +840,8 @@
                         0, //14
                         circle_radii_array,
                         number_of_circles,
-                        fitness_function_selector);
+                        fitness_function_selector,
+                        ideal_circle_coverage_count_on_grid);
 
                     if ((iteration_count + 1) % number_of_crossovers_before_mutations == 0) {
 
@@ -883,7 +885,7 @@
 
                 //var fittest_record_found = master_record[3][0];
 
-             
+
 
                 if (hand_drawn_polygon_by_user == null) {
                     draw_polygon(polygon_selector);
@@ -917,18 +919,18 @@
 
                 var text_offset_value_x = 6000;
                 var text_offset_value_y = -700;
-                
+
                 var font = Font("20", Font.STYLE_NORMAL, Font.VARIANT_NORMAL, Font.WEIGHT_BOLDER);
                 var textSymbol = new TextSymbol("Fitness Value : " + fittest_fitness_value, font, "blue");
                 var labelPointGraphic = new Graphic(latlong_grid[((grid_length - 1))][grid_length - 1].offset(text_offset_value_x, 0 * text_offset_value_y), textSymbol);
                 graphics_layer.add(labelPointGraphic);
 
 
-              
+
                 var polygon_percent_coverage = (total_polygon_points_covered_by_circles / total_polygon_points_covered_on_grid) * 100;
                 polygon_percent_coverage = polygon_percent_coverage.toFixed(2);
                 var font6 = Font("20", Font.STYLE_NORMAL, Font.VARIANT_NORMAL, Font.WEIGHT_BOLDER);
-                var textSymbol6 = new TextSymbol("Circle Coverage : " + fittest_record_found[0] + " / " + total_polygon_points_covered_on_grid + " ( " + polygon_percent_coverage + "% )", font6, "blue");
+                var textSymbol6 = new TextSymbol("Circle Coverage : " + fittest_record_found[2] + " / " + total_polygon_points_covered_on_grid + " ( " + polygon_percent_coverage + "% )", font6, "blue");
                 var labelPointGraphic6 = new Graphic(latlong_grid[((grid_length - 1))][grid_length - 1].offset(text_offset_value_x, 1 * text_offset_value_y), textSymbol6);
                 graphics_layer.add(labelPointGraphic6);
 
@@ -944,27 +946,28 @@
                 var circle_percent_coverage = (fittest_record_found[2] / ideal_circle_coverage_count_on_grid) * 100;
                 circle_percent_coverage = circle_percent_coverage.toFixed(2);
                 var font3 = Font("20", Font.STYLE_NORMAL, Font.VARIANT_NORMAL, Font.WEIGHT_BOLDER);
-                var textSymbol3 = new TextSymbol("Circles Usage : " + fittest_record_found[2] + " / " + ideal_circle_coverage_count_on_grid + " ( " + circle_percent_coverage + "% )", font3, "blue");
+                var textSymbol3 = new TextSymbol("Circles Parts Used : " + fittest_record_found[2] + " / " + ideal_circle_coverage_count_on_grid + " ( " + circle_percent_coverage + "% )", font3, "blue");
                 var labelPointGraphic3 = new Graphic(latlong_grid[((grid_length - 1))][grid_length - 1].offset(text_offset_value_x, 3 * text_offset_value_y), textSymbol3);
                 graphics_layer.add(labelPointGraphic3);
 
 
+                // Ideal Coverage - inside coverage without overlapping
                 var circle_percent_outside_coverage = ((ideal_circle_coverage_count_on_grid - fittest_record_found[2]) / ideal_circle_coverage_count_on_grid) * 100;
                 circle_percent_outside_coverage = circle_percent_outside_coverage.toFixed(2);
                 var font4 = Font("20", Font.STYLE_NORMAL, Font.VARIANT_NORMAL, Font.WEIGHT_BOLDER);
-                var textSymbol4 = new TextSymbol("Circles Not Used : " + (ideal_circle_coverage_count_on_grid - fittest_record_found[2]) + " / " + ideal_circle_coverage_count_on_grid + " ( " + circle_percent_outside_coverage + "% )", font4, "blue");
+                var textSymbol4 = new TextSymbol("Circles Parts Not Used : " + (ideal_circle_coverage_count_on_grid - fittest_record_found[2]) + " / " + ideal_circle_coverage_count_on_grid + " ( " + circle_percent_outside_coverage + "% )", font4, "blue");
                 var labelPointGraphic4 = new Graphic(latlong_grid[((grid_length - 1))][grid_length - 1].offset(text_offset_value_x, 4 * text_offset_value_y), textSymbol4);
                 graphics_layer.add(labelPointGraphic4);
 
 
                 var font7 = Font("20", Font.STYLE_NORMAL, Font.VARIANT_NORMAL, Font.WEIGHT_BOLDER);
-                var textSymbol7 = new TextSymbol("Covg Inside with Overlapping : " + fittest_inside_covg_with_overlapping, font7, "blue");
+                var textSymbol7 = new TextSymbol("Inside Covg with Overlapping : " + fittest_inside_covg_with_overlapping, font7, "blue");
                 var labelPointGraphic7 = new Graphic(latlong_grid[((grid_length - 1))][grid_length - 1].offset(text_offset_value_x, 5 * text_offset_value_y), textSymbol7);
                 graphics_layer.add(labelPointGraphic7);
 
 
                 var font8 = Font("20", Font.STYLE_NORMAL, Font.VARIANT_NORMAL, Font.WEIGHT_BOLDER);
-                var textSymbol8 = new TextSymbol("Covg Inside without Overlapping : " + fittest_inside_covg_without_overlapping, font8, "blue");
+                var textSymbol8 = new TextSymbol("Inside Covg without Overlapping : " + fittest_inside_covg_without_overlapping, font8, "blue");
                 var labelPointGraphic8 = new Graphic(latlong_grid[((grid_length - 1))][grid_length - 1].offset(text_offset_value_x, 6 * text_offset_value_y), textSymbol8);
                 graphics_layer.add(labelPointGraphic8);
 
@@ -977,7 +980,7 @@
 
 
                 var font9 = Font("20", Font.STYLE_NORMAL, Font.VARIANT_NORMAL, Font.WEIGHT_BOLDER);
-                var textSymbol9 = new TextSymbol("Covg Outside : " + fittest_outside_covg, font9, "blue");
+                var textSymbol9 = new TextSymbol("Outside Covg : " + fittest_outside_covg, font9, "blue");
                 var labelPointGraphic9 = new Graphic(latlong_grid[((grid_length - 1))][grid_length - 1].offset(text_offset_value_x, 8 * text_offset_value_y), textSymbol9);
                 graphics_layer.add(labelPointGraphic9);
 
@@ -1089,7 +1092,7 @@
                     var tieing_topper_record = tieing_toppers_records[i][1];
 
                     var tieing_topper_outside_circle_coverage;
-                   
+
 
                     if (outside_covg_filter_selector == 1) {
 
@@ -1142,7 +1145,8 @@
                 latlong_grid,
                 circle_radii_array,
                 number_of_circles,
-                fitness_function_selector) {
+                fitness_function_selector,
+                ideal_circle_coverage_count_on_grid) {
 
                 var Generation_Result_Table = [];// result of generation with fitness value
                 var maxfitnessvalue = -1;
@@ -1174,7 +1178,8 @@
                         latlong_grid,
                         circle_radii_array,
                         number_of_circles,
-                        fitness_function_selector);
+                        fitness_function_selector,
+                        ideal_circle_coverage_count_on_grid);
 
                     FitnessValue = coverage_results_with_n_without[0];// fitness value
                     FitnessValue_with_Overlapping = coverage_results_with_n_without[1];
@@ -1431,7 +1436,8 @@
                 required_coverage, //14
                 circle_radii_array,
                 number_of_circles,
-                fitness_function_selector
+                fitness_function_selector,
+                ideal_circle_coverage_count_on_grid
             ) {
 
                 var Generation_Result_Table = [];// result of generation with fitness value
@@ -1514,7 +1520,8 @@
                         latlong_grid,
                         circle_radii_array,
                         number_of_circles,
-                        fitness_function_selector);
+                        fitness_function_selector,
+                        ideal_circle_coverage_count_on_grid);
 
                     FitnessValue = coverage_results_with_n_without[0];// FV
                     FitnessValue_with_Overlapping = coverage_results_with_n_without[1]; //without overlapping
@@ -1633,7 +1640,8 @@
                 latlong_grid,
                 circle_radii_array,
                 number_of_circles,
-                fitness_function_selector) {
+                fitness_function_selector,
+                ideal_circle_coverage_count_on_grid) {
 
 
                 var center_point = [];
@@ -1744,12 +1752,18 @@
                 var total_cir_cov_ins_poly_without_overlapping = total_cir_cov_ins_poly_with_overlapping - total_overlapping_amongall_circles;
 
 
-                var cir_cov_on_grid = [];
-                for (var i = 0; i < circle_polygon.length; i++) {
-                    cir_cov_on_grid[i] = get_polygon_coverage_on_latlong_grid(circle_polygon[i], latlong_grid);
-                }
+
+                //*********************************************************************************************
+                // ALL POINTS OF A CIRCLE LIE ON THE GRID.
+                // IT DOES NOT COUNT THE PART OF CIRCLE GOING OUTSIDE GRID.
+                // IT ONLY COUNTS THE PART OF CIRCLE LYING ON THE GIRD.
+                //var cir_cov_on_grid = [];
+                //for (var i = 0; i < circle_polygon.length; i++) {
+                //    cir_cov_on_grid[i] = get_polygon_coverage_on_latlong_grid(circle_polygon[i], latlong_grid);
+                //}
 
 
+                // OLD CODE
                 //var cir1_cov_on_grid = get_polygon_coverage_on_latlong_grid(circle_polygon_1, latlong_grid);
                 //var cir2_cov_on_grid = get_polygon_coverage_on_latlong_grid(circle_polygon_2, latlong_grid);
                 //var cir3_cov_on_grid = get_polygon_coverage_on_latlong_grid(circle_polygon_3, latlong_grid);
@@ -1764,13 +1778,17 @@
                 //print_point_array_to_console(cir4_cov_on_grid);
 
 
-                var total_cir_cov_outs_poly = 0;
+                // ALL POINTS OF A CIRCLE NOT LIE IN THE POLYGON.
+                // IT DOES NOT COUNT THE PART OF CIRCLE GOING OUTSIDE GRID.
+                // IT ONLY COUNTS THE PART OF CIRCLE LYING ON THE GIRD.
+                //var total_cir_cov_outs_poly = 0;
 
-                for (var i = 0; i < cir_cov_ins_poly.length; i++) {
-                    total_cir_cov_outs_poly = total_cir_cov_outs_poly + get_circle_coverage_outside_polygon(polygon, cir_cov_on_grid[i]);
-                }
+                //for (var i = 0; i < cir_cov_ins_poly.length; i++) {
+                //    total_cir_cov_outs_poly = total_cir_cov_outs_poly + get_circle_coverage_outside_polygon(polygon, cir_cov_on_grid[i]);
+                //}
+                
 
-
+                // OLD CODE
                 //var cir1_cov_outs_poly = get_circle_coverage_outside_polygon(polygon, cir1_cov_on_grid);
                 //var cir2_cov_outs_poly = get_circle_coverage_outside_polygon(polygon, cir2_cov_on_grid);
                 //var cir3_cov_outs_poly = get_circle_coverage_outside_polygon(polygon, cir3_cov_on_grid);
@@ -1781,6 +1799,11 @@
                 //console.log("circle 3 coverage outside polygon " + cir3_cov_outs_poly);
                 //console.log("circle 4 coverage outside polygon " + cir4_cov_outs_poly);
                 //console.log("total circles coverage outside polygon " + total_cir_cov_outs_poly);
+
+                //******************************************************************************************
+
+                var total_cir_cov_outs_poly = 0;
+                total_cir_cov_outs_poly = ideal_circle_coverage_count_on_grid - total_cir_cov_ins_poly_without_overlapping;
 
 
                 var coverage_results_with_n_without = [];
@@ -2455,7 +2478,7 @@
 
 
 
-                if (choice % 2 == 0 ) {
+                if (choice % 2 == 0) {
                     return symbology_blue;
                 }
 
