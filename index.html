@@ -28,7 +28,7 @@
         }
 
         #header {
-            height: 80px;
+            height: 110px;
             overflow: auto;
             padding: 0.5em;
         }
@@ -503,10 +503,10 @@
                 var grid_buffer_x = 0;
                 var grid_buffer_y = 0;
                 var polygon_selector = parseInt(document.getElementById('selectPolygon').value); // 75 %
-                var ideal_circle_coverage_count_on_grid = null;
+                var ideal_circle_coverage_count_on_grid = 0;
                 var isUseModelSolver = document.getElementById('ckbModelSolver').checked;
 
-                
+
 
 
                 if (grid_length % 2 == 0) {
@@ -546,7 +546,31 @@
                     return;
                 }
 
-              
+                var rdobtn_fitfun = document.getElementsByName("rdobtn_fitfun[]");
+                var fitness_function_selector = 1;
+
+                for (var i = 0; i < rdobtn_fitfun.length; i++) {
+
+                    if (rdobtn_fitfun[i].checked == true) {
+                        fitness_function_selector = parseInt(rdobtn_fitfun[i].value);
+                        break;
+                    }
+                }
+
+                var rdobtn_outsidecovgfilter = document.getElementsByName("rdobtn_outsidecovgfilter[]");
+                var outside_covg_filter_selector = 1;
+
+                for (var i = 0; i < rdobtn_outsidecovgfilter.length; i++) {
+
+                    if (rdobtn_outsidecovgfilter[i].checked == true) {
+                        outside_covg_filter_selector = parseInt(rdobtn_outsidecovgfilter[i].value);
+                        break;
+                    }
+                }
+
+
+
+
                 var selected_radii_area = [];
                 var selected_circle_areas_list = [];
                 var selected_radii_index = 0;
@@ -772,7 +796,8 @@
                     polygon_coverage_on_latlong_grid,
                     latlong_grid,
                     circle_radii_array,
-                    number_of_circles);
+                    number_of_circles,
+                    fitness_function_selector);
 
 
                 var master_record = [];
@@ -813,7 +838,8 @@
                         number_of_crossovers_before_mutations, //13
                         0, //14
                         circle_radii_array,
-                        number_of_circles);
+                        number_of_circles,
+                        fitness_function_selector);
 
                     if ((iteration_count + 1) % number_of_crossovers_before_mutations == 0) {
 
@@ -851,7 +877,8 @@
                     polygon_coverage_on_latlong_grid,
                     latlong_grid,
                     circle_radii_array,
-                    ideal_circle_coverage_count_on_grid);
+                    ideal_circle_coverage_count_on_grid,
+                    outside_covg_filter_selector);
 
 
                 var fittest_record_found = master_record[3][0];
@@ -973,7 +1000,8 @@
                 polygon_coverage_on_latlong_grid,
                 latlong_grid,
                 circle_radii_array,
-                ideal_circle_coverage_count_on_grid) {
+                ideal_circle_coverage_count_on_grid,
+                outside_covg_filter_selector) {
 
                 // passed value is master_record[3]
 
@@ -1022,18 +1050,30 @@
                     // get the record having multiple circels centerpoints
                     var tieing_topper_record = tieing_toppers_records[i][1];
 
-                    // Old solution agreed with adnan
-                    var tieing_topper_outside_circle_coverage = Get_Circle_Outside_Coverage_Of_Record_Map(
-                        tieing_topper_record,
-                        map,
-                        polygon,
-                        polygon_coverage_on_latlong_grid,
-                        latlong_grid,
-                        circle_radii_array);
+                    var tieing_topper_outside_circle_coverage;
 
-                    // Asif sb solution
-                    //var tieing_topper_outside_circle_coverage =
-                    // ideal_circle_coverage_count_on_grid - tieing_topper_fitness_value_with_overlapping;
+                    alert(outside_covg_filter_selector);
+
+                    if (outside_covg_filter_selector == 1) {
+
+                        // Old solution agreed with adnan
+                        tieing_topper_outside_circle_coverage = Get_Circle_Outside_Coverage_Of_Record_Map(
+                            tieing_topper_record,
+                            map,
+                            polygon,
+                            polygon_coverage_on_latlong_grid,
+                            latlong_grid,
+                            circle_radii_array);
+
+
+                    }
+                    else {
+                        // Asif sb solution
+                        tieing_topper_outside_circle_coverage =
+                            ideal_circle_coverage_count_on_grid - tieing_topper_fitness_value_with_overlapping;
+
+                    }
+
 
                     // Step1: Select Records with least overlapping inside polygon
                     // Step2: Now Select the Record having maximum overlapping inside the polygon.
@@ -1064,7 +1104,8 @@
                 polygon_coverage, //polygon_coverage_on_latlong_grid
                 latlong_grid,
                 circle_radii_array,
-                number_of_circles) {
+                number_of_circles,
+                fitness_function_selector) {
 
                 var Generation_Result_Table = [];// result of generation with fitness value
                 var maxfitnessvalue = -1;
@@ -1095,7 +1136,8 @@
                         polygon_coverage, //polygon_coverage_on_latlong_grid
                         latlong_grid,
                         circle_radii_array,
-                        number_of_circles);
+                        number_of_circles,
+                        fitness_function_selector);
 
                     FitnessValue = coverage_results_with_n_without[0];// fitness value
                     FitnessValue_with_Overlapping = coverage_results_with_n_without[1];
@@ -1351,7 +1393,8 @@
                 number_of_crossovers_before_mutations, //13
                 required_coverage, //14
                 circle_radii_array,
-                number_of_circles
+                number_of_circles,
+                fitness_function_selector
             ) {
 
                 var Generation_Result_Table = [];// result of generation with fitness value
@@ -1433,7 +1476,8 @@
                         polygon_coverage_on_latlong_grid,
                         latlong_grid,
                         circle_radii_array,
-                        number_of_circles);
+                        number_of_circles,
+                        fitness_function_selector);
 
                     FitnessValue = coverage_results_with_n_without[0];// FV
                     FitnessValue_with_Overlapping = coverage_results_with_n_without[1]; //without overlapping
@@ -1551,7 +1595,8 @@
                 polygon_coverage, //polygon_coverage_on_latlong_grid
                 latlong_grid,
                 circle_radii_array,
-                number_of_circles) {
+                number_of_circles,
+                fitness_function_selector) {
 
 
                 var center_point = [];
@@ -1702,13 +1747,36 @@
 
 
                 var coverage_results_with_n_without = [];
+                var fv_formula;
+
+                if (fitness_function_selector == 1) {
+                    fv_formula = total_cir_cov_ins_poly_without_overlapping;
+                }
+                else if (fitness_function_selector == 2) {
+                    fv_formula = (total_cir_cov_ins_poly_with_overlapping + (2 * total_cir_cov_ins_poly_without_overlapping)) - (total_cir_cov_ins_poly_with_overlapping + total_cir_cov_outs_poly);
+                }
+                else if (fitness_function_selector == 3) {
+                    fv_formula = (total_cir_cov_ins_poly_with_overlapping + (3 * total_cir_cov_ins_poly_without_overlapping)) - (total_cir_cov_ins_poly_with_overlapping + total_cir_cov_outs_poly);
+                }
+                else if (fitness_function_selector == 4) {
+                    fv_formula = (total_cir_cov_ins_poly_with_overlapping + (4 * total_cir_cov_ins_poly_without_overlapping)) - (total_cir_cov_ins_poly_with_overlapping + total_cir_cov_outs_poly);
+                }
+                else if (fitness_function_selector == 5) {
+                    fv_formula = total_cir_cov_ins_poly_without_overlapping - total_cir_cov_outs_poly;
+                }
+                else if (fitness_function_selector == 6) {
+                    fv_formula = 2 * (total_cir_cov_ins_poly_with_overlapping + total_cir_cov_ins_poly_without_overlapping) - (total_cir_cov_ins_poly_with_overlapping + total_cir_cov_outs_poly);
+                }
+                else {
+                    fv_formula = total_cir_cov_ins_poly_without_overlapping;
+                }
 
 
                 // inside coverage without overlapping
                 //var fv_formula = (10 * total_cir_cov_ins_poly_with_overlapping) - (9 * total_overlapping_amongall_circles);
 
                 // inside coverage without overlapping
-                var fv_formula = total_cir_cov_ins_poly_without_overlapping;
+                //var fv_formula = total_cir_cov_ins_poly_without_overlapping;
 
                 // inside coverage without overlapping and without outsdie covg
                 //var fv_formula = total_cir_cov_ins_poly_without_overlapping - total_cir_cov_outs_poly;
@@ -3246,6 +3314,29 @@
 
                 </tr>
 
+
+                <tr>
+
+                    <td> <label><b>Fit. Function </b></label></td>
+                    <td colspan="2">
+                        <input checked name="rdobtn_fitfun[]" type="radio" value="1" />
+                        <input name="rdobtn_fitfun[]" type="radio" value="2" />
+                        <input name="rdobtn_fitfun[]" type="radio" value="3" />
+                        <input name="rdobtn_fitfun[]" type="radio" value="4" />
+                        <input name="rdobtn_fitfun[]" type="radio" value="5" />
+                        <input name="rdobtn_fitfun[]" type="radio" value="6" />
+                    </td>
+
+
+                    <td> <label><b>Outside Covg Filter </b></label></td>
+                    <td colspan="2">
+                        <input checked name="rdobtn_outsidecovgfilter[]" type="radio" value="1" />
+                        <input name="rdobtn_outsidecovgfilter[]" type="radio" value="2" />
+                    </td>
+
+
+
+                </tr>
 
 
             </table>
