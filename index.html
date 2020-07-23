@@ -104,7 +104,7 @@
             var map = new Map("map", {
                 basemap: "topo",
                 extent: initialExtent,
-                zoom: 13
+                zoom: 12
             });
 
             var hand_drawn_polygon_by_user;
@@ -881,9 +881,9 @@
                     outside_covg_filter_selector);
 
 
-                var fittest_record_found = master_record[3][0];
+                //var fittest_record_found = master_record[3][0];
 
-                var endTime = performance.now();
+             
 
                 if (hand_drawn_polygon_by_user == null) {
                     draw_polygon(polygon_selector);
@@ -902,24 +902,42 @@
                     circle_radii_array,
                     number_of_circles);
 
+                var endTime = performance.now();
+
                 //show_record_on_map(graphics_layer, master_record[3][0], latlong_grid, radius_of_circle_in_meters);
 
                 var total_polygon_points_covered_on_grid = polygon_coverage_on_cartesian_grid.length;
-                var total_polygon_points_covered_by_circles = fittest_record_found[0];
+                var total_polygon_points_covered_by_circles = fittest_record_found[2];// FV
+
+                var fittest_fitness_value = fittest_record_found[0];// FV
+                var fittest_inside_covg_without_overlapping = fittest_record_found[2];// coverage without overlapping
+                var fittest_inside_covg_with_overlapping = fittest_record_found[3];// coverage with overlapping
+                var fittest_total_overlapping = fittest_record_found[4];// total overlapping
+                var fittest_outside_covg = fittest_record_found[5];// circle outside coverage
+
+                var text_offset_value_x = 6000;
+                var text_offset_value_y = -700;
+                
+                var font = Font("20", Font.STYLE_NORMAL, Font.VARIANT_NORMAL, Font.WEIGHT_BOLDER);
+                var textSymbol = new TextSymbol("Fitness Value : " + fittest_fitness_value, font, "blue");
+                var labelPointGraphic = new Graphic(latlong_grid[((grid_length - 1))][grid_length - 1].offset(text_offset_value_x, 0 * text_offset_value_y), textSymbol);
+                graphics_layer.add(labelPointGraphic);
 
 
+              
                 var polygon_percent_coverage = (total_polygon_points_covered_by_circles / total_polygon_points_covered_on_grid) * 100;
                 polygon_percent_coverage = polygon_percent_coverage.toFixed(2);
-                var font = Font("20", Font.STYLE_NORMAL, Font.VARIANT_NORMAL, Font.WEIGHT_BOLDER);
-                var textSymbol = new TextSymbol("Fitness Value : " + fittest_record_found[0] + " / " + total_polygon_points_covered_on_grid + " ( " + polygon_percent_coverage + "% )", font, "blue");
-                var labelPointGraphic = new Graphic(latlong_grid[((grid_length - 1) / 2)][grid_length - 1].offset(3000, 0), textSymbol);
-                graphics_layer.add(labelPointGraphic);
+                var font6 = Font("20", Font.STYLE_NORMAL, Font.VARIANT_NORMAL, Font.WEIGHT_BOLDER);
+                var textSymbol6 = new TextSymbol("Circle Coverage : " + fittest_record_found[0] + " / " + total_polygon_points_covered_on_grid + " ( " + polygon_percent_coverage + "% )", font6, "blue");
+                var labelPointGraphic6 = new Graphic(latlong_grid[((grid_length - 1))][grid_length - 1].offset(text_offset_value_x, 1 * text_offset_value_y), textSymbol6);
+                graphics_layer.add(labelPointGraphic6);
+
 
 
                 var elapsed_algo_time = (((endTime - startTime).toFixed(0)) / 1000);
                 var font2 = Font("20", Font.STYLE_NORMAL, Font.VARIANT_NORMAL, Font.WEIGHT_BOLDER);
                 var textSymbol2 = new TextSymbol("Time : " + elapsed_algo_time + "sec", font2, "blue");
-                var labelPointGraphic2 = new Graphic(latlong_grid[((grid_length - 1) / 2)][grid_length - 1].offset(3000, -500), textSymbol2);
+                var labelPointGraphic2 = new Graphic(latlong_grid[((grid_length - 1))][grid_length - 1].offset(text_offset_value_x, 2 * text_offset_value_y), textSymbol2);
                 graphics_layer.add(labelPointGraphic2);
 
 
@@ -927,7 +945,7 @@
                 circle_percent_coverage = circle_percent_coverage.toFixed(2);
                 var font3 = Font("20", Font.STYLE_NORMAL, Font.VARIANT_NORMAL, Font.WEIGHT_BOLDER);
                 var textSymbol3 = new TextSymbol("Circles Usage : " + fittest_record_found[2] + " / " + ideal_circle_coverage_count_on_grid + " ( " + circle_percent_coverage + "% )", font3, "blue");
-                var labelPointGraphic3 = new Graphic(latlong_grid[((grid_length - 1) / 2)][grid_length - 1].offset(3000, -1000), textSymbol3);
+                var labelPointGraphic3 = new Graphic(latlong_grid[((grid_length - 1))][grid_length - 1].offset(text_offset_value_x, 3 * text_offset_value_y), textSymbol3);
                 graphics_layer.add(labelPointGraphic3);
 
 
@@ -935,14 +953,34 @@
                 circle_percent_outside_coverage = circle_percent_outside_coverage.toFixed(2);
                 var font4 = Font("20", Font.STYLE_NORMAL, Font.VARIANT_NORMAL, Font.WEIGHT_BOLDER);
                 var textSymbol4 = new TextSymbol("Circles Not Used : " + (ideal_circle_coverage_count_on_grid - fittest_record_found[2]) + " / " + ideal_circle_coverage_count_on_grid + " ( " + circle_percent_outside_coverage + "% )", font4, "blue");
-                var labelPointGraphic4 = new Graphic(latlong_grid[((grid_length - 1) / 2)][grid_length - 1].offset(3000, -1500), textSymbol4);
+                var labelPointGraphic4 = new Graphic(latlong_grid[((grid_length - 1))][grid_length - 1].offset(text_offset_value_x, 4 * text_offset_value_y), textSymbol4);
                 graphics_layer.add(labelPointGraphic4);
 
 
+                var font7 = Font("20", Font.STYLE_NORMAL, Font.VARIANT_NORMAL, Font.WEIGHT_BOLDER);
+                var textSymbol7 = new TextSymbol("Covg Inside with Overlapping : " + fittest_inside_covg_with_overlapping, font7, "blue");
+                var labelPointGraphic7 = new Graphic(latlong_grid[((grid_length - 1))][grid_length - 1].offset(text_offset_value_x, 5 * text_offset_value_y), textSymbol7);
+                graphics_layer.add(labelPointGraphic7);
+
+
+                var font8 = Font("20", Font.STYLE_NORMAL, Font.VARIANT_NORMAL, Font.WEIGHT_BOLDER);
+                var textSymbol8 = new TextSymbol("Covg Inside without Overlapping : " + fittest_inside_covg_without_overlapping, font8, "blue");
+                var labelPointGraphic8 = new Graphic(latlong_grid[((grid_length - 1))][grid_length - 1].offset(text_offset_value_x, 6 * text_offset_value_y), textSymbol8);
+                graphics_layer.add(labelPointGraphic8);
+
+
                 var font5 = Font("20", Font.STYLE_NORMAL, Font.VARIANT_NORMAL, Font.WEIGHT_BOLDER);
-                var textSymbol5 = new TextSymbol("Overlapping : " + (fittest_record_found[2] - fittest_record_found[0]), font5, "blue");
-                var labelPointGraphic5 = new Graphic(latlong_grid[((grid_length - 1) / 2)][grid_length - 1].offset(3000, -2000), textSymbol5);
+                var textSymbol5 = new TextSymbol("Overlapping : " + fittest_total_overlapping, font5, "blue");
+                var labelPointGraphic5 = new Graphic(latlong_grid[((grid_length - 1))][grid_length - 1].offset(text_offset_value_x, 7 * text_offset_value_y), textSymbol5);
                 graphics_layer.add(labelPointGraphic5);
+
+
+
+                var font9 = Font("20", Font.STYLE_NORMAL, Font.VARIANT_NORMAL, Font.WEIGHT_BOLDER);
+                var textSymbol9 = new TextSymbol("Covg Outside : " + fittest_outside_covg, font9, "blue");
+                var labelPointGraphic9 = new Graphic(latlong_grid[((grid_length - 1))][grid_length - 1].offset(text_offset_value_x, 8 * text_offset_value_y), textSymbol9);
+                graphics_layer.add(labelPointGraphic9);
+
 
                 //alert(latlong_grid[7][7]);
                 return;
@@ -1051,8 +1089,7 @@
                     var tieing_topper_record = tieing_toppers_records[i][1];
 
                     var tieing_topper_outside_circle_coverage;
-
-                    alert(outside_covg_filter_selector);
+                   
 
                     if (outside_covg_filter_selector == 1) {
 
@@ -2204,6 +2241,17 @@
 
 
 
+                if (choice % 2 == 0) {
+                    return "blue";
+                }
+
+
+                if (choice % 3 == 0) {
+                    return "green";
+                }
+
+                return "red";
+
 
             }
 
@@ -2406,6 +2454,17 @@
                 }
 
 
+
+                if (choice % 2 == 0 ) {
+                    return symbology_blue;
+                }
+
+
+                if (choice % 3 == 0) {
+                    return symbology_green;
+                }
+
+                return symbology_red;
 
                 //return symbol;
 
