@@ -240,9 +240,10 @@
 
                     // do some processing on lp solver loaded with model and iocp
                     //GLPK Integer Optimizer
+
                     glp_intopt(lp, iocp);
 
-                    // glp_intopt(lp);
+                     //glp_intopt(lp);
 
 
                     var result = [], objective;
@@ -525,7 +526,7 @@
                 coverage_model_string = coverage_model_string + "\n\nBounds\n";
 
                 for (var i = 0; i < selected_radii_area.length; i++) {
-                    coverage_model_string = coverage_model_string + " 0 <= " + " circle_" + selected_radii_area[i][0] + " <= " + (selected_radii_area[i][0] / 100) + "\n";
+                    coverage_model_string = coverage_model_string + " 0 <= " + " circle_" + selected_radii_area[i][0] + " <= 50000\n";
                 }
 
                 coverage_model_string = coverage_model_string + "\nGeneral\n";
@@ -587,7 +588,7 @@
                 coverage_model_string = coverage_model_string + " <= " + increased_polygon_area + "\n\nBounds\n";
 
                 for (var i = 0; i < selected_radii_area.length; i++) {
-                    coverage_model_string = coverage_model_string + " 0 <= " + " circle_" + selected_radii_area[i][0] + " <= " + (selected_radii_area[i][0] / 100) + "\n";
+                    coverage_model_string = coverage_model_string + " 0 <= " + " circle_" + selected_radii_area[i][0] + " <= 50000\n";
                 }
 
                 coverage_model_string = coverage_model_string + "\nGeneral\n";
@@ -746,10 +747,16 @@
                 var circle_radii_array = [];
                 var circle_radii_array_index = 0;
 
+                var increased_polygon_area = polygon_area + parseInt(((polygon_area_margin / 100) * polygon_area).toFixed(0));
+                //var increased_polygon_area = polygon_area + parseInt(((polygon_area_margin / 100) * polygon_area).toFixed(0));
+
+                if (increased_polygon_area >= 99999999) {
+                    isUseModelSolver = false;
+                }
+
+
                 if (!isUseModelSolver) {
-
-                    var increased_polygon_area = polygon_area + parseInt(((polygon_area_margin / 100) * polygon_area).toFixed(0));
-
+                   
                     var circle_areaii_array = Find_Circles_Required_To_Cover_Polygon(selected_circle_areas_list,
                         increased_polygon_area,
                         polygon_area_margin,
@@ -768,15 +775,14 @@
 
                 else {
                     //////////////////////////////////////////////////////////////////////
-
-                    var increased_polygon_area = polygon_area + parseInt(((polygon_area_margin / 100) * polygon_area).toFixed(0));
+                    
                     var algo_model_solvera_results;
 
-
+                    //alert("going into model");
                     algo_model_solvera_results = Find_Circles_Required_To_Cover_Polygon_By_Model_Solver(
                         selected_radii_area,
                         increased_polygon_area);
-
+                    //alert("our from model");
 
                     var termination_flag = false;
                     var pervious_circle_count = 0;
@@ -3496,7 +3502,7 @@
                     <td>  <input type="text" id="txtMutateAfter" value="4" style="width:50px;"></td>
 
                     <td> <label><b>Area Margin (%) </b></label></td>
-                    <td>  <input type="text" id="txtAreaMargin" value="50" style="width:50px;"></td>
+                    <td>  <input type="text" id="txtAreaMargin" value="20" style="width:50px;"></td>
 
                     <td> <label><b>Bound Margin (%) </b></label></td>
                     <td>  <input type="text" id="txtBoundMargin" value="5" style="width:50px;"></td>
