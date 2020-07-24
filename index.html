@@ -246,6 +246,8 @@
 
 
                     var result = [], objective;
+                    var circle_count = [];
+
 
                     // objective function value
                     var glp_mip_obj_value = glp_mip_obj_val(lp);
@@ -260,11 +262,14 @@
                     for (var i = 1; i <= glp_get_num_of_columns; i++) {
                         console.log(glp_get_col_name(lp, i) + " = " + glp_mip_col_val(lp, i));
                         //result[glp_get_col_name(lp, i)] = glp_mip_col_val(lp, i);
-                        result[i - 1] = glp_mip_col_val(lp, i);
+                        circle_count[i - 1] = glp_mip_col_val(lp, i);
                     }
 
 
                     lp = null;
+
+                    result[0] = glp_mip_obj_value;
+                    result[1] = circle_count;
 
                     return result;
 
@@ -486,6 +491,142 @@
             }
 
 
+           
+            function Find_Circles_Required_To_Cover_Polygon_By_Model_Solver_Again(
+                selected_radii_area,
+                increased_polygon_area,
+                pervious_circle_count){
+
+
+                var coverage_model_string = "";
+                coverage_model_string = coverage_model_string + "Maximize \nobj: ";
+
+                for (var i = 0; i < selected_radii_area.length; i++) {
+                    coverage_model_string = coverage_model_string + " + " + selected_radii_area[i][1] + " circle_" + selected_radii_area[i][0];
+                }
+
+                coverage_model_string = coverage_model_string + "\n\nSubject To \ncap: ";
+
+
+                for (var i = 0; i < selected_radii_area.length; i++) {
+                    coverage_model_string = coverage_model_string + " + " + selected_radii_area[i][1] + " circle_" + selected_radii_area[i][0];
+                }
+
+                coverage_model_string = coverage_model_string + " <= " + increased_polygon_area + "\n";
+
+
+                for (var i = 0; i < selected_radii_area.length; i++) {
+                    coverage_model_string = coverage_model_string + " + circle_" + selected_radii_area[i][0];
+                }
+
+                coverage_model_string = coverage_model_string + " <= " + pervious_circle_count;
+
+
+                coverage_model_string = coverage_model_string + "\n\nBounds\n";
+
+                for (var i = 0; i < selected_radii_area.length; i++) {
+                    coverage_model_string = coverage_model_string + " 0 <= " + " circle_" + selected_radii_area[i][0] + " <= " + (selected_radii_area[i][0] / 100) + "\n";
+                }
+
+                coverage_model_string = coverage_model_string + "\nGeneral\n";
+
+
+                for (var i = 0; i < selected_radii_area.length; i++) {
+                    coverage_model_string = coverage_model_string + "circle_" + selected_radii_area[i][0] + "\n";
+                }
+
+                coverage_model_string = coverage_model_string + "End\n";
+
+                //alert(coverage_model_string);
+                console.log(coverage_model_string);
+
+                var result = [];
+                var circle_radii_array = [];
+                var circle_radii_array_index = 0;
+
+                var model_solver_results = Execute_Model_Solver(coverage_model_string);
+
+                for (var i = 0; i < model_solver_results[1].length; i++) {
+
+                    for (var j = 0; j < model_solver_results[1][i]; j++) {
+
+                        circle_radii_array[circle_radii_array_index] = selected_radii_area[i][0];
+                        circle_radii_array_index++;
+                    }
+
+                }
+
+                result[0] = model_solver_results[0];
+                result[1] = circle_radii_array;
+
+                return result;
+
+
+            }
+
+
+
+            function Find_Circles_Required_To_Cover_Polygon_By_Model_Solver(
+                selected_radii_area,
+                increased_polygon_area) {
+
+                var coverage_model_string = "";
+                coverage_model_string = coverage_model_string + "Maximize \nobj: ";
+
+                for (var i = 0; i < selected_radii_area.length; i++) {
+                    coverage_model_string = coverage_model_string + " + " + selected_radii_area[i][1] + " circle_" + selected_radii_area[i][0];
+                }
+
+                coverage_model_string = coverage_model_string + "\n\nSubject To \ncap: ";
+
+
+                for (var i = 0; i < selected_radii_area.length; i++) {
+                    coverage_model_string = coverage_model_string + " + " + selected_radii_area[i][1] + " circle_" + selected_radii_area[i][0];
+                }
+
+                coverage_model_string = coverage_model_string + " <= " + increased_polygon_area + "\n\nBounds\n";
+
+                for (var i = 0; i < selected_radii_area.length; i++) {
+                    coverage_model_string = coverage_model_string + " 0 <= " + " circle_" + selected_radii_area[i][0] + " <= " + (selected_radii_area[i][0] / 100) + "\n";
+                }
+
+                coverage_model_string = coverage_model_string + "\nGeneral\n";
+
+
+                for (var i = 0; i < selected_radii_area.length; i++) {
+                    coverage_model_string = coverage_model_string + "circle_" + selected_radii_area[i][0] + "\n";
+                }
+
+                coverage_model_string = coverage_model_string + "End\n";
+
+                //alert(coverage_model_string);
+                console.log(coverage_model_string);
+
+                var result = [];
+                var circle_radii_array = [];
+                var circle_radii_array_index = 0;
+
+                var model_solver_results = Execute_Model_Solver(coverage_model_string);
+
+                for (var i = 0; i < model_solver_results[1].length; i++) {
+
+                    for (var j = 0; j < model_solver_results[1][i]; j++) {
+
+                        circle_radii_array[circle_radii_array_index] = selected_radii_area[i][0];
+                        circle_radii_array_index++;
+                    }
+
+                }
+
+                result[0] = model_solver_results[0];
+                result[1] = circle_radii_array;
+
+                return result;
+
+
+            }
+
+
 
             function execut_algo2(polygon, polygon_extent, polygon_area) {
 
@@ -629,54 +770,62 @@
                     //////////////////////////////////////////////////////////////////////
 
                     var increased_polygon_area = polygon_area + parseInt(((polygon_area_margin / 100) * polygon_area).toFixed(0));
-
-                    var coverage_model_string = "";
-                    coverage_model_string = coverage_model_string + "Maximize \nobj: ";
-
-                    for (var i = 0; i < selected_radii_area.length; i++) {
-                        coverage_model_string = coverage_model_string + " + " + selected_radii_area[i][1] + " circle_" + selected_radii_area[i][0];
-                    }
-
-                    coverage_model_string = coverage_model_string + "\n\nSubject To \ncap: ";
+                    var algo_model_solvera_results;
 
 
-                    for (var i = 0; i < selected_radii_area.length; i++) {
-                        coverage_model_string = coverage_model_string + " + " + selected_radii_area[i][1] + " circle_" + selected_radii_area[i][0];
-                    }
-
-                    coverage_model_string = coverage_model_string + " <= " + increased_polygon_area + "\n\nBounds\n";
-
-                    for (var i = 0; i < selected_radii_area.length; i++) {
-                        coverage_model_string = coverage_model_string + " 0 <= " + " circle_" + selected_radii_area[i][0] + " <= " + (selected_radii_area[i][0] / 100) + "\n";
-                    }
-
-                    coverage_model_string = coverage_model_string + "\nGeneral\n";
+                    algo_model_solvera_results = Find_Circles_Required_To_Cover_Polygon_By_Model_Solver(
+                        selected_radii_area,
+                        increased_polygon_area);
 
 
-                    for (var i = 0; i < selected_radii_area.length; i++) {
-                        coverage_model_string = coverage_model_string + "circle_" + selected_radii_area[i][0] + "\n";
-                    }
+                    var termination_flag = false;
+                    var pervious_circle_count = 0;
+                    var pervious_area_coverage = 0;
+                    var previous_algo_model_solvera_results;
+                    var percent_area_compormised = 0;
+                   
 
-                    coverage_model_string = coverage_model_string + "End\n";
+                    while (!termination_flag) {
 
-                    //alert(coverage_model_string);
-                    console.log(coverage_model_string);
+                        previous_algo_model_solvera_results = algo_model_solvera_results;
+                        pervious_circle_count = algo_model_solvera_results[1].length;
+                        pervious_area_coverage = algo_model_solvera_results[0];
+
+                        algo_model_solvera_results = Find_Circles_Required_To_Cover_Polygon_By_Model_Solver_Again(
+                            selected_radii_area,
+                            increased_polygon_area,
+                            pervious_circle_count-1);
 
 
-                    var model_solver_results = Execute_Model_Solver(coverage_model_string);
-                    for (var i = 0; i < model_solver_results.length; i++) {
+                        percent_area_compormised = (((increased_polygon_area - algo_model_solvera_results[0]) / increased_polygon_area) * 100).toFixed(0);
 
-                        for (var j = 0; j < model_solver_results[i]; j++) {
+                        percent_area_compormised = parseInt(percent_area_compormised);
 
-                            circle_radii_array[circle_radii_array_index] = selected_radii_area[i][0];
-                            circle_radii_array_index++;
+                        //algo_model_solvera_results[0] == 0 ||
+
+                        if (algo_model_solvera_results[1].length >= pervious_circle_count ||                            
+                            algo_model_solvera_results[0] < polygon_area ||
+                            percent_area_compormised > 5) {
+
+                            circle_radii_array = previous_algo_model_solvera_results[1];
+                            termination_flag = true;
+                            break;
+
+                        }
+                        else {
+                            circle_radii_array = algo_model_solvera_results[1];
                         }
 
                     }
 
+                    
 
                     /////////////////////////////////////////////////////////////////////////
                 }
+
+               
+
+                alert("polygon area" + increased_polygon_area + "\ncovered polygon area" + algo_model_solvera_results[0]);
 
                 number_of_circles = circle_radii_array.length;
 
@@ -1789,7 +1938,7 @@
                 //for (var i = 0; i < cir_cov_ins_poly.length; i++) {
                 //    total_cir_cov_outs_poly = total_cir_cov_outs_poly + get_circle_coverage_outside_polygon(polygon, cir_cov_on_grid[i]);
                 //}
-                
+
 
                 // OLD CODE
                 //var cir1_cov_outs_poly = get_circle_coverage_outside_polygon(polygon, cir1_cov_on_grid);
@@ -3415,7 +3564,7 @@
 
                     <td> <label><b>Outside Covg Filter </b></label></td>
                     <td colspan="2">
-                        <input  name="rdobtn_outsidecovgfilter[]" type="radio" value="1" />
+                        <input name="rdobtn_outsidecovgfilter[]" type="radio" value="1" />
                         <input checked name="rdobtn_outsidecovgfilter[]" type="radio" value="2" />
                     </td>
 
