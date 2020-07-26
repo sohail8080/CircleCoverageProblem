@@ -136,7 +136,11 @@
                     d.on("click", btnClearMap_Handler);
                 }
 
+                if (d.declaredClass === "dijit.form.Button" && d.id === "btnResetGAParams") {
+                    d.on("click", btnResetGAParams_Handler);
+                }
 
+              
                 if (d.declaredClass === "dijit.form.Button" && d.id === "btnExecutAlgo") {
                     d.on("click", execut_algo_saved_polygon);
                 }
@@ -175,11 +179,16 @@
             }
 
 
+            
+
+            function btnResetGAParams_Handler() {
+                Reset_UI_To_Start_Over();
+            }
+
+
             function btnClearMap_Handler() {
                 //alert("clear called");
-
-                hand_drawn_polygon_by_user = null;
-
+                hand_drawn_polygon_by_user = null;              
                 graphics_layer.clear();
             }
 
@@ -631,6 +640,12 @@
             }
 
 
+            function Reset_UI_To_Start_Over() {
+
+                document.getElementById('txtAreaMargin').value = 0;
+                ist_exectution = true;
+            }
+
 
             function execut_algo2(polygon, polygon_extent, polygon_area) {
 
@@ -764,7 +779,7 @@
                 //var increased_polygon_area = polygon_area + parseInt(((polygon_area_margin / 100) * polygon_area).toFixed(0));
 
                 if (increased_polygon_area >= 99999999) {
-                    isUseModelSolver = false;                   
+                    isUseModelSolver = false;
                 }
 
 
@@ -799,7 +814,7 @@
                     algo_model_solvera_results = Find_Circles_Required_To_Cover_Polygon_By_Model_Solver(
                         selected_radii_area,
                         increased_polygon_area);
-                  
+
 
                     var termination_flag = false;
                     var pervious_circle_count = 0;
@@ -1054,7 +1069,7 @@
                     ideal_circle_coverage_count_on_grid,
                     outside_covg_filter_selector);
 
-               
+
 
 
                 if (circle_radii_array.length <= 6) {
@@ -1076,8 +1091,17 @@
 
                     //alert("evaluating ended");
 
-                    var fittest_record_found2 = repaired_cartesian_generation_results[0];
+                    var fittest_record_found2 = Evaluate_FitnessValue_Of_Tieing_Toppers(
+                        repaired_cartesian_generation_results, //toppers_generation_table
+                        map,
+                        polygon,
+                        polygon_coverage_on_latlong_grid,
+                        latlong_grid,
+                        circle_radii_array,
+                        ideal_circle_coverage_count_on_grid,
+                        outside_covg_filter_selector);
 
+                   
                     if (fittest_record_found2 == null || fittest_record_found2.length == 0) {
                         fittest_record_found2 = fittest_record_found;
                     }
@@ -1100,7 +1124,18 @@
                         ideal_circle_coverage_count_on_grid,
                         polygon_coverage_on_cartesian_grid);
 
-                    var fittest_record_found3 = new_generation_with_missing_points_results[0];
+
+
+                    var fittest_record_found3 = Evaluate_FitnessValue_Of_Tieing_Toppers(
+                        new_generation_with_missing_points_results, //toppers_generation_table
+                        map,
+                        polygon,
+                        polygon_coverage_on_latlong_grid,
+                        latlong_grid,
+                        circle_radii_array,
+                        ideal_circle_coverage_count_on_grid,
+                        outside_covg_filter_selector);
+
 
                     if (fittest_record_found3 == null || fittest_record_found3.length == 0) {
                         fittest_record_found3 = fittest_record_found2;
@@ -1114,8 +1149,6 @@
                 //var fittest_record_found = master_record[3][0];
 
 
-
-
                 if (hand_drawn_polygon_by_user == null) {
                     draw_polygon(polygon_selector);
                 }
@@ -1126,12 +1159,38 @@
                     graphics_layer.add(polygon_graphic);
                 }
 
+
+                var remove_eclipsed_circles_cartesian_generation_results = Remove_Eclipsed_Circles_From_Fittest_Record(
+                    fittest_record_found,
+                    circle_radii_array); 
+
+                //fittest_record_found[1] = remove_eclipsed_circles_cartesian_generation_results[0];
+                circle_radii_array = remove_eclipsed_circles_cartesian_generation_results[1];
+                number_of_circles = remove_eclipsed_circles_cartesian_generation_results[1].length;
+
+                var fittest_record_found4 = Evaluate_FitnessValue_Of_Seed_Generation_Return_All_Records_GIS(
+                    remove_eclipsed_circles_cartesian_generation_results[0],
+                    map,
+                    polygon,
+                    polygon_coverage_on_latlong_grid,
+                    latlong_grid,
+                    circle_radii_array,
+                    number_of_circles,
+                    fitness_function_selector,
+                    ideal_circle_coverage_count_on_grid,
+                    polygon_coverage_on_cartesian_grid);
+
+
+                if (fittest_record_found4 != null || fittest_record_found4.length != 0) {
+                    fittest_record_found = fittest_record_found4[0];
+                }
+
                 show_record_on_map(
                     graphics_layer,
                     fittest_record_found,
                     latlong_grid,
-                    circle_radii_array,
-                    number_of_circles);
+                    circle_radii_array,// circle_radii_array
+                    number_of_circles); //number_of_circles
 
                 var endTime = performance.now();
 
@@ -1214,7 +1273,7 @@
                 graphics_layer.add(labelPointGraphic9);
 
 
-              
+
                 //alert(latlong_grid[7][7]);
                 return;
 
@@ -1255,6 +1314,50 @@
             }
 
 
+            
+
+            function Remove_Eclipsed_Circles_From_Fittest_Record(
+                fittest_record_found,
+                circle_radii_array) {
+
+                var fittest_centre_points_found = fittest_record_found[1];
+                var eclipsed_circles_in_polygon = fittest_record_found[7];
+
+                var result = [];
+
+                var new_circle_radii_array = [];
+                var new_centre_points_for_record = [];
+                var new_centre_points_for_record_index = 0;
+                var found_flag = false;
+
+                for (var i = 0; i < fittest_centre_points_found.length; i++) {
+
+                    found_flag = false;
+
+                    for (var j = 0; j < eclipsed_circles_in_polygon.length; j++) {
+
+                        if (i == eclipsed_circles_in_polygon[j]) {
+                            found_flag = true;
+                            break;
+                        }
+
+                    }
+
+                    if (!found_flag) {
+                        new_centre_points_for_record[new_centre_points_for_record_index] = fittest_centre_points_found[i];
+                        new_circle_radii_array[new_centre_points_for_record_index] = circle_radii_array[i];
+                        new_centre_points_for_record_index++;
+                    }
+                }
+
+                result[0] = [];
+                result[0][0] = new_centre_points_for_record;
+                result[1] = new_circle_radii_array;
+               
+                return result;
+
+            }
+
 
 
             function Consider_Missing_Points_N_Create_Generation(fittest_record_found) {
@@ -1268,7 +1371,7 @@
                 new_cartesian_generation[0] = fittest_record_found[1];
 
                 for (var i = 0; i < missing_points_in_polygon.length; i++) {
-                  
+
                     for (var j = 0; j < fittest_centre_points_found.length; j++) {
 
                         var new_record = [];
@@ -1499,6 +1602,7 @@
                     Record_Result[4] = coverage_results_with_n_without[3]; // total overlapping
                     Record_Result[5] = coverage_results_with_n_without[4]; // circle outside coverage
                     Record_Result[6] = coverage_results_with_n_without[5]; //  polygon_not_covered_points
+                    Record_Result[7] = coverage_results_with_n_without[6]; //  eclipsed_circles_array
 
                     Generation_Result_Table[i] = Record_Result;
 
@@ -1841,6 +1945,8 @@
                         Top_Record_Result[0][4] = coverage_results_with_n_without[3]; // total overlapping
                         Top_Record_Result[0][5] = coverage_results_with_n_without[4]; // circle outside coverage
                         Top_Record_Result[0][6] = coverage_results_with_n_without[5]; //  polygon_not_covered_points
+                        Top_Record_Result[0][7] = coverage_results_with_n_without[6]; //  eclipsed_circles_array
+                        
 
                     }
 
@@ -1854,6 +1960,7 @@
                     Record_Result[4] = coverage_results_with_n_without[3]; // total overlapping
                     Record_Result[5] = coverage_results_with_n_without[4]; // circle outside coverage
                     Record_Result[6] = coverage_results_with_n_without[5]; //  polygon_not_covered_points
+                    Record_Result[7] = coverage_results_with_n_without[6]; //  eclipsed_circles_array
 
                     Generation_Result_Table[i] = Record_Result;
 
@@ -2035,13 +2142,29 @@
                 //var cir_cov_pts_ins_poly_4 = get_circle_coverage_points_inside_polygon(circle_polygon_4, polygon_coverage);
 
                 var total_overlapping_amongall_circles = 0;
+                var total_overlapping_amongtwo_circles = 0;
+                var eclipsed_circles_array = [];
+                var eclipsed_circles_array_index = 0;
+
 
                 for (var i = 0; i < number_of_circles - 1; i++) {
 
                     for (var j = i + 1; j < number_of_circles; j++) {
 
-                        total_overlapping_amongall_circles = total_overlapping_amongall_circles +
-                            find_overlapping_between_circles(cir_cov_pts_ins_poly[i], cir_cov_pts_ins_poly[j]);
+                        total_overlapping_amongtwo_circles = find_overlapping_between_circles(cir_cov_pts_ins_poly[i], cir_cov_pts_ins_poly[j]);
+
+                        if (total_overlapping_amongtwo_circles >= cir_cov_pts_ins_poly[i].length) {
+                            eclipsed_circles_array[eclipsed_circles_array_index] = i;
+                            eclipsed_circles_array_index++;                           
+                        }
+
+                        if (total_overlapping_amongtwo_circles >= cir_cov_pts_ins_poly[j].length) {
+                            eclipsed_circles_array[eclipsed_circles_array_index] = j;
+                            eclipsed_circles_array_index++;
+                        }
+
+                        total_overlapping_amongall_circles = total_overlapping_amongall_circles + total_overlapping_amongtwo_circles;
+                            
 
                     }
                 }
@@ -2171,7 +2294,7 @@
                 coverage_results_with_n_without[3] = total_overlapping_amongall_circles; // total overlapping
                 coverage_results_with_n_without[4] = total_cir_cov_outs_poly; // outside coverage
                 coverage_results_with_n_without[5] = polygon_not_covered_points; // polygon_not_covered_points
-
+                coverage_results_with_n_without[6] = eclipsed_circles_array;
 
 
 
@@ -3262,7 +3385,7 @@
                     geodesic: true
                 });
 
-                var circle_label_text = cir_number + "(" + radius_in_meters/1000 + ")";
+                var circle_label_text = cir_number + "(" + radius_in_meters / 1000 + ")";
 
                 var circle_color = null;
                 if (color == null || color == "") {
@@ -3565,7 +3688,18 @@
 
 
 
-        });
+            });
+
+
+        function Reset_UI_To_Start_Over_Again() {
+
+            document.getElementById('txtAreaMargin').value = 0;
+            
+        }
+
+
+
+
     </script>
 </head>
 
@@ -3618,7 +3752,7 @@
                     <td>  <input type="text" id="txtPrevGenerationSets" value="10" style="width:50px;"> </td>
 
                     <td><label><b>Generations</b></label></td>
-                    <td> <input type="text" id="txtGenerations" value="10" style="width:50px;"></td>
+                    <td> <input type="text" id="txtGenerations" value="100" style="width:50px;"></td>
 
                     <td>  <label><b>Mutate After Gen.</b></label> </td>
                     <td>  <input type="text" id="txtMutateAfter" value="4" style="width:50px;"></td>
@@ -3635,7 +3769,7 @@
                 <tr>
                     <td> <label><b>Polygon</b></label> </td>
                     <td>
-                        <select name="cars" id="selectPolygon">
+                        <select name="cars" id="selectPolygon" onch onchange="Reset_UI_To_Start_Over_Again();">
                             <option value="1">One</option>
                             <option value="2">Two</option>
                             <option value="3">Three</option>
@@ -3652,7 +3786,7 @@
                     </td>
 
                     <td>
-                        <button data-dojo-props="id:'btnExecutAlgo'" data-dojo-type="dijit/form/Button">Find & Improve Coverage</button>
+                        <button data-dojo-props="id:'btnExecutAlgo'" data-dojo-type="dijit/form/Button">Find & Improve Covg.</button>
                     </td>
 
                     <td>
@@ -3660,11 +3794,12 @@
                     </td>
 
                     <td>
-                        <button data-dojo-props="id:'btnReevaluatePolygonCoverage'" data-dojo-type="dijit/form/Button"> Re-evaluate Polygon Coverage</button>
+                        <button data-dojo-props="id:'btnReevaluatePolygonCoverage'" data-dojo-type="dijit/form/Button"> Find & Improve Covg.</button>
                     </td>
 
 
-                    <td>
+                    <td colspan="2">
+                        <button data-dojo-props="id:'btnResetGAParams'" data-dojo-type="dijit/form/Button">Reset GA Params</button>
                         <button data-dojo-props="id:'btnClearMap'" data-dojo-type="dijit/form/Button">Clear Map</button>
                     </td>
 
@@ -3690,7 +3825,7 @@
                     </td>
 
 
-                    <td> <label title="Two different ways to find outside coverage."><b>Outside Covg Filter </b></label></td>
+                    <td> <label title="Two different ways to find outside coverage."><b>Out Covg Fltr</b></label></td>
                     <td colspan="2">
                         <input title="Only counts circle outside area that lies on grid." name="rdobtn_outsidecovgfilter[]" type="radio" value="1" />
                         <input title="Counts full circle outside area that lies outside the polygon." checked name="rdobtn_outsidecovgfilter[]" type="radio" value="2" />
