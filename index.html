@@ -4,7 +4,7 @@
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
     <meta name="viewport" content="width=device-width,user-scalable=no">
     <meta name="viewport" content="initial-scale=1, maximum-scale=1,user-scalable=no">
-    <title>Maps Toolbar</title>
+    <title>Circle Coverage Problem</title>
 
     <link href="css/nihilo.css" rel="stylesheet" />
     <link href="css/esri.css" rel="stylesheet" />
@@ -104,9 +104,10 @@
             var map = new Map("map", {
                 basemap: "topo",
                 extent: initialExtent,
-                zoom: 12
+                zoom: 13
             });
 
+            var ist_exectution = true;
             var hand_drawn_polygon_by_user;
 
 
@@ -289,8 +290,9 @@
 
             async function execut_algo(hand_drawn_polygon_by_user) {
 
+
                 var polygon_selector = parseInt(document.getElementById('selectPolygon').value); // 75 %
-                var polygon_area_margin = parseInt(document.getElementById('txtAreaMargin').value); // 50 %
+                //var polygon_area_margin = parseInt(document.getElementById('txtAreaMargin').value); // 50 %
 
                 var polygon_drawings_results;
                 var polygon;
@@ -314,6 +316,7 @@
                 }
 
 
+                var polygon_extent_polygon = Polygon.fromExtent(polygon_extent);
                 var polygon_area = 0;
 
                 //UNIT_METER UNIT_KILOMETER UNIT_SQUARE_METERS UNIT_SQUARE_KILOMETERS UNIT_SQUARE_MILES
@@ -324,7 +327,7 @@
                 areasAndLengthParams.calculationType = "geodesic"; //planar, geodesic, preserveShape
 
 
-                await geometryService.simplify([polygon], function (simplifiedGeometries) {
+                await geometryService.simplify([polygon_extent_polygon], function (simplifiedGeometries) {
                     // Polygon geometries for which to compute areas and lengths
                     areasAndLengthParams.polygons = simplifiedGeometries;
                     geometryService.areasAndLengths(areasAndLengthParams, function (measurements) {
@@ -631,6 +634,7 @@
 
             function execut_algo2(polygon, polygon_extent, polygon_area) {
 
+                //alert("polygon_area" + polygon_area);
 
                 var number_of_circles;// = parseInt(document.getElementById('txtCircles').value);
                 var radius_of_circle_in_meters;// = parseInt(document.getElementById('txtRadius').value); // in km
@@ -649,6 +653,17 @@
                 var isUseModelSolver = document.getElementById('ckbModelSolver').checked;
 
 
+                if (ist_exectution) {
+                    ist_exectution = false;
+                }
+                else if (polygon_area_margin == 100) {
+                    polygon_area_margin = 0;
+                    document.getElementById('txtAreaMargin').value = polygon_area_margin;
+                }
+                else {
+                    polygon_area_margin = polygon_area_margin + 5;
+                    document.getElementById('txtAreaMargin').value = polygon_area_margin;
+                }
 
 
                 if (grid_length % 2 == 0) {
@@ -678,8 +693,8 @@
                 }
 
 
-                if (polygon_area_margin < 1) {
-                    alert("Polygoin area margin in percentage should be greater than 1");
+                if (polygon_area_margin < 0) {
+                    alert("Polygoin area margin in percentage should be greater than or equal to 1");
                     return;
                 }
 
@@ -709,8 +724,6 @@
                         break;
                     }
                 }
-
-
 
 
                 var selected_radii_area = [];
@@ -751,11 +764,13 @@
                 //var increased_polygon_area = polygon_area + parseInt(((polygon_area_margin / 100) * polygon_area).toFixed(0));
 
                 if (increased_polygon_area >= 99999999) {
-                    isUseModelSolver = false;
+                    isUseModelSolver = false;                   
                 }
 
 
                 if (!isUseModelSolver) {
+
+                    //alert("going into custom algo");
 
                     var circle_areaii_array = Find_Circles_Required_To_Cover_Polygon(selected_circle_areas_list,
                         increased_polygon_area,
@@ -771,6 +786,8 @@
                         }
 
                     }
+
+                    //alert("coming out of custom algo " + circle_radii_array.length);
                 }
 
                 else {
@@ -778,11 +795,11 @@
 
                     var algo_model_solvera_results;
 
-                    //alert("going into model");
+                    //alert("going into model. polygon area = " + increased_polygon_area);
                     algo_model_solvera_results = Find_Circles_Required_To_Cover_Polygon_By_Model_Solver(
                         selected_radii_area,
                         increased_polygon_area);
-                    //alert("our from model");
+                  
 
                     var termination_flag = false;
                     var pervious_circle_count = 0;
@@ -825,10 +842,9 @@
                     }
 
 
-
+                    //alert("out from model  " + circle_radii_array.length);
                     /////////////////////////////////////////////////////////////////////////
                 }
-
 
 
                 //alert("polygon area" + increased_polygon_area + "\ncovered polygon area" + algo_model_solvera_results[0]);
@@ -953,7 +969,8 @@
                     circle_radii_array,
                     number_of_circles,
                     fitness_function_selector,
-                    ideal_circle_coverage_count_on_grid);
+                    ideal_circle_coverage_count_on_grid,
+                    polygon_coverage_on_cartesian_grid);
 
 
                 var master_record = [];
@@ -1037,11 +1054,65 @@
                     ideal_circle_coverage_count_on_grid,
                     outside_covg_filter_selector);
 
+               
 
-                //var repaired_generation = Repair_Fittest_Record_N_Create_Generation(fittest_record_found);
 
+                if (circle_radii_array.length <= 6) {
+
+                    var repaired_cartesian_generation = Repair_Fittest_Record_N_Create_Generation(fittest_record_found);
+
+                    //alert("evaluating started");
+                    var repaired_cartesian_generation_results = Evaluate_FitnessValue_Of_Seed_Generation_Return_All_Records_GIS(
+                        repaired_cartesian_generation,
+                        map,
+                        polygon,
+                        polygon_coverage_on_latlong_grid,
+                        latlong_grid,
+                        circle_radii_array,
+                        number_of_circles,
+                        fitness_function_selector,
+                        ideal_circle_coverage_count_on_grid,
+                        polygon_coverage_on_cartesian_grid);
+
+                    //alert("evaluating ended");
+
+                    var fittest_record_found2 = repaired_cartesian_generation_results[0];
+
+                    if (fittest_record_found2 == null || fittest_record_found2.length == 0) {
+                        fittest_record_found2 = fittest_record_found;
+                    }
+                    else {
+                        fittest_record_found = fittest_record_found2;
+                    }
+
+                    var new_generation_with_missing_points = Consider_Missing_Points_N_Create_Generation(fittest_record_found);
+
+
+                    var new_generation_with_missing_points_results = Evaluate_FitnessValue_Of_Seed_Generation_Return_All_Records_GIS(
+                        new_generation_with_missing_points,
+                        map,
+                        polygon,
+                        polygon_coverage_on_latlong_grid,
+                        latlong_grid,
+                        circle_radii_array,
+                        number_of_circles,
+                        fitness_function_selector,
+                        ideal_circle_coverage_count_on_grid,
+                        polygon_coverage_on_cartesian_grid);
+
+                    var fittest_record_found3 = new_generation_with_missing_points_results[0];
+
+                    if (fittest_record_found3 == null || fittest_record_found3.length == 0) {
+                        fittest_record_found3 = fittest_record_found2;
+                    }
+                    else {
+                        fittest_record_found = fittest_record_found3;
+                    }
+
+                }
 
                 //var fittest_record_found = master_record[3][0];
+
 
 
 
@@ -1143,6 +1214,7 @@
                 graphics_layer.add(labelPointGraphic9);
 
 
+              
                 //alert(latlong_grid[7][7]);
                 return;
 
@@ -1183,11 +1255,67 @@
             }
 
 
+
+
+            function Consider_Missing_Points_N_Create_Generation(fittest_record_found) {
+
+                var fittest_centre_points_found = fittest_record_found[1];
+                var missing_points_in_polygon = fittest_record_found[6];
+
+                var new_cartesian_generation = [];
+                var new_cartesian_generation_index = 1;
+
+                new_cartesian_generation[0] = fittest_record_found[1];
+
+                for (var i = 0; i < missing_points_in_polygon.length; i++) {
+                  
+                    for (var j = 0; j < fittest_centre_points_found.length; j++) {
+
+                        var new_record = [];
+
+                        for (var k = 0; k < fittest_centre_points_found.length; k++) {
+                            new_record[k] = fittest_centre_points_found[k];
+                        }
+
+                        new_record[j] = missing_points_in_polygon[i];
+                        new_cartesian_generation[new_cartesian_generation_index] = new_record;
+                        new_cartesian_generation_index++;
+                    }
+
+                }
+
+                return new_cartesian_generation;
+
+
+            }
+
+
             function Repair_Fittest_Record_N_Create_Generation(fittest_record_found) {
 
-                var fittest_centre_points_found = fittest_record_found[0];
+                //alert("reparing");
 
+                var fittest_centre_points_found = fittest_record_found[1];
+                var all_center_combinations = permute(fittest_centre_points_found.length);
                 var repaired_cartesian_generation = [];
+                var repaired_cartesian_generation_index = 0;
+
+                for (var i = 0; i < all_center_combinations.length; i++) {
+
+                    var new_record = [];
+
+                    for (var j = 0; j < all_center_combinations[i].length; j++) {
+
+                        new_record[j] = fittest_centre_points_found[all_center_combinations[i][j]]
+
+                    }
+
+                    repaired_cartesian_generation[repaired_cartesian_generation_index] = new_record;
+                    repaired_cartesian_generation_index++;
+                }
+
+                //alert("out of reparing");
+
+                return repaired_cartesian_generation;
 
 
             }
@@ -1311,7 +1439,8 @@
                 circle_radii_array,
                 number_of_circles,
                 fitness_function_selector,
-                ideal_circle_coverage_count_on_grid) {
+                ideal_circle_coverage_count_on_grid,
+                polygon_coverage_on_cartesian_grid) {
 
                 var Generation_Result_Table = [];// result of generation with fitness value
                 var maxfitnessvalue = -1;
@@ -1335,6 +1464,7 @@
                     //console.log("Record Values ");
                     //print_point_array_to_console(record);
 
+
                     var coverage_results_with_n_without = Get_FitnessValue_Of_Record_Map(
                         record, // lat long record
                         map,
@@ -1344,7 +1474,9 @@
                         circle_radii_array,
                         number_of_circles,
                         fitness_function_selector,
-                        ideal_circle_coverage_count_on_grid);
+                        ideal_circle_coverage_count_on_grid,
+                        polygon_coverage_on_cartesian_grid);
+
 
                     FitnessValue = coverage_results_with_n_without[0];// fitness value
                     FitnessValue_with_Overlapping = coverage_results_with_n_without[1];
@@ -1367,7 +1499,7 @@
                     Record_Result[4] = coverage_results_with_n_without[3]; // total overlapping
                     Record_Result[5] = coverage_results_with_n_without[4]; // circle outside coverage
                     Record_Result[6] = coverage_results_with_n_without[5]; //  polygon_not_covered_points
-                  
+
                     Generation_Result_Table[i] = Record_Result;
 
                 }
@@ -1687,7 +1819,8 @@
                         circle_radii_array,
                         number_of_circles,
                         fitness_function_selector,
-                        ideal_circle_coverage_count_on_grid);
+                        ideal_circle_coverage_count_on_grid,
+                        polygon_coverage_on_cartesian_grid);
 
                     FitnessValue = coverage_results_with_n_without[0];// FV
                     FitnessValue_with_Overlapping = coverage_results_with_n_without[1]; //without overlapping
@@ -1808,7 +1941,8 @@
                 circle_radii_array,
                 number_of_circles,
                 fitness_function_selector,
-                ideal_circle_coverage_count_on_grid) {
+                ideal_circle_coverage_count_on_grid,
+                polygon_coverage_on_cartesian_grid) {
 
 
                 var center_point = [];
@@ -1817,8 +1951,8 @@
                 }
 
                 var duplicate_polygon_coverage = [];
-                for (var i = 0; i < polygon_coverage.length; i++) {
-                    duplicate_polygon_coverage[i] = polygon_coverage[i];
+                for (var i = 0; i < polygon_coverage_on_cartesian_grid.length; i++) {
+                    duplicate_polygon_coverage[i] = polygon_coverage_on_cartesian_grid[i];
                 }
 
 
@@ -1893,7 +2027,7 @@
 
                 }
 
-                
+
                 // circle coverge points array inside polygon
                 //var cir_cov_pts_ins_poly_1 = get_circle_coverage_points_inside_polygon(circle_polygon_1, polygon_coverage);
                 //var cir_cov_pts_ins_poly_2 = get_circle_coverage_points_inside_polygon(circle_polygon_2, polygon_coverage);
@@ -2039,7 +2173,7 @@
                 coverage_results_with_n_without[5] = polygon_not_covered_points; // polygon_not_covered_points
 
 
-                
+
 
                 return coverage_results_with_n_without;
 
@@ -3128,6 +3262,7 @@
                     geodesic: true
                 });
 
+                var circle_label_text = cir_number + "(" + radius_in_meters/1000 + ")";
 
                 var circle_color = null;
                 if (color == null || color == "") {
@@ -3140,8 +3275,8 @@
                 if (cir_number != null) {
 
                     //alert("cccccccccccccc");
-                    var font = Font("30px", Font.STYLE_NORMAL, Font.VARIANT_NORMAL, Font.WEIGHT_BOLDER);
-                    var textSymbol = new TextSymbol(cir_number, font, circle_color);
+                    var font = Font("20px", Font.STYLE_NORMAL, Font.VARIANT_NORMAL, Font.WEIGHT_BOLDER);
+                    var textSymbol = new TextSymbol(circle_label_text, font, circle_color);
                     var labelPointGraphic = new Graphic(circle_center.offset(100, 100), textSymbol);
                     graphics_layer.add(labelPointGraphic);
                 }
@@ -3366,6 +3501,69 @@
 
             }
 
+            //permutator([1,2,3]);
+            function permutator(inputArrLength) {
+
+                var inputArr = [];
+
+                for (var i = 0; i <= inputArrLength; i++) {
+                    inputArr[i] = i;
+                }
+
+
+                var results = [];
+
+                function permute(arr, memo) {
+                    var cur, memo = memo || [];
+
+                    for (var i = 0; i < arr.length; i++) {
+                        cur = arr.splice(i, 1);
+                        if (arr.length === 0) {
+                            results.push(memo.concat(cur));
+                        }
+                        permute(arr.slice(), memo.concat(cur));
+                        arr.splice(i, 0, cur[0]);
+                    }
+
+                    return results;
+                }
+
+                return permute(inputArr);
+            }
+
+            //console.log(permute([1, 2, 3]));
+            function permute(permutationlength) {
+
+                var permutation = [];
+
+                for (var i = 0; i < permutationlength; i++) {
+                    permutation[i] = i;
+                }
+
+
+                var length = permutation.length,
+                    result = [permutation.slice()],
+                    c = new Array(length).fill(0),
+                    i = 1, k, p;
+
+                while (i < length) {
+                    if (c[i] < i) {
+                        k = i % 2 && c[i];
+                        p = permutation[i];
+                        permutation[i] = permutation[k];
+                        permutation[k] = p;
+                        ++c[i];
+                        i = 1;
+                        result.push(permutation.slice());
+                    } else {
+                        c[i] = 0;
+                        ++i;
+                    }
+                }
+                return result;
+            }
+
+
 
         });
     </script>
@@ -3420,13 +3618,13 @@
                     <td>  <input type="text" id="txtPrevGenerationSets" value="10" style="width:50px;"> </td>
 
                     <td><label><b>Generations</b></label></td>
-                    <td> <input type="text" id="txtGenerations" value="200" style="width:50px;"></td>
+                    <td> <input type="text" id="txtGenerations" value="10" style="width:50px;"></td>
 
                     <td>  <label><b>Mutate After Gen.</b></label> </td>
                     <td>  <input type="text" id="txtMutateAfter" value="4" style="width:50px;"></td>
 
-                    <td> <label><b>Area Margin (%) </b></label></td>
-                    <td>  <input type="text" id="txtAreaMargin" value="20" style="width:50px;"></td>
+                    <td> <label title="Margin-Area added to Polygon-Area to makeup for Circles-Overlappings & Outside-Coverage & Not-Covered-Area"><b>Area Margin (%) </b></label></td>
+                    <td>  <input title="Margin-Area added to Polygon-Area to makeup for Circles-Overlappings & Outside-Coverage & Not-Covered-Area" type="text" id="txtAreaMargin" value="0" style="width:50px;"></td>
 
                     <td> <label><b>Bound Margin (%) </b></label></td>
                     <td>  <input type="text" id="txtBoundMargin" value="5" style="width:50px;"></td>
@@ -3454,7 +3652,7 @@
                     </td>
 
                     <td>
-                        <button data-dojo-props="id:'btnExecutAlgo'" data-dojo-type="dijit/form/Button">Find Coverage</button>
+                        <button data-dojo-props="id:'btnExecutAlgo'" data-dojo-type="dijit/form/Button">Find & Improve Coverage</button>
                     </td>
 
                     <td>
@@ -3471,8 +3669,8 @@
                     </td>
 
 
-                    <td> <label><b>Model Solver </b></label></td>
-                    <td> <input id="ckbModelSolver" checked type="checkbox" /></td>
+                    <td> <label title="Whether to use Model Solver or Custom Algo for finding No-Of-Circles & Circle-Radii"><b>Model Solver </b></label></td>
+                    <td> <input title="Whether to use Model Solver or Custom Algo for finding No-Of-Circles & Circle-Radii" id="ckbModelSolver" checked type="checkbox" /></td>
 
 
 
@@ -3481,21 +3679,21 @@
 
                 <tr>
 
-                    <td> <label><b>Fit. Function </b></label></td>
+                    <td> <label title="Different Fitness Formulaii used to evaluate."><b>Fit. Function </b></label></td>
                     <td colspan="2">
-                        <input checked name="rdobtn_fitfun[]" type="radio" value="1" />
-                        <input name="rdobtn_fitfun[]" type="radio" value="2" />
-                        <input name="rdobtn_fitfun[]" type="radio" value="3" />
-                        <input name="rdobtn_fitfun[]" type="radio" value="4" />
-                        <input name="rdobtn_fitfun[]" type="radio" value="5" />
-                        <input name="rdobtn_fitfun[]" type="radio" value="6" />
+                        <input checked name="rdobtn_fitfun[]" type="radio" value="1" title="total_cir_cov_ins_poly_without_overlapping" />
+                        <input name="rdobtn_fitfun[]" type="radio" value="2" title="(total_cir_cov_ins_poly_with_overlapping + (2 * total_cir_cov_ins_poly_without_overlapping)) - (total_cir_cov_ins_poly_with_overlapping + total_cir_cov_outs_poly)" />
+                        <input name="rdobtn_fitfun[]" type="radio" value="3" title="(total_cir_cov_ins_poly_with_overlapping + (3 * total_cir_cov_ins_poly_without_overlapping)) - (total_cir_cov_ins_poly_with_overlapping + total_cir_cov_outs_poly)" />
+                        <input name="rdobtn_fitfun[]" type="radio" value="4" title="(total_cir_cov_ins_poly_with_overlapping + (4 * total_cir_cov_ins_poly_without_overlapping)) - (total_cir_cov_ins_poly_with_overlapping + total_cir_cov_outs_poly)" />
+                        <input name="rdobtn_fitfun[]" type="radio" value="5" title="total_cir_cov_ins_poly_without_overlapping - total_cir_cov_outs_poly" />
+                        <input name="rdobtn_fitfun[]" type="radio" value="6" title="2 * (total_cir_cov_ins_poly_with_overlapping + total_cir_cov_ins_poly_without_overlapping) - (total_cir_cov_ins_poly_with_overlapping + total_cir_cov_outs_poly)" />
                     </td>
 
 
-                    <td> <label><b>Outside Covg Filter </b></label></td>
+                    <td> <label title="Two different ways to find outside coverage."><b>Outside Covg Filter </b></label></td>
                     <td colspan="2">
-                        <input name="rdobtn_outsidecovgfilter[]" type="radio" value="1" />
-                        <input checked name="rdobtn_outsidecovgfilter[]" type="radio" value="2" />
+                        <input title="Only counts circle outside area that lies on grid." name="rdobtn_outsidecovgfilter[]" type="radio" value="1" />
+                        <input title="Counts full circle outside area that lies outside the polygon." checked name="rdobtn_outsidecovgfilter[]" type="radio" value="2" />
                     </td>
 
 
