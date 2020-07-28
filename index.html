@@ -140,7 +140,7 @@
                     d.on("click", btnResetGAParams_Handler);
                 }
 
-              
+
                 if (d.declaredClass === "dijit.form.Button" && d.id === "btnExecutAlgo") {
                     d.on("click", execut_algo_saved_polygon);
                 }
@@ -179,7 +179,7 @@
             }
 
 
-            
+
 
             function btnResetGAParams_Handler() {
                 Reset_UI_To_Start_Over();
@@ -188,7 +188,7 @@
 
             function btnClearMap_Handler() {
                 //alert("clear called");
-                hand_drawn_polygon_by_user = null;              
+                hand_drawn_polygon_by_user = null;
                 graphics_layer.clear();
             }
 
@@ -651,6 +651,8 @@
 
                 //alert("polygon_area" + polygon_area);
 
+                // FETCH VALUES ONCE
+
                 var number_of_circles;// = parseInt(document.getElementById('txtCircles').value);
                 var radius_of_circle_in_meters;// = parseInt(document.getElementById('txtRadius').value); // in km
                 var grid_length = parseInt(document.getElementById('txtGridLength').value);
@@ -668,55 +670,6 @@
                 var isUseModelSolver = document.getElementById('ckbModelSolver').checked;
 
 
-                if (ist_exectution) {
-                    ist_exectution = false;
-                }
-                else if (polygon_area_margin == 100) {
-                    polygon_area_margin = 0;
-                    document.getElementById('txtAreaMargin').value = polygon_area_margin;
-                }
-                else {
-                    polygon_area_margin = polygon_area_margin + 5;
-                    document.getElementById('txtAreaMargin').value = polygon_area_margin;
-                }
-
-
-                if (grid_length % 2 == 0) {
-                    alert("For better results, Grid Length must be ODD number");
-                    return;
-                }
-
-
-                if (random_generation_record_count < number_of_top_records_goto_to_next_generation) {
-                    alert("Random-Generation-Records should be greater or equal to Records-Taken-From-Previous-Generation");
-                    return;
-                }
-
-                if (number_of_top_records_goto_to_next_generation > number_of_records_in_each_crossover_generations) {
-                    alert("Records-Taken-From-Previous-Generation should be less than or equal to Records-In-CrossOver-Generatoin");
-                    return;
-                }
-
-                if (number_of_top_records_goto_to_next_generation < 2) {
-                    alert("Records-Taken-From-Previous-Generation should be greater than or equal to 2");
-                    return;
-                }
-
-                if (number_of_records_in_each_crossover_generations < 2) {
-                    alert("Records-In-CrossOver-Generatoin should be greater than or equal to 2");
-                    return;
-                }
-
-
-                if (polygon_area_margin < 0) {
-                    alert("Polygoin area margin in percentage should be greater than or equal to 1");
-                    return;
-                }
-
-                if (polygon_bounds_margin < 1) {
-                    alert("Polygoin bounds margin in percentage should be greater than 1");
-                    return;
-                }
 
                 var rdobtn_fitfun = document.getElementsByName("rdobtn_fitfun[]");
                 var fitness_function_selector = 1;
@@ -769,298 +722,452 @@
                     return;
                 }
 
-                console.clear();
-                graphics_layer.clear();
 
-                var circle_radii_array = [];
-                var circle_radii_array_index = 0;
+                // FETCH VALUES ONCE
 
-                var increased_polygon_area = polygon_area + parseInt(((polygon_area_margin / 100) * polygon_area).toFixed(0));
-                //var increased_polygon_area = polygon_area + parseInt(((polygon_area_margin / 100) * polygon_area).toFixed(0));
 
-                if (increased_polygon_area >= 99999999) {
-                    isUseModelSolver = false;
+                // NOT NEEDED IN LOOPS
+                if (ist_exectution) {
+                    ist_exectution = false;
                 }
-
-
-                if (!isUseModelSolver) {
-
-                    //alert("going into custom algo");
-
-                    var circle_areaii_array = Find_Circles_Required_To_Cover_Polygon(selected_circle_areas_list,
-                        increased_polygon_area,
-                        polygon_area_margin,
-                        polygon_bounds_margin);
-
-                    for (var i = 0; i < circle_areaii_array.length; i++) {
-
-                        for (var j = 0; j < circle_areaii_array[i]; j++) {
-
-                            circle_radii_array[circle_radii_array_index] = selected_radii_area[i][0];
-                            circle_radii_array_index++;
-                        }
-
-                    }
-
-                    //alert("coming out of custom algo " + circle_radii_array.length);
+                else if (polygon_area_margin == 100) {
+                    polygon_area_margin = 0;
+                    document.getElementById('txtAreaMargin').value = polygon_area_margin;
                 }
-
                 else {
-                    //////////////////////////////////////////////////////////////////////
-
-                    var algo_model_solvera_results;
-
-                    //alert("going into model. polygon area = " + increased_polygon_area);
-                    algo_model_solvera_results = Find_Circles_Required_To_Cover_Polygon_By_Model_Solver(
-                        selected_radii_area,
-                        increased_polygon_area);
-
-
-                    var termination_flag = false;
-                    var pervious_circle_count = 0;
-                    var pervious_area_coverage = 0;
-                    var previous_algo_model_solvera_results;
-                    var percent_area_compormised = 0;
-
-
-                    while (!termination_flag) {
-
-                        previous_algo_model_solvera_results = algo_model_solvera_results;
-                        pervious_circle_count = algo_model_solvera_results[1].length;
-                        pervious_area_coverage = algo_model_solvera_results[0];
-
-                        algo_model_solvera_results = Find_Circles_Required_To_Cover_Polygon_By_Model_Solver_Again(
-                            selected_radii_area,
-                            increased_polygon_area,
-                            pervious_circle_count - 1);
-
-
-                        percent_area_compormised = (((increased_polygon_area - algo_model_solvera_results[0]) / increased_polygon_area) * 100).toFixed(0);
-
-                        percent_area_compormised = parseInt(percent_area_compormised);
-
-                        //algo_model_solvera_results[0] == 0 ||
-
-                        if (algo_model_solvera_results[1].length >= pervious_circle_count ||
-                            algo_model_solvera_results[0] < polygon_area ||
-                            percent_area_compormised > 5) {
-
-                            circle_radii_array = previous_algo_model_solvera_results[1];
-                            termination_flag = true;
-                            break;
-
-                        }
-                        else {
-                            circle_radii_array = algo_model_solvera_results[1];
-                        }
-
-                    }
-
-
-                    //alert("out from model  " + circle_radii_array.length);
-                    /////////////////////////////////////////////////////////////////////////
+                    polygon_area_margin = polygon_area_margin + 5;
+                    document.getElementById('txtAreaMargin').value = polygon_area_margin;
                 }
+                // NOT NEEDED IN LOOPS
 
 
-                //alert("polygon area" + increased_polygon_area + "\ncovered polygon area" + algo_model_solvera_results[0]);
+                // VALIDATION CHECKS ONCE NEEDED/////////////////////////////////////////
 
-                number_of_circles = circle_radii_array.length;
-
-
-                if (number_of_circles <= 0) {
-                    alert("Selected Circles are way too big for given Polygon. Select some smaller Circles Radii.");
+                if (grid_length % 2 == 0) {
+                    alert("For better results, Grid Length must be ODD number");
                     return;
                 }
 
 
+                if (random_generation_record_count < number_of_top_records_goto_to_next_generation) {
+                    alert("Random-Generation-Records should be greater or equal to Records-Taken-From-Previous-Generation");
+                    return;
+                }
 
-                //var lat_long_grid = Generate_Lat_Long_Grid(polygon_extent, grid_length);
-                var latlong_grid = Generate_Lat_Long_Points_Grid(polygon_extent, grid_length, map);
-                var index_grid = Generate_Cartesian_Grid(grid_length);
+                if (number_of_top_records_goto_to_next_generation > number_of_records_in_each_crossover_generations) {
+                    alert("Records-Taken-From-Previous-Generation should be less than or equal to Records-In-CrossOver-Generatoin");
+                    return;
+                }
 
-                //console.log("lat_long_grid");
-                //Print_Grid_Spatially_Like_Map(lat_long_grid);
-                //console.log("lat_long_point_grid");
-                //Print_Grid_Points_Spatially_Like_Map(latlong_grid);
-                //console.log("index_grid");
+                if (number_of_top_records_goto_to_next_generation < 2) {
+                    alert("Records-Taken-From-Previous-Generation should be greater than or equal to 2");
+                    return;
+                }
 
-
-                //Print_Grid_Spatially_Like_Map(index_grid);
-                Show_Grid_Points_On_Map(graphics_layer, latlong_grid);
-
-                //var polygon_coverage = get_polygon_coverage_on_latlong_grid(polygon, latlong_grid);
-
-                var result_array = get_polygon_coverage_on_latlong_cartesian_grid(polygon, latlong_grid);
-
-                // lat long points array
-                var polygon_coverage_on_latlong_grid = result_array[0];
-                // cartesian points array
-                var polygon_coverage_on_cartesian_grid = result_array[1];
-
-                var latlong_grid_center = (grid_length - 1) / 2;
-                var latlong_grid_center_point = latlong_grid[latlong_grid_center][latlong_grid_center];
-
-
-                for (var i = 0; i < circle_radii_array.length; i++) {
-
-                    var circle_on_grid_center = get_circle_polygon(latlong_grid_center_point, circle_radii_array[i]);
-
-                    ideal_circle_coverage_count_on_grid = ideal_circle_coverage_count_on_grid +
-                        get_polygon_coverage_count_on_latlong_grid(circle_on_grid_center, latlong_grid);
-
+                if (number_of_records_in_each_crossover_generations < 2) {
+                    alert("Records-In-CrossOver-Generatoin should be greater than or equal to 2");
+                    return;
                 }
 
 
+                if (polygon_area_margin < 0) {
+                    alert("Polygoin area margin in percentage should be greater than or equal to 1");
+                    return;
+                }
 
+                if (polygon_bounds_margin < 1) {
+                    alert("Polygoin bounds margin in percentage should be greater than 1");
+                    return;
+                }
 
-                //var drawings_results = draw_circle(graphics_layer, latlong_grid_center_point, "blue", 1, radius_of_circle_in_meters);
-                //var circle_on_grid_center = drawings_results[0];
-
-
-                // polygon_areas = geodesicUtils.geodesicAreas([circle_on_grid_center], esri.Units.SQUARE_METERS);
-                // polygon_area = Math.round(polygon_areas[0]);
-                // alert("Circle Area: " + polygon_area + " km²"); // Area: 1150498 km²
-
-
-
-
-                //ideal_circle_coverage_count_on_grid = ideal_circle_coverage_count_on_grid * number_of_circles;
-
-
-                //console.log("polygon_coverage_on_latlong_grid" + polygon_coverage_on_latlong_grid.length);
-                //console.log("polygon_coverage_on_cartesian_grid" + polygon_coverage_on_cartesian_grid.length);
-
-                //var seed_latlong_generation = Get_Initial_LatLong_Generation_By_Random_Function_Map(
-                //    grid_length,
-                //    polygon_coverage_on_latlong_grid,
-                //    random_generation_record_count,
-                //    grid_buffer_x,
-                //    grid_buffer_y);
-
-                // OLD WAY TO GENERATE RANDOM SEED GENERATION
-                //var cartesian_generation = Get_Initial_Generation_By_Random_Function_Map(
-                //    grid_length,
-                //    polygon_coverage_on_cartesian_grid,
-                //    random_generation_record_count,
-                //    grid_buffer_x,
-                //    grid_buffer_y);
-
-
-                var cartesian_generation = Get_Initial_Cartesian_Generation_By_Random_Function_Map_Polygon(
-                    grid_length,
-                    polygon_coverage_on_cartesian_grid,
-                    random_generation_record_count,
-                    grid_buffer_x,
-                    grid_buffer_y,
-                    number_of_circles);
-
-
-                // Needed only for debugging @@@@@@@@@@@@@@@@@@@@@@@@@@
-                console.log("Initial Seed Random Generation");
-                console.log("===============");
-                Print_Generation(cartesian_generation);
-                console.log("===============");
-
-
-
-                //var mutated_cartesian_generation = Mutate_Cartesian_Generation(
-                //    cartesian_generation,
-                //    polygon_coverage_on_cartesian_grid,
-                //    grid_length);
-                //console.log("Mutated Initial Seed Random Generation");
-                //console.log("===============");
-                //Print_Generation(mutated_cartesian_generation);
-                //console.log("===============");
-
+                // VALIDATION CHECKS ONCE NEEDED/////////////////////////////////////////
 
                 var startTime = performance.now();
 
-                var all_records_list = Evaluate_FitnessValue_Of_Seed_Generation_Return_All_Records_GIS(
-                    cartesian_generation,
-                    map,
-                    polygon,
-                    polygon_coverage_on_latlong_grid,
-                    latlong_grid,
-                    circle_radii_array,
-                    number_of_circles,
-                    fitness_function_selector,
-                    ideal_circle_coverage_count_on_grid,
-                    polygon_coverage_on_cartesian_grid);
+                console.clear();
+                graphics_layer.clear();
+
+                //var polygon_margin_array = [10, 20, 30, 40, 50, 60, 70, 80, 90, 100];
+                var polygon_margin_array = [10, 20, 30, 40, 50];
+                var all_ga_results_array = [];
+                var all_ga_results_array_index = 0;
+
+                for (var iindex = 0; iindex < polygon_margin_array.length; iindex++) {
 
 
-                var master_record = [];
-
-                // sorted generation table of previous iteration
-                master_record[0] = all_records_list;
-
-                // one topper generation table record of previous iteration
-                master_record[1] = all_records_list[0];
-
-                // sorted generation table of all iterations, it is not maintined in corss over generations
-                // but here we are sending it for start. rethink this
-                master_record[2] = [];
-
-                // sorted generation table of TOPPERS all iterations
-                // initially it will have only one record
-                // topper record
-                var top_records_list = [];// to give a shape to Generation table
-                top_records_list[0] = all_records_list[0];
-                master_record[3] = top_records_list;
+                    polygon_area_margin = polygon_margin_array[iindex];
 
 
-                for (var iteration_count = 0; iteration_count < generation_count; iteration_count++) {
+                    var circle_radii_array = [];
+                    var circle_radii_array_index = 0;
 
-                    master_record = GENETIC_ALGO_To_Evaluate_FitnessValue_Of_Generation_With_Binary_CrossOver_Map_Configurable(
-                        iteration_count,  //  1 iteration count
-                        master_record[3], //  2 toppers records list, sorted generation table of TOPPERS all iterations
-                        master_record[0], //  3 prev_gen_record_list, sorted generation table of previous iteration
-                        master_record[2], //  4 all_records_list, sorted generation table of all iterations
-                        cartesian_generation, //5
-                        map,                  //6
-                        polygon,              //7
-                        polygon_coverage_on_latlong_grid,   //8
-                        polygon_coverage_on_cartesian_grid, //9
-                        latlong_grid,       //10
-                        number_of_top_records_goto_to_next_generation, //11
-                        number_of_records_in_each_crossover_generations, //12
-                        number_of_crossovers_before_mutations, //13
-                        0, //14
+                    var increased_polygon_area = polygon_area + parseInt(((polygon_area_margin / 100) * polygon_area).toFixed(0));
+                    //var increased_polygon_area = polygon_area + parseInt(((polygon_area_margin / 100) * polygon_area).toFixed(0));
+
+                    if (increased_polygon_area >= 222222222) {
+                        isUseModelSolver = false;
+                    }
+
+
+                    if (!isUseModelSolver) {
+
+                        //alert("going into custom algo");
+
+                        var circle_areaii_array = Find_Circles_Required_To_Cover_Polygon(selected_circle_areas_list,
+                            increased_polygon_area,
+                            polygon_area_margin,
+                            polygon_bounds_margin);
+
+                        for (var i = 0; i < circle_areaii_array.length; i++) {
+
+                            for (var j = 0; j < circle_areaii_array[i]; j++) {
+
+                                circle_radii_array[circle_radii_array_index] = selected_radii_area[i][0];
+                                circle_radii_array_index++;
+                            }
+
+                        }
+
+                        //alert("coming out of custom algo " + circle_radii_array.length);
+                    }
+
+                    else {
+                        //////////////////////////////////////////////////////////////////////
+
+                        var algo_model_solvera_results;
+
+                        //alert("going into model. polygon area = " + increased_polygon_area);
+                        algo_model_solvera_results = Find_Circles_Required_To_Cover_Polygon_By_Model_Solver(
+                            selected_radii_area,
+                            increased_polygon_area);
+
+                        var termination_flag = false;
+                        var pervious_circle_count = 0;
+                        var pervious_area_coverage = 0;
+                        var previous_algo_model_solvera_results;
+                        var percent_area_compormised = 0;
+
+                        while (!termination_flag) {
+
+                            previous_algo_model_solvera_results = algo_model_solvera_results;
+                            pervious_circle_count = algo_model_solvera_results[1].length;
+                            pervious_area_coverage = algo_model_solvera_results[0];
+
+                            algo_model_solvera_results = Find_Circles_Required_To_Cover_Polygon_By_Model_Solver_Again(
+                                selected_radii_area,
+                                increased_polygon_area,
+                                pervious_circle_count - 1);
+
+
+                            percent_area_compormised = (((increased_polygon_area - algo_model_solvera_results[0]) / increased_polygon_area) * 100).toFixed(0);
+
+                            percent_area_compormised = parseInt(percent_area_compormised);
+
+                            //algo_model_solvera_results[0] == 0 ||
+
+                            if (algo_model_solvera_results[1].length >= pervious_circle_count ||
+                                algo_model_solvera_results[0] < polygon_area ||
+                                percent_area_compormised > 5) {
+
+                                circle_radii_array = previous_algo_model_solvera_results[1];
+                                termination_flag = true;
+                                break;
+
+                            }
+                            else {
+                                circle_radii_array = algo_model_solvera_results[1];
+                            }
+
+                        }
+
+
+                        //alert("out from model  " + circle_radii_array.length);
+                        /////////////////////////////////////////////////////////////////////////
+                    }
+
+
+                    //alert("polygon area" + increased_polygon_area + "\ncovered polygon area" + algo_model_solvera_results[0]);
+
+                    number_of_circles = circle_radii_array.length;
+
+
+                    if (number_of_circles <= 0) {
+                        alert("Selected Circles are way too big for given Polygon. Select some smaller Circles Radii.");
+                        return;
+                    }
+
+                    //var lat_long_grid = Generate_Lat_Long_Grid(polygon_extent, grid_length);
+                    var latlong_grid = Generate_Lat_Long_Points_Grid(polygon_extent, grid_length, map);
+                    var index_grid = Generate_Cartesian_Grid(grid_length);
+
+                    //console.log("lat_long_grid");
+                    //Print_Grid_Spatially_Like_Map(lat_long_grid);
+                    //console.log("lat_long_point_grid");
+                    //Print_Grid_Points_Spatially_Like_Map(latlong_grid);
+                    //console.log("index_grid");
+
+
+                    //Print_Grid_Spatially_Like_Map(index_grid);
+                    Show_Grid_Points_On_Map(graphics_layer, latlong_grid);
+
+                    //var polygon_coverage = get_polygon_coverage_on_latlong_grid(polygon, latlong_grid);
+
+                    var result_array = get_polygon_coverage_on_latlong_cartesian_grid(polygon, latlong_grid);
+
+                    // lat long points array
+                    var polygon_coverage_on_latlong_grid = result_array[0];
+                    // cartesian points array
+                    var polygon_coverage_on_cartesian_grid = result_array[1];
+
+                    var latlong_grid_center = (grid_length - 1) / 2;
+                    var latlong_grid_center_point = latlong_grid[latlong_grid_center][latlong_grid_center];
+
+
+                    for (var i = 0; i < circle_radii_array.length; i++) {
+
+                        var circle_on_grid_center = get_circle_polygon(latlong_grid_center_point, circle_radii_array[i]);
+
+                        ideal_circle_coverage_count_on_grid = ideal_circle_coverage_count_on_grid +
+                            get_polygon_coverage_count_on_latlong_grid(circle_on_grid_center, latlong_grid);
+
+                    }
+
+
+                    var cartesian_generation = Get_Initial_Cartesian_Generation_By_Random_Function_Map_Polygon(
+                        grid_length,
+                        polygon_coverage_on_cartesian_grid,
+                        random_generation_record_count,
+                        grid_buffer_x,
+                        grid_buffer_y,
+                        number_of_circles);
+
+                    // Needed only for debugging @@@@@@@@@@@@@@@@@@@@@@@@@@
+                    console.log("Initial Seed Random Generation");
+                    console.log("===============");
+                    Print_Generation(cartesian_generation);
+                    console.log("===============");
+
+                    //var mutated_cartesian_generation = Mutate_Cartesian_Generation(
+                    //    cartesian_generation,
+                    //    polygon_coverage_on_cartesian_grid,
+                    //    grid_length);
+                    //console.log("Mutated Initial Seed Random Generation");
+                    //console.log("===============");
+                    //Print_Generation(mutated_cartesian_generation);
+                    //console.log("===============");
+
+
+                    var all_records_list = Evaluate_FitnessValue_Of_Seed_Generation_Return_All_Records_GIS(
+                        cartesian_generation,
+                        map,
+                        polygon,
+                        polygon_coverage_on_latlong_grid,
+                        latlong_grid,
                         circle_radii_array,
                         number_of_circles,
                         fitness_function_selector,
-                        ideal_circle_coverage_count_on_grid);
+                        ideal_circle_coverage_count_on_grid,
+                        polygon_coverage_on_cartesian_grid);
 
-                    if ((iteration_count + 1) % number_of_crossovers_before_mutations == 0) {
 
-                        if ((iteration_count + 1) != generation_count) {
+                    var master_record = [];
 
-                            var mutated_cartesian_generation = Mutate_Cartesian_Generation(
-                                iteration_count,
-                                master_record[0],
-                                polygon_coverage_on_cartesian_grid,
-                                grid_length,
-                                number_of_circles);
+                    // sorted generation table of previous iteration
+                    master_record[0] = all_records_list;
 
-                            master_record[0] = mutated_cartesian_generation;
+                    // one topper generation table record of previous iteration
+                    master_record[1] = all_records_list[0];
 
-                            // Needed only for debugging @@@@@@@@@@@@@@@@@@@@@@@@@@
-                            console.log("Iteration [ " + (iteration_count + 1) + " ] Mutation Performed Successfully.");
-                            console.log("===============");
-                            Print_Generation(mutated_cartesian_generation);
-                            console.log("===============");
+                    // sorted generation table of all iterations, it is not maintined in corss over generations
+                    // but here we are sending it for start. rethink this
+                    master_record[2] = [];
 
+                    // sorted generation table of TOPPERS all iterations
+                    // initially it will have only one record
+                    // topper record
+                    var top_records_list = [];// to give a shape to Generation table
+                    top_records_list[0] = all_records_list[0];
+                    master_record[3] = top_records_list;
+
+
+                    for (var iteration_count = 0; iteration_count < generation_count; iteration_count++) {
+
+                        master_record = GENETIC_ALGO_To_Evaluate_FitnessValue_Of_Generation_With_Binary_CrossOver_Map_Configurable(
+                            iteration_count,  //  1 iteration count
+                            master_record[3], //  2 toppers records list, sorted generation table of TOPPERS all iterations
+                            master_record[0], //  3 prev_gen_record_list, sorted generation table of previous iteration
+                            master_record[2], //  4 all_records_list, sorted generation table of all iterations
+                            cartesian_generation, //5
+                            map,                  //6
+                            polygon,              //7
+                            polygon_coverage_on_latlong_grid,   //8
+                            polygon_coverage_on_cartesian_grid, //9
+                            latlong_grid,       //10
+                            number_of_top_records_goto_to_next_generation, //11
+                            number_of_records_in_each_crossover_generations, //12
+                            number_of_crossovers_before_mutations, //13
+                            0, //14
+                            circle_radii_array,
+                            number_of_circles,
+                            fitness_function_selector,
+                            ideal_circle_coverage_count_on_grid);
+
+                        if ((iteration_count + 1) % number_of_crossovers_before_mutations == 0) {
+
+                            if ((iteration_count + 1) != generation_count) {
+
+                                var mutated_cartesian_generation = Mutate_Cartesian_Generation(
+                                    iteration_count,
+                                    master_record[0],
+                                    polygon_coverage_on_cartesian_grid,
+                                    grid_length,
+                                    number_of_circles);
+
+                                master_record[0] = mutated_cartesian_generation;
+
+                                // Needed only for debugging @@@@@@@@@@@@@@@@@@@@@@@@@@
+                                console.log("Iteration [ " + (iteration_count + 1) + " ] Mutation Performed Successfully.");
+                                console.log("===============");
+                                Print_Generation(mutated_cartesian_generation);
+                                console.log("===============");
+
+                            }
+                            //console.error("GENERATION MUTATION PERFORMED SUCCESSFULLY.");
                         }
-                        //console.error("GENERATION MUTATION PERFORMED SUCCESSFULLY.");
                     }
+
+
+
+
+                    //  input: sorted generation table of TOPPERS of all iterations
+                    //  find the best from the list.
+                    var fittest_record_found = Evaluate_FitnessValue_Of_Tieing_Toppers(
+                        master_record[3], //toppers_generation_table
+                        map,
+                        polygon,
+                        polygon_coverage_on_latlong_grid,
+                        latlong_grid,
+                        circle_radii_array,
+                        ideal_circle_coverage_count_on_grid,
+                        outside_covg_filter_selector);
+
+
+                    if (circle_radii_array.length <= 6) {
+
+                        // Shuffle the location of all points in record and create new generation.
+                        // Shuffle the location of all Circles on map and evaluate thieir fitness.
+                        // If there are four circles, then 4x3x2x1 records will be created.
+                        var repaired_cartesian_generation = Repair_Fittest_Record_N_Create_Generation(fittest_record_found);
+
+                        var repaired_cartesian_generation_results = Evaluate_FitnessValue_Of_Seed_Generation_Return_All_Records_GIS(
+                            repaired_cartesian_generation,
+                            map,
+                            polygon,
+                            polygon_coverage_on_latlong_grid,
+                            latlong_grid,
+                            circle_radii_array,
+                            number_of_circles,
+                            fitness_function_selector,
+                            ideal_circle_coverage_count_on_grid,
+                            polygon_coverage_on_cartesian_grid);
+
+
+
+                        var fittest_record_found2 = Evaluate_FitnessValue_Of_Tieing_Toppers(
+                            repaired_cartesian_generation_results, //toppers_generation_table
+                            map,
+                            polygon,
+                            polygon_coverage_on_latlong_grid,
+                            latlong_grid,
+                            circle_radii_array,
+                            ideal_circle_coverage_count_on_grid,
+                            outside_covg_filter_selector);
+
+
+                        if (fittest_record_found2 == null || fittest_record_found2.length == 0) {
+                            fittest_record_found2 = fittest_record_found;
+                        }
+                        else {
+                            fittest_record_found = fittest_record_found2;
+                        }
+
+                        // Add One Missed Polygon-Point to the Record at one time and create generation
+                        // If record contains 4 Circle Points, Add one Missed Point to location zeor and create 7 points
+                        //
+                        var new_generation_with_missing_points = Consider_Missing_Points_N_Create_Generation(fittest_record_found);
+
+                        var new_generation_with_missing_points_results = Evaluate_FitnessValue_Of_Seed_Generation_Return_All_Records_GIS(
+                            new_generation_with_missing_points,
+                            map,
+                            polygon,
+                            polygon_coverage_on_latlong_grid,
+                            latlong_grid,
+                            circle_radii_array,
+                            number_of_circles,
+                            fitness_function_selector,
+                            ideal_circle_coverage_count_on_grid,
+                            polygon_coverage_on_cartesian_grid);
+
+
+
+                        var fittest_record_found3 = Evaluate_FitnessValue_Of_Tieing_Toppers(
+                            new_generation_with_missing_points_results, //toppers_generation_table
+                            map,
+                            polygon,
+                            polygon_coverage_on_latlong_grid,
+                            latlong_grid,
+                            circle_radii_array,
+                            ideal_circle_coverage_count_on_grid,
+                            outside_covg_filter_selector);
+
+
+                        if (fittest_record_found3 == null || fittest_record_found3.length == 0) {
+                            fittest_record_found3 = fittest_record_found2;
+                        }
+                        else {
+                            fittest_record_found = fittest_record_found3;
+                        }
+
+                    }
+
+                    //var fittest_record_found = master_record[3][0];
+
+
+                    var remove_eclipsed_circles_cartesian_generation_results = Remove_Eclipsed_Circles_From_Fittest_Record(
+                        fittest_record_found,
+                        circle_radii_array);
+
+                    //fittest_record_found[1] = remove_eclipsed_circles_cartesian_generation_results[0];
+                    circle_radii_array = remove_eclipsed_circles_cartesian_generation_results[1];
+                    number_of_circles = remove_eclipsed_circles_cartesian_generation_results[1].length;
+
+                    var fittest_record_found4 = Evaluate_FitnessValue_Of_Seed_Generation_Return_All_Records_GIS(
+                        remove_eclipsed_circles_cartesian_generation_results[0],
+                        map,
+                        polygon,
+                        polygon_coverage_on_latlong_grid,
+                        latlong_grid,
+                        circle_radii_array,
+                        number_of_circles,
+                        fitness_function_selector,
+                        ideal_circle_coverage_count_on_grid,
+                        polygon_coverage_on_cartesian_grid);
+
+
+                    if (fittest_record_found4 != null || fittest_record_found4.length != 0) {
+                        fittest_record_found = fittest_record_found4[0];
+                    }
+
+
+                    all_ga_results_array[all_ga_results_array_index] = fittest_record_found;
+                    all_ga_results_array_index++;
+
                 }
 
+                var sorted_all_ga_results_array = Sort_Generation_Result_Table(all_ga_results_array);
 
-
-
-                //  input: sorted generation table of TOPPERS of all iterations
-                //  find the best from the list.
-                var fittest_record_found = Evaluate_FitnessValue_Of_Tieing_Toppers(
-                    master_record[3], //toppers_generation_table
+                var final_fittest_record_found = Evaluate_FitnessValue_Of_Tieing_Toppers(
+                    sorted_all_ga_results_array, //toppers_generation_table
                     map,
                     polygon,
                     polygon_coverage_on_latlong_grid,
@@ -1071,82 +1178,20 @@
 
 
 
+                //var final_toppers_generation = [];
+                //var final_toppers_generation_index = 0;
 
-                if (circle_radii_array.length <= 6) {
+                //for (var i = 0; i < all_ga_results_array.length; i++) {
 
-                    var repaired_cartesian_generation = Repair_Fittest_Record_N_Create_Generation(fittest_record_found);
+                //    if (all_ga_results_array[i][8] == 0) {
 
-                    //alert("evaluating started");
-                    var repaired_cartesian_generation_results = Evaluate_FitnessValue_Of_Seed_Generation_Return_All_Records_GIS(
-                        repaired_cartesian_generation,
-                        map,
-                        polygon,
-                        polygon_coverage_on_latlong_grid,
-                        latlong_grid,
-                        circle_radii_array,
-                        number_of_circles,
-                        fitness_function_selector,
-                        ideal_circle_coverage_count_on_grid,
-                        polygon_coverage_on_cartesian_grid);
+                //        final_toppers_generation[final_toppers_generation_index] = all_ga_results_array[i];
 
-                    //alert("evaluating ended");
-
-                    var fittest_record_found2 = Evaluate_FitnessValue_Of_Tieing_Toppers(
-                        repaired_cartesian_generation_results, //toppers_generation_table
-                        map,
-                        polygon,
-                        polygon_coverage_on_latlong_grid,
-                        latlong_grid,
-                        circle_radii_array,
-                        ideal_circle_coverage_count_on_grid,
-                        outside_covg_filter_selector);
-
-                   
-                    if (fittest_record_found2 == null || fittest_record_found2.length == 0) {
-                        fittest_record_found2 = fittest_record_found;
-                    }
-                    else {
-                        fittest_record_found = fittest_record_found2;
-                    }
-
-                    var new_generation_with_missing_points = Consider_Missing_Points_N_Create_Generation(fittest_record_found);
+                //    }
+                    
+                //}
 
 
-                    var new_generation_with_missing_points_results = Evaluate_FitnessValue_Of_Seed_Generation_Return_All_Records_GIS(
-                        new_generation_with_missing_points,
-                        map,
-                        polygon,
-                        polygon_coverage_on_latlong_grid,
-                        latlong_grid,
-                        circle_radii_array,
-                        number_of_circles,
-                        fitness_function_selector,
-                        ideal_circle_coverage_count_on_grid,
-                        polygon_coverage_on_cartesian_grid);
-
-
-
-                    var fittest_record_found3 = Evaluate_FitnessValue_Of_Tieing_Toppers(
-                        new_generation_with_missing_points_results, //toppers_generation_table
-                        map,
-                        polygon,
-                        polygon_coverage_on_latlong_grid,
-                        latlong_grid,
-                        circle_radii_array,
-                        ideal_circle_coverage_count_on_grid,
-                        outside_covg_filter_selector);
-
-
-                    if (fittest_record_found3 == null || fittest_record_found3.length == 0) {
-                        fittest_record_found3 = fittest_record_found2;
-                    }
-                    else {
-                        fittest_record_found = fittest_record_found3;
-                    }
-
-                }
-
-                //var fittest_record_found = master_record[3][0];
 
 
                 if (hand_drawn_polygon_by_user == null) {
@@ -1160,50 +1205,25 @@
                 }
 
 
-                var remove_eclipsed_circles_cartesian_generation_results = Remove_Eclipsed_Circles_From_Fittest_Record(
-                    fittest_record_found,
-                    circle_radii_array); 
-
-                //fittest_record_found[1] = remove_eclipsed_circles_cartesian_generation_results[0];
-                circle_radii_array = remove_eclipsed_circles_cartesian_generation_results[1];
-                number_of_circles = remove_eclipsed_circles_cartesian_generation_results[1].length;
-
-                var fittest_record_found4 = Evaluate_FitnessValue_Of_Seed_Generation_Return_All_Records_GIS(
-                    remove_eclipsed_circles_cartesian_generation_results[0],
-                    map,
-                    polygon,
-                    polygon_coverage_on_latlong_grid,
-                    latlong_grid,
-                    circle_radii_array,
-                    number_of_circles,
-                    fitness_function_selector,
-                    ideal_circle_coverage_count_on_grid,
-                    polygon_coverage_on_cartesian_grid);
-
-
-                if (fittest_record_found4 != null || fittest_record_found4.length != 0) {
-                    fittest_record_found = fittest_record_found4[0];
-                }
-
                 show_record_on_map(
                     graphics_layer,
-                    fittest_record_found,
+                    final_fittest_record_found,
                     latlong_grid,
-                    circle_radii_array,// circle_radii_array
-                    number_of_circles); //number_of_circles
+                    final_fittest_record_found[10],// circle_radii_array
+                    final_fittest_record_found[9]); //number_of_circles
 
                 var endTime = performance.now();
 
                 //show_record_on_map(graphics_layer, master_record[3][0], latlong_grid, radius_of_circle_in_meters);
 
                 var total_polygon_points_covered_on_grid = polygon_coverage_on_cartesian_grid.length;
-                var total_polygon_points_covered_by_circles = fittest_record_found[2];// FV
+                var total_polygon_points_covered_by_circles = final_fittest_record_found[2];// FV
 
-                var fittest_fitness_value = fittest_record_found[0];// FV
-                var fittest_inside_covg_without_overlapping = fittest_record_found[2];// coverage without overlapping
-                var fittest_inside_covg_with_overlapping = fittest_record_found[3];// coverage with overlapping
-                var fittest_total_overlapping = fittest_record_found[4];// total overlapping
-                var fittest_outside_covg = fittest_record_found[5];// circle outside coverage
+                var fittest_fitness_value = final_fittest_record_found[0];// FV
+                var fittest_inside_covg_without_overlapping = final_fittest_record_found[2];// coverage without overlapping
+                var fittest_inside_covg_with_overlapping = final_fittest_record_found[3];// coverage with overlapping
+                var fittest_total_overlapping = final_fittest_record_found[4];// total overlapping
+                var fittest_outside_covg = final_fittest_record_found[5];// circle outside coverage
 
                 var text_offset_value_x = 6000;
                 var text_offset_value_y = -700;
@@ -1218,7 +1238,7 @@
                 var polygon_percent_coverage = (total_polygon_points_covered_by_circles / total_polygon_points_covered_on_grid) * 100;
                 polygon_percent_coverage = polygon_percent_coverage.toFixed(2);
                 var font6 = Font("20", Font.STYLE_NORMAL, Font.VARIANT_NORMAL, Font.WEIGHT_BOLDER);
-                var textSymbol6 = new TextSymbol("Circle Coverage : " + fittest_record_found[2] + " / " + total_polygon_points_covered_on_grid + " ( " + polygon_percent_coverage + "% )", font6, "blue");
+                var textSymbol6 = new TextSymbol("Circle Coverage : " + fittest_inside_covg_without_overlapping + " / " + total_polygon_points_covered_on_grid + " ( " + polygon_percent_coverage + "% )", font6, "blue");
                 var labelPointGraphic6 = new Graphic(latlong_grid[((grid_length - 1))][grid_length - 1].offset(text_offset_value_x, 1 * text_offset_value_y), textSymbol6);
                 graphics_layer.add(labelPointGraphic6);
 
@@ -1314,7 +1334,7 @@
             }
 
 
-            
+
 
             function Remove_Eclipsed_Circles_From_Fittest_Record(
                 fittest_record_found,
@@ -1353,7 +1373,7 @@
                 result[0] = [];
                 result[0][0] = new_centre_points_for_record;
                 result[1] = new_circle_radii_array;
-               
+
                 return result;
 
             }
@@ -1603,6 +1623,10 @@
                     Record_Result[5] = coverage_results_with_n_without[4]; // circle outside coverage
                     Record_Result[6] = coverage_results_with_n_without[5]; //  polygon_not_covered_points
                     Record_Result[7] = coverage_results_with_n_without[6]; //  eclipsed_circles_array
+                    Record_Result[8] = coverage_results_with_n_without[7]; //  not covered points count
+                    Record_Result[9] = coverage_results_with_n_without[8]; //  number_of_circles
+                    Record_Result[10] = coverage_results_with_n_without[9]; //  circle_radii_array
+
 
                     Generation_Result_Table[i] = Record_Result;
 
@@ -1878,7 +1902,6 @@
                 console.log("===============");
 
 
-
                 // Binary Cross Over takes any no of records and return any no of records
                 // Returns a Cartesian Generation
                 var generation = Crossover_Generation_On_Map_Configurable(
@@ -1946,8 +1969,9 @@
                         Top_Record_Result[0][5] = coverage_results_with_n_without[4]; // circle outside coverage
                         Top_Record_Result[0][6] = coverage_results_with_n_without[5]; //  polygon_not_covered_points
                         Top_Record_Result[0][7] = coverage_results_with_n_without[6]; //  eclipsed_circles_array
-                        
-
+                        Top_Record_Result[0][8] = coverage_results_with_n_without[7]; //  not covered points count
+                        Top_Record_Result[0][9] = coverage_results_with_n_without[8]; //  number_of_circles
+                        Top_Record_Result[0][10] = coverage_results_with_n_without[9]; //  circle_radii_array
                     }
 
 
@@ -1961,6 +1985,9 @@
                     Record_Result[5] = coverage_results_with_n_without[4]; // circle outside coverage
                     Record_Result[6] = coverage_results_with_n_without[5]; //  polygon_not_covered_points
                     Record_Result[7] = coverage_results_with_n_without[6]; //  eclipsed_circles_array
+                    Record_Result[8] = coverage_results_with_n_without[7]; //  not covered points count
+                    Record_Result[9] = coverage_results_with_n_without[8]; //  number_of_circles
+                    Record_Result[10] = coverage_results_with_n_without[9]; //  circle_radii_array
 
                     Generation_Result_Table[i] = Record_Result;
 
@@ -2155,7 +2182,7 @@
 
                         if (total_overlapping_amongtwo_circles >= cir_cov_pts_ins_poly[i].length) {
                             eclipsed_circles_array[eclipsed_circles_array_index] = i;
-                            eclipsed_circles_array_index++;                           
+                            eclipsed_circles_array_index++;
                         }
 
                         if (total_overlapping_amongtwo_circles >= cir_cov_pts_ins_poly[j].length) {
@@ -2164,7 +2191,7 @@
                         }
 
                         total_overlapping_amongall_circles = total_overlapping_amongall_circles + total_overlapping_amongtwo_circles;
-                            
+
 
                     }
                 }
@@ -2294,8 +2321,10 @@
                 coverage_results_with_n_without[3] = total_overlapping_amongall_circles; // total overlapping
                 coverage_results_with_n_without[4] = total_cir_cov_outs_poly; // outside coverage
                 coverage_results_with_n_without[5] = polygon_not_covered_points; // polygon_not_covered_points
-                coverage_results_with_n_without[6] = eclipsed_circles_array;
-
+                coverage_results_with_n_without[6] = eclipsed_circles_array; // circles those are eclipsed inside other circles
+                coverage_results_with_n_without[7] = polygon_coverage.length - total_cir_cov_ins_poly_without_overlapping; // polygon points not covered
+                coverage_results_with_n_without[8] = number_of_circles;
+                coverage_results_with_n_without[9] = circle_radii_array;
 
 
                 return coverage_results_with_n_without;
@@ -3688,13 +3717,13 @@
 
 
 
-            });
+        });
 
 
         function Reset_UI_To_Start_Over_Again() {
 
             document.getElementById('txtAreaMargin').value = 0;
-            
+
         }
 
 
